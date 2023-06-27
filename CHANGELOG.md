@@ -1,3 +1,9 @@
+# 10.0.4
+
+## BUGFIX
+
+- [BUGFIX] Update publish-to-ter action 591de62
+
 # 10.0.3
 
 ## BUGFIX
