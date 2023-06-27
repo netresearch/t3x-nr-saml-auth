@@ -72,6 +72,7 @@ jobs:
       # PHAR files
       - name: Build PHAR file
         run: |
+          composer config --no-plugins allow-plugins.typo3/class-alias-loader true
           composer install
           composer global exec phar-composer build ./ ./vendors.phar
       - name: Include PHAR file
