@@ -1,5 +1,9 @@
 # 10.0.2
 
+## BUGFIX
+
+- [BUGFIX] Update publish-to-ter action 5e71e4e
+
 # 10.0.1
 
 ## TASK
