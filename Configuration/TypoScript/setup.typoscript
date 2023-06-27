@@ -1,0 +1,7 @@
+plugin.tx_nrsamlauth_authentication {
+    view {
+        templateRootPaths.0 = EXT:nr_saml_auth/Resources/Private/Templates/
+        partialRootPaths.0 = EXT:nr_saml_auth/Resources/Private/Partials/
+        layoutRootPaths.0 = EXT:nr_saml_auth/Resources/Private/Layouts/
+    }
+}

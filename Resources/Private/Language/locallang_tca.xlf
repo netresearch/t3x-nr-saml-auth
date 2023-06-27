@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2018-12-04T17:12:00Z" product-name="nr_saml_auth">
+		<header/>
+		<body>
+			<trans-unit id="nr_saml_auth_domain_model_settings">
+				<source>SAML Auth Settings</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp">
+				<source>SAML service provider</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.name">
+				<source>Name</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.redirect_url">
+				<source>RedirectURL</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_entity_id">
+				<source>Entity ID</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_url">
+				<source>Customer service URL</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_binding">
+				<source>Customer service binding</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_name_id_format">
+				<source>Name ID format</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_cert">
+				<source>Certificate</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.sp_key">
+				<source>Private key</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp">
+				<source>SAML identity provider</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp_entity_id">
+				<source>Entity ID</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_url">
+				<source>SSO URL</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_binding">
+				<source>Binding</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp_logout_url">
+				<source>Logout Url</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.idp_cert">
+				<source>Certificate</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.other">
+				<source>Other</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.username_prefix">
+				<source>Other</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

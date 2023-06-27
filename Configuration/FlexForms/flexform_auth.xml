@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<T3DataStructure>
+    <meta>
+        <langDisable>1</langDisable>
+    </meta>
+    <sheets>
+        <sGeneral>
+            <ROOT>
+                <TCEforms>
+                    <sheetTitle>Standard elements</sheetTitle>
+                </TCEforms>
+                <type>array</type>
+                <el>
+                    <settings.samlAuthSettings>
+                        <TCEforms>
+                            <label>LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_flexform.xlf:tx_nrsamlauth.pi_flexform.label.selectSamlSettings</label>
+                            <config>
+                                <type>select</type>
+                                <renderType>selectSingle</renderType>
+                                <foreign_table>tx_nrsamlauth_domain_model_settings</foreign_table>
+                                <foreign_sortby>name</foreign_sortby>
+                                <foreign_table_where>ORDER BY name</foreign_table_where>
+                                <rootLevel>1</rootLevel>
+                                <size>1</size>
+                                <autoSizeMax>1</autoSizeMax>
+                                <minitems>0</minitems>
+                                <maxitems>1</maxitems>
+                            </config>
+                            <exclude>1</exclude>
+                        </TCEforms>
+                    </settings.samlAuthSettings>
+                </el>
+            </ROOT>
+        </sGeneral>
+    </sheets>
+</T3DataStructure>

@@ -1,0 +1,19 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+      xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+      data-namespace-typo3-fluid="true">
+<f:layout name="frontend" />
+<f:section name="content">
+    <f:if condition="{isLoggedIn} == 'true'">
+        <f:then>
+            <p>&nbsp;</p>
+            <h2><f:translate key="tx_nrsamlauth_welcome"/></h2>
+            <p>
+                <f:translate key="tx_nrsamlauth_greeting"/> {feUser.name}
+            </p>
+            <div>
+                <f:link.page additionalParams="{logintype:'logout'}"><f:translate key="tx_nrsamlauth_logout"/></f:link.page>
+            </div>
+        </f:then>
+    </f:if>
+</f:section>
+</html>

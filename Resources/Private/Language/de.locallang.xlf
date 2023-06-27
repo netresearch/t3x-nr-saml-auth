@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2018-11-29T11:52:34Z" product-name="nr_saml_auth" target-language="de">
+        <header/>
+        <body>
+            <trans-unit id="tx_nrsamlauth_welcome">
+                <target>Willkommen im Loginbereich</target>
+            </trans-unit>
+            <trans-unit id="tx_nrsamlauth_greeting">
+                <target>Sie sind angemeldet als</target>
+            </trans-unit>
+            <trans-unit id="tx_nrsamlauth_logout">
+                <target>Abmelden</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
