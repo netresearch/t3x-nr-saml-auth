@@ -52,7 +52,7 @@ Groups: Choose you frontenduser folder
 Groups: Select the Frontendusergroup which should every logged in user assigned to
 ```
 
-As example SSO server you could use https://capriza.github.io/samling/samling.html.
+As example SSO server you could use [https://capriza.github.io/samling/samling.html](https://simplesamlphp.org/docs/stable/simplesamlphp-install.html#download-and-install-simplesamlphp).
 
 Auto discovery
 ==============
