@@ -72,8 +72,8 @@ jobs:
       # PHAR files
       - name: Build PHAR file
         run: |
-          composer install -d Resources/Private/Libs/Build
-          composer global exec phar-composer build Resources/Private/Libs/Build Resources/Private/Libs/vendors.phar
+          composer install
+          composer global exec phar-composer build ./ ./vendors.phar
       - name: Include PHAR file
         run: echo "\\Netresearch\\NrSamlAuth\\Configuration\\Extension::loadVendorLibraries();" >> ext_localconf.php
 
