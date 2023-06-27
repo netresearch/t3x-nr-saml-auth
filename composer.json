@@ -21,5 +21,10 @@
         "psr-4": {
             "Netresearch\\NrSamlAuth\\": "Tests/"
         }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "10.0.x-dev"
+        }
     }
 }
