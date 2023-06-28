@@ -72,9 +72,8 @@ jobs:
       # PHAR files
       - name: Build PHAR file
         run: |
-          composer config --no-plugins allow-plugins.typo3/class-alias-loader true
-          composer install
-          composer global exec phar-composer build ./ ./vendors.phar
+          composer install -d Resources/Private/Libs/Build
+          composer global exec phar-composer build Resources/Private/Libs/Build Resources/Private/Libs/vendors.phar
       - name: Include PHAR file
         run: echo "\\Netresearch\\NrSamlAuth\\Configuration\\Extension::loadVendorLibraries();" >> ext_localconf.php
 

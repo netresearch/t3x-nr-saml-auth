@@ -1,0 +1,10 @@
+{
+  "name": "netresearch/nr-saml-auth",
+  "description": "TYPO3 Saml Authentication for frontend",
+  "type": "typo3-cms-extension",
+  "license": "GPL-2.0+",
+  "require": {
+    "php": ">=7.1.0",
+    "onelogin/php-saml": "^3.0.0"
+  }
+}
