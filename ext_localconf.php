@@ -7,10 +7,10 @@ defined('TYPO3_MODE') or die('Access denied.');
     'Netresearch.NrSamlAuth',
     'Authentication',
     [
-        'Auth' => 'login,receiveSamlResponse'
+        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse'
     ],
     [
-        'Auth' => 'login,receiveSamlResponse'
+        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse'
     ]
 );
 
