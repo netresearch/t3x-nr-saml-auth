@@ -1,21 +1,19 @@
 <?php
 defined('TYPO3_MODE') or die('Access denied.');
 
-/* @var string $_EXTKEY */
-
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
     'Netresearch.NrSamlAuth',
     'Authentication',
     [
-        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse'
+        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse',
     ],
     [
-        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse'
+        Netresearch\NrSamlAuth\Controller\AuthController::class => 'login,receiveSamlResponse',
     ]
 );
 
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addService(
-    $_EXTKEY,
+    'nrc_saml_auth',
     'auth',
     \Netresearch\NrSamlAuth\Sv\AuthenticationService::class,
     [
