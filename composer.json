@@ -27,7 +27,7 @@
             "extension-key": "nr_saml_auth"
         },
         "branch-alias": {
-            "dev-master": "10.0.x-dev"
+            "dev-": "10.0.x-dev"
         }
     }
 }
