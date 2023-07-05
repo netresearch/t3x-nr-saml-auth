@@ -39,6 +39,11 @@ class PostUserLookup
      */
     private $objectManager;
 
+    /**
+     * @var SettingsRepository
+     */
+    private $settingsRepository;
+
 
     /**
      * Writes data from saml response into session which are needed to perform logout.
@@ -47,13 +52,15 @@ class PostUserLookup
      *
      * @return void
      */
-    public function process($params)
+    public function process($params, $ref)
     {
         $pObj = $params['pObj'];
 
-        $this->getSamlService()->setSettingsUid($this->getSamlId());
+       $obj = $this->getSamlService();
+       $obj->setSettingsUid($this->getSamlId());
 
         if (false === $this->hasSamlResponse()) {
+            unset($this->samlService);
             return;
         }
 
@@ -64,7 +71,6 @@ class PostUserLookup
             $samlResponse = $this->getSamlService()->getResponse($this->getSamlResponse());
 
             $sessionData = ['id' => $this->getSamlId(), 'AssertionId' => $samlResponse->getAssertionId(), 'nameId' => $samlResponse->getNameId()];
-
             $this->getSamlSession()->setUser($pObj);
             $this->getSamlSession()->setSessionData($sessionData);
         } catch (\Exception $exception) {
@@ -72,8 +78,6 @@ class PostUserLookup
                           ->getLogger(__CLASS__)
                           ->error($exception->getMessage());
         }
-
-
     }
 
     /**
@@ -103,15 +107,26 @@ class PostUserLookup
      */
     private function getSamlId()
     {
+
         if ($samlId = GeneralUtility::_GET('saml_id')) {
             return (int) $samlId;
         }
 
         $url = GeneralUtility::getIndpEnv('TYPO3_REQUEST_HOST') . '/';
-        $settings = $this->getSettingsRepository()->findEntityIdByHost($url);
 
-        if ($settings) {
-            return $settings->getUid();
+        $queryBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Database\ConnectionPool::class)->getQueryBuilderForTable('tx_nrsamlauth_domain_model_settings');
+        $res = $queryBuilder
+        ->select('uid')
+            ->from('tx_nrsamlauth_domain_model_settings')
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'sp_entity_id',
+                    $queryBuilder->createNamedParameter($url, \PDO::PARAM_STR)
+                )
+            )->executeQuery()->fetchAssociative();
+
+        if (isset($res['uid'])) {
+            return $res['uid'];
         }
 
         return 1;
@@ -144,7 +159,7 @@ class PostUserLookup
             return $this->samlService;
         }
 
-        $this->samlService = $this->getObjectManager()->get(SamlService::class);
+        $this->samlService = GeneralUtility::makeInstance(SamlService::class);
         return $this->samlService;
     }
 
@@ -169,7 +184,7 @@ class PostUserLookup
             return $this->settingsRepository;
         }
 
-        $this->settingsRepository = $this->getObjectManager()->get(SettingsRepository::class);
+        $this->settingsRepository = GeneralUtility::makeInstance(SettingsRepository::class);
 
         return $this->settingsRepository;
     }

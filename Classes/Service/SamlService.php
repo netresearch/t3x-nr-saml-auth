@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Service;
 
+use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
  * Class SamlService
@@ -125,7 +128,7 @@ class SamlService implements SingletonInterface
      * @throws \OneLogin\Saml2\Error
      * @throws \OneLogin\Saml2\ValidationError
      */
-    public function getResponse(string $postSamlResponse) : Response
+    public function getResponse(string $postSamlResponse): Response
     {
         $settings = new Settings($this->getSettings()['saml']);
 
@@ -160,7 +163,7 @@ class SamlService implements SingletonInterface
      * @return string
      * @throws \OneLogin\Saml2\Error
      */
-    public function getMetadata() : string
+    public function getMetadata(): string
     {
         $settings = new Settings($this->getSettings()['saml']);
 
@@ -176,7 +179,7 @@ class SamlService implements SingletonInterface
      *
      * @return array
      */
-    public function getSettings() : array
+    public function getSettings(): array
     {
         $this->buildSettings();
 
@@ -208,7 +211,6 @@ class SamlService implements SingletonInterface
         $this->settings['username_prefix'] = $settingsModel->getUsernamePrefix();
         $this->settings['users_pid'] = $settingsModel->getUsersPid();
         $this->settings['usergroup'] = $settingsModel->getUsergroup();
-
     }
 
     /**
@@ -218,6 +220,10 @@ class SamlService implements SingletonInterface
      */
     private function fetchSettings(): ?\Netresearch\NrSamlAuth\Domain\Model\Settings
     {
+        if (empty($this->settingsRepository)) {
+            $this->settingsRepository = GeneralUtility::makeInstance(ObjectManager::class)->get(SettingsRepository::class);
+        }
+
         $settings = $this->settingsRepository->findByUid($this->settingsUid);
 
         return ($settings instanceof \Netresearch\NrSamlAuth\Domain\Model\Settings) ? $settings : null;

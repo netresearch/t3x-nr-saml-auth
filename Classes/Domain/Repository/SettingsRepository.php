@@ -22,9 +22,10 @@ class SettingsRepository extends Repository
      * Initializes the repository
      *
      * @return void
-     */
+     */ 
     public function initializeObject()
     {
+
         $this->setDefaultQuerySettings($this->objectManager->get(Typo3QuerySettings::class));
         $this->defaultQuerySettings->setRespectStoragePage(false);
         $this->defaultQuerySettings->setRespectSysLanguage(false);
@@ -45,6 +46,7 @@ class SettingsRepository extends Repository
                 $query->equals('sp_entity_id', $host),
             )
         );
+
         return $query->execute()->getFirst();
     }
 
