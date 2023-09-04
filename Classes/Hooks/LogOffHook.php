@@ -62,18 +62,21 @@ class LogOffHook implements SingletonInterface
      */
     public function logOffPostProcess($params, AbstractUserAuthentication $authentication)
     {
+        try {
+            $samlId = static::$sessionData['id'];
+            $assertionId = static::$sessionData['AssertionId'];
+            $nameId = static::$sessionData['nameId'];
 
-        $samlId      = static::$sessionData['id'];
-        $assertionId = static::$sessionData['AssertionId'];
-        $nameId      = static::$sessionData['nameId'];
+            if (empty($samlId) || empty($assertionId)) {
+                return;
+            }
 
-        if (empty($samlId) || empty($assertionId)) {
+            $samlService = $this->getSamlService();
+            $samlService->setSettingsUid($samlId);
+            $samlService->redirectUserToLogout($nameId, $assertionId);
+        }catch (\Exception $exception) {
             return;
         }
-
-        $samlService = $this->getSamlService();
-        $samlService->setSettingsUid($samlId);
-        $samlService->redirectUserToLogout($nameId, $assertionId);
     }
 
     /**
