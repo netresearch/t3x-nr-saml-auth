@@ -1,0 +1,113 @@
+#!/bin/bash
+
+## Description: Installs a specific TYPO3 version (12 or 13) in .build/ directory and links the extension
+## Usage: install-typo3 [12|13|all]
+## Example: "ddev install-typo3 12" or "ddev install-typo3 all"
+
+set -e
+
+install_version() {
+    local VERSION=$1
+    local TARGET_DIR=".build/v${VERSION}"
+    local DB_NAME="db_v${VERSION}"
+
+    # Define TYPO3 Composer constraint
+    local COMPOSER_REQ
+    if [ "$VERSION" == "12" ]; then
+        COMPOSER_REQ="^12.4"
+    elif [ "$VERSION" == "13" ]; then
+        COMPOSER_REQ="^13.4"
+    else
+        echo "Error: Only versions 12 and 13 are supported."
+        return 1
+    fi
+
+    echo "======================================"
+    echo "Installing TYPO3 v${VERSION}"
+    echo "======================================"
+
+    # Create the build directory if it doesn't exist
+    if [ -d "$TARGET_DIR" ]; then
+        echo "Directory $TARGET_DIR already exists. Removing..."
+        rm -rf "$TARGET_DIR"
+    fi
+
+    mkdir -p ".build"
+
+    # Use Composer to create the project
+    echo "Installing TYPO3 Base..."
+    composer create-project "typo3/cms-base-distribution:${COMPOSER_REQ}" "$TARGET_DIR" --no-interaction
+
+    # Configure the extension symlink (Path Repository)
+    echo "Configuring symlink to current extension..."
+    cd "$TARGET_DIR" || exit
+
+    # Add root as path repository
+    composer config repositories.local path "../../../" --no-interaction
+
+    # Get extension name from root composer.json
+    local EXT_NAME
+    EXT_NAME=$(grep '"name":' ../../../composer.json | head -1 | sed 's/.*"name":[[:space:]]*"\([^"]*\)".*/\1/')
+
+    if [ -z "$EXT_NAME" ]; then
+        echo "Could not determine extension name from root composer.json."
+        cd ../..
+        return 1
+    fi
+
+    echo "Installing local extension: $EXT_NAME..."
+    composer require "$EXT_NAME:@dev" --no-interaction
+
+    # Setup TYPO3
+    echo "Setting up TYPO3 with Database (${DB_NAME})..."
+    touch public/FIRST_INSTALL
+
+    ./vendor/bin/typo3 setup \
+        --no-interaction \
+        --driver="mysqli" \
+        --host="db" \
+        --port="3306" \
+        --dbname="${DB_NAME}" \
+        --username="db" \
+        --password="db" \
+        --admin-username="admin" \
+        --admin-password="password" \
+        --admin-email="admin@example.com" \
+        --project-name="TYPO3 v${VERSION} Dev" \
+        --server-type="apache" \
+        --create-site="https://v${VERSION}.nr-saml-auth.ddev.site/"
+
+    cd ../..
+
+    echo ""
+    echo "TYPO3 v${VERSION} installed successfully!"
+    echo "URL: https://v${VERSION}.nr-saml-auth.ddev.site/"
+    echo "Backend: https://v${VERSION}.nr-saml-auth.ddev.site/typo3"
+    echo "Credentials: admin / password"
+    echo ""
+}
+
+VERSION=$1
+
+if [ -z "$VERSION" ]; then
+    echo "Usage: ddev install-typo3 [12|13|all]"
+    echo ""
+    echo "Examples:"
+    echo "  ddev install-typo3 12    - Install TYPO3 12.4 LTS"
+    echo "  ddev install-typo3 13    - Install TYPO3 13.4 LTS"
+    echo "  ddev install-typo3 all   - Install both versions"
+    exit 1
+fi
+
+if [ "$VERSION" == "all" ]; then
+    install_version 12
+    install_version 13
+    echo "======================================"
+    echo "All TYPO3 versions installed!"
+    echo "======================================"
+    echo ""
+    echo "v12: https://v12.nr-saml-auth.ddev.site/typo3"
+    echo "v13: https://v13.nr-saml-auth.ddev.site/typo3"
+else
+    install_version "$VERSION"
+fi

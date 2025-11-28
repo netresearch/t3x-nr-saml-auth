@@ -1,0 +1,27 @@
+name: nr-saml-auth
+type: php
+project_type: php
+php_version: "8.2"
+webserver_type: apache-fpm
+router_http_port: "80"
+router_https_port: "443"
+xdebug_enabled: false
+
+additional_hostnames:
+  - v12.nr-saml-auth
+  - v13.nr-saml-auth
+  - v12
+  - v13
+
+web_dir: .
+docroot: .
+
+hooks:
+  post-start:
+    - exec: mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS db_v12; GRANT ALL ON db_v12.* TO 'db'@'%';"
+    - exec: mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS db_v13; GRANT ALL ON db_v13.* TO 'db'@'%';"
+
+composer_version: "2"
+
+webimage_extra_packages:
+  - libxml2-utils

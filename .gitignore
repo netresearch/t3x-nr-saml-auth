@@ -28,8 +28,20 @@ Resources/Private/Libs/Build/vendor
 .DS_Store
 Thumbs.db
 
-# DDEV
-.ddev/
+# DDEV (keep config, ignore generated)
+.ddev/.ddev-docker-compose-*
+.ddev/db_snapshots/
+.ddev/.global_commands/
+.ddev/import-db/
+.ddev/traefik/
+.ddev/mutagen/
+.ddev/.dbimageBuild/
+.ddev/.sshimageBuild/
+.ddev/.webimageBuild/
+.ddev/xhprof/
+
+# TYPO3 multi-version builds
+.build/
 
 # AI assistant directories
 .serena/
