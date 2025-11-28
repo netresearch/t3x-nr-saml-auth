@@ -30,3 +30,7 @@ Thumbs.db
 
 # DDEV
 .ddev/
+
+# AI assistant directories
+.serena/
+claudedocs/
