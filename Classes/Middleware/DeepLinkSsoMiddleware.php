@@ -1,114 +1,93 @@
 <?php
 
-/**
- * This middleware handles the redirect of the user during login/logout process during saml authentication
- * I relies on that the target for redirecting is passed via RelayState parameter during ACS call from saml server towards
- * TYPO3.
- */
+declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Middleware;
 
-
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Utils;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
 
-
-class DeepLinkSsoMiddleware implements MiddlewareInterface
+/**
+ * Middleware for handling SAML RelayState redirects during login/logout.
+ *
+ * This middleware handles the redirect of the user during login/logout process
+ * during SAML authentication. It relies on the target for redirecting being
+ * passed via RelayState parameter during ACS call from SAML server towards TYPO3.
+ */
+final class DeepLinkSsoMiddleware implements MiddlewareInterface
 {
-
     /**
      * Process the redirect after login/logout if necessary.
      *
-     * @param ServerRequestInterface $request
-     * @param RequestHandlerInterface $handler
-     *
-     * @return ResponseInterface
      * @throws Error
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if (!$this->isResponsible($request)) {
-            return  $handler->handle($request);
+            return $handler->handle($request);
         }
 
-        $this->handleSamlRedirectIfRequired();
+        $this->handleSamlRedirectIfRequired($request);
 
+        return $handler->handle($request);
+    }
 
-        return  $handler->handle($request);
+    private function isResponsible(ServerRequestInterface $request): bool
+    {
+        return $this->isSamlLoginRequest($request) || $this->isSamlLogoutRequest($request);
+    }
+
+    private function getRedirectTarget(ServerRequestInterface $request): ?string
+    {
+        $parsedBody = $request->getParsedBody();
+        $queryParams = $request->getQueryParams();
+
+        // Check POST body first (login), then query params (logout)
+        $relayState = $parsedBody['RelayState'] ?? $queryParams['RelayState'] ?? null;
+
+        return is_string($relayState) ? $relayState : null;
     }
 
     /**
-     * Returns true, if we handle a saml login or logout request.
-     *
-     * @param ServerRequestInterface $request
-     * @return bool
+     * @throws Error
      */
-    private function isResponsible(ServerRequestInterface $request)
+    private function handleSamlRedirectIfRequired(ServerRequestInterface $request): void
     {
-        if ($this->isSamlLoginRequest($request)) {
-            return true;
-        }
+        $target = $this->getRedirectTarget($request);
 
-        if ($this->isSamlLogoutRequest()) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Returns the passed redirect target.
-     *
-     * @return mixed|void
-     */
-    private function  getRedirectTarget()
-    {
-        if (!isset($_REQUEST['RelayState'])) {
+        if ($target === null || $target === '') {
             return;
         }
 
-        return $_REQUEST['RelayState'];
-    }
-
-    /**
-     * Process the redirect for the given target.
-     *
-     * @return void
-     *
-     * @throws \OneLogin\Saml2\Error
-     */
-    private function handleSamlRedirectIfRequired()
-    {
-        $target = $this->getRedirectTarget();
-
-        if (empty($target)) {
-            return;
-        }
         Utils::redirect($target);
     }
 
-
     /**
-     * Returns true, if the current request is sent from saml server towards TYPO3 as login request.
-     *
-     * @param ServerRequestInterface $request the request
-     * @return bool
+     * Check if request is from SAML server towards TYPO3 as login request.
      */
-    private function isSamlLoginRequest(ServerRequestInterface $request)
+    private function isSamlLoginRequest(ServerRequestInterface $request): bool
     {
-        return $request->getMethod() == 'POST' && isset($_POST['RelayState']);
+        if ($request->getMethod() !== 'POST') {
+            return false;
+        }
+
+        $parsedBody = $request->getParsedBody();
+        return isset($parsedBody['RelayState']);
     }
 
     /**
-     * Returns true, if the current request is sent from saml server towards TYPO3 as logout request.
-     *
-     * @return bool
+     * Check if request is from SAML server towards TYPO3 as logout request.
      */
-    private function isSamlLogoutRequest()
+    private function isSamlLogoutRequest(ServerRequestInterface $request): bool
     {
-        return isset($_GET['logintype']) && $_GET['logintype'] == 'logout' && isset($_GET['RelayState']) && isset($_GET['SAMLResponse']);
+        $queryParams = $request->getQueryParams();
+
+        return ($queryParams['logintype'] ?? '') === 'logout'
+            && isset($queryParams['RelayState'])
+            && isset($queryParams['SAMLResponse']);
     }
 }

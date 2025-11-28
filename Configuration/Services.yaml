@@ -1,0 +1,56 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Netresearch\NrSamlAuth\:
+    resource: '../Classes/*'
+    exclude:
+      - '../Classes/Domain/Model/*'
+
+  # Controllers
+  Netresearch\NrSamlAuth\Controller\AuthController:
+    tags: ['backend.controller']
+
+  Netresearch\NrSamlAuth\Controller\SamlAuthController:
+    tags: ['backend.controller']
+
+  # Services
+  Netresearch\NrSamlAuth\Service\SamlService:
+    public: true
+
+  # Repositories
+  Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository:
+    public: true
+
+  # Session handling
+  Netresearch\NrSamlAuth\Session\SamlSession:
+    public: true
+
+  # Authentication Service (TYPO3 auth service registration)
+  Netresearch\NrSamlAuth\Sv\AuthenticationService:
+    public: true
+
+  # Middleware
+  Netresearch\NrSamlAuth\Middleware\DeepLinkSsoMiddleware:
+    public: true
+
+  # Event Listeners (PSR-14)
+  Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/before-user-logout'
+        event: TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent
+
+  Netresearch\NrSamlAuth\EventListener\AfterUserLoggedOutEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/after-user-logged-out'
+        event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedOutEvent
+
+  Netresearch\NrSamlAuth\EventListener\AfterUserLoggedInEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/after-user-logged-in'
+        event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent

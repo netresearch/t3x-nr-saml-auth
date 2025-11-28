@@ -1,36 +1,28 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Service;
 
+use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
+use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Response;
-use OneLogin\Saml2\Settings;
-use OneLogin\Saml2\Utils;
+use OneLogin\Saml2\Settings as SamlSettings;
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 /**
- * Class SamlService
- *
- * @category   Category
- * @package    Netresearch\NrSamlAuth\Service
- * @subpackage SubPackage
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * Service for handling SAML operations including SSO authentication
+ * and single logout (SLO).
  */
-class SamlService implements SingletonInterface
+final class SamlService implements SingletonInterface
 {
     /**
-     * Default Settings Array
-     *
-     * @var array
+     * Default settings array structure
      */
-    protected $settings = [
+    private array $settings = [
         'username_prefix' => '',
         'users_pid' => 0,
         'usergroup' => '',
@@ -45,8 +37,8 @@ class SamlService implements SingletonInterface
                     'binding' => '',
                 ],
                 'NameIDFormat' => '',
-                'x509cert' => "",
-                'privateKey' => "",
+                'x509cert' => '',
+                'privateKey' => '',
             ],
             'idp' => [
                 'entityId' => '',
@@ -55,31 +47,15 @@ class SamlService implements SingletonInterface
                     'binding' => '',
                 ],
                 'x509cert' => '',
-            ]
-        ]
+            ],
+        ],
     ];
 
-    /**
-     * @var \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository
-     */
-    private $settingsRepository;
+    private int $settingsUid = 0;
 
-    /**
-     * @var integer
-     */
-    private $settingsUid;
-
-    /**
-     * Inject the settings repository
-     *
-     * @param \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository
-     *
-     * @return void
-     */
-    public function injectSettingsRepository(\Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository): void
-    {
-        $this->settingsRepository = $settingsRepository;
-    }
+    public function __construct(
+        private readonly SettingsRepository $settingsRepository,
+    ) {}
 
     public function setSettingsUid(int $uid): void
     {
@@ -87,97 +63,92 @@ class SamlService implements SingletonInterface
     }
 
     /**
-     * Redirects the user to sso Service
+     * Redirects the user to SSO Service
      *
-     * @return string|null
      * @throws \OneLogin\Saml2\Error
      */
-    public function redirectUserToSSO()
+    public function redirectUserToSSO(): void
     {
-        $settings = new Settings($this->getSettings()['saml']);
-        $auth = new \OneLogin\Saml2\Auth($this->getSettings()['saml']);
+        $auth = new Auth($this->getSettings()['saml']);
         $auth->login();
     }
 
     /**
-     * @return string|null
+     * Redirects user to SAML logout (SLO)
+     *
      * @throws \OneLogin\Saml2\Error
      */
-    public function redirectUserToLogout($nameId, $sessionIndex)
+    public function redirectUserToLogout(?string $nameId, ?string $sessionIndex): void
     {
         $samlSettings = $this->getSettings()['saml'];
-        $settings = new Settings($samlSettings);
+        $settings = new SamlSettings($samlSettings);
 
-        $auth = new \OneLogin\Saml2\Auth($samlSettings);
+        $auth = new Auth($samlSettings);
         $auth->logout(
             null,
             [],
             $nameId,
             $sessionIndex,
-            false ,
+            false,
             $settings->getSpData()['NameIDFormat']
         );
     }
 
     /**
-     * Returns the Saml Response from Post Data
+     * Returns the SAML Response from POST data
      *
-     * @param $postSamlResponse
-     *
-     * @return Response
      * @throws \OneLogin\Saml2\Error
      * @throws \OneLogin\Saml2\ValidationError
      */
     public function getResponse(string $postSamlResponse): Response
     {
-        $settings = new Settings($this->getSettings()['saml']);
+        $settings = new SamlSettings($this->getSettings()['saml']);
 
         return new Response($settings, $postSamlResponse);
     }
 
     /**
-     * Returns Possible NameFormat Values.
-     *
-     * @param array $parameters Array with Parameters
+     * Returns possible NameFormat values for TCA itemsProcFunc
      *
      * @throws \ReflectionException
      */
-    public function nameIdFormatItems(array $parameters)
+    public function nameIdFormatItems(array &$parameters): void
     {
         $items = [];
         $reflectionClass = new \ReflectionClass(Constants::class);
+
         foreach ($reflectionClass->getConstants() as $name => $value) {
-            if (substr($name, 0, 7) !== 'NAMEID_') {
+            if (!str_starts_with($name, 'NAMEID_')) {
                 continue;
             }
 
             $items[] = [$value, $name, null];
         }
+
         $parameters['items'] = $items;
     }
 
     /**
-     * Returns the saml metadata as xml string
-     * Returns the saml metadata as xml string
+     * Returns the SAML metadata as XML string
      *
-     * @return string
      * @throws \OneLogin\Saml2\Error
      */
     public function getMetadata(): string
     {
-        $settings = new Settings($this->getSettings()['saml']);
+        $settings = new SamlSettings($this->getSettings()['saml']);
+        $validUntil = time() + 60 * 60 * 24 * 14;
 
-        $metadata = Metadata::builder($settings->getSPData(), true, true, time()+60*60*24*14, null);
-
-        $metadata = MetaData::addX509KeyDescriptors($metadata, $this->getSettings()['saml']['sp']['x509cert']);
+        $metadata = Metadata::builder($settings->getSPData(), true, true, $validUntil, null);
+        $metadata = Metadata::addX509KeyDescriptors(
+            $metadata,
+            $this->getSettings()['saml']['sp']['x509cert']
+        );
 
         return $metadata;
     }
 
     /**
-     * Returns the settings array
-     *
-     * @return array
+     * Returns the complete settings array
      */
     public function getSettings(): array
     {
@@ -187,18 +158,19 @@ class SamlService implements SingletonInterface
     }
 
     /**
-     * Build Saml Settings
-     *
-     * @return void
+     * Builds the SAML settings from database configuration
      */
-    protected function buildSettings()
+    private function buildSettings(): void
     {
         $settingsModel = $this->fetchSettings();
+        if ($settingsModel === null) {
+            return;
+        }
 
         $this->settings['saml']['sp']['entityId'] = $settingsModel->getSpEntityId();
         $this->settings['saml']['sp']['assertionConsumerService']['url'] = $settingsModel->getSpCustomerServiceUrl();
         $this->settings['saml']['sp']['assertionConsumerService']['binding'] = $settingsModel->getSpCustomerServiceBinding();
-        $this->settings['saml']['sp']['NameIDFormat'] = \constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
+        $this->settings['saml']['sp']['NameIDFormat'] = constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
         $this->settings['saml']['sp']['x509cert'] = $settingsModel->getSpCert();
         $this->settings['saml']['sp']['privateKey'] = $settingsModel->getSpKey();
 
@@ -214,19 +186,12 @@ class SamlService implements SingletonInterface
     }
 
     /**
-     * Return the settings
-     *
-     * @return \Netresearch\NrSamlAuth\Domain\Model\Settings|null
+     * Fetches settings from repository
      */
-    private function fetchSettings(): ?\Netresearch\NrSamlAuth\Domain\Model\Settings
+    private function fetchSettings(): ?Settings
     {
-        if (empty($this->settingsRepository)) {
-            $this->settingsRepository = GeneralUtility::makeInstance(ObjectManager::class)->get(SettingsRepository::class);
-        }
-
         $settings = $this->settingsRepository->findByUid($this->settingsUid);
 
-        return ($settings instanceof \Netresearch\NrSamlAuth\Domain\Model\Settings) ? $settings : null;
+        return $settings instanceof Settings ? $settings : null;
     }
 }
-

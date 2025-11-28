@@ -1,2 +1,36 @@
-.idea
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Composer
+/.Build/
+/vendor/
+composer.lock
+
+# Testing
+.phpunit.result.cache
+phpunit.xml
+
+# Quality tools
+.php-cs-fixer.cache
+phpstan-baseline.neon
+
+# Build artifacts
+/var/
+/public/
+
+# Legacy vendor
 Resources/Private/Libs/Build/vendor
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# DDEV
+.ddev/
+
+# AI assistant directories
+.serena/
+claudedocs/

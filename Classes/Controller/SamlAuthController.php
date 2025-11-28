@@ -1,79 +1,53 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Netresearch\NrSamlAuth\Controller;
 
+use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use OneLogin\Saml2\Error;
-use TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException;
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 /**
- * Class SamlAuthController
- *
- * Saml Auth BE Controller
- *
- * @category   Authentication
- * @package    Netresearch\NrSamlAuth\Controller
- * @subpackage Controller
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * Backend controller for SAML configuration and metadata display.
  */
-class SamlAuthController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionController
+class SamlAuthController extends ActionController
 {
-    /**
-     * @var \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository
-     */
-    private $settingsRepository;
+    public function __construct(
+        private readonly SettingsRepository $settingsRepository,
+        private readonly SamlService $samlService,
+    ) {}
 
     /**
-     * Inject the settings repository
+     * Displays SAML metadata for configured service providers.
      *
-     * @param \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository
-     *
-     * @return void
-     */
-    public function injectSettingsRepository(\Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository)
-    {
-        $this->settingsRepository = $settingsRepository;
-    }
-
-    /**
-     * MetaData Action
-     *
-     * @return void
      * @throws Error
-     * @throws NoSuchArgumentException
      */
-    public function metadataAction()
+    public function metadataAction(): ResponseInterface
     {
         $settings = $this->settingsRepository->findAll();
-
         $this->view->assign('samlSettings', $settings);
 
-        if ($this->getArgumentSamlSesstings()) {
-            /* @var SamlService $samlService */
-            $samlService = $this->objectManager->get(SamlService::class);
-            $samlService->setSettingsUid($this->getArgumentSamlSesstings());
-            $metadataXML = $samlService->getMetadata();
+        $samlUid = $this->getArgumentSamlSettings();
+        if ($samlUid !== null) {
+            $this->samlService->setSettingsUid($samlUid);
+            $metadataXml = $this->samlService->getMetadata();
 
             $this->view->assign(
                 'SamlMetaData',
-                htmlentities($metadataXML, null, 'utf-8', false)
+                htmlentities($metadataXml, ENT_QUOTES, 'UTF-8', false)
             );
         }
 
-
+        return $this->htmlResponse();
     }
 
-    /**
-     * Returns the id of selected saml settings
-     *
-     * @return string|null
-     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException
-     */
-    private function getArgumentSamlSesstings()
+    private function getArgumentSamlSettings(): ?int
     {
         if ($this->request->hasArgument('samlUid')) {
-            return $this->request->getArgument('samlUid');
+            return (int)$this->request->getArgument('samlUid');
         }
 
         return null;

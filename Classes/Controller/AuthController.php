@@ -1,144 +1,91 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netresearch\NrSamlAuth\Controller;
 
+use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Authentication\LoginType;
-use TYPO3\CMS\Core\Log\Logger;
-use TYPO3\CMS\Core\Log\LogManager;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 /**
- * Class AuthController
- *
- * @category   Authentication
- * @package    Netresearch\NrSamlAuth\Controller
- * @subpackage Controller
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * Frontend controller for SAML authentication plugin.
  */
 class AuthController extends ActionController
 {
-    /**
-     * @var \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository
-     */
-    private $settingsRepository;
+    public function __construct(
+        private readonly SettingsRepository $settingsRepository,
+        private readonly SamlService $samlService,
+        private readonly Context $context,
+        private readonly LoggerInterface $logger,
+    ) {}
 
     /**
-     * @var SamlService
-     */
-    private $samlService;
-
-    /**
-     * @var \TYPO3\CMS\Core\Context\Context
-     */
-    private $context;
-
-    /**
-     * Inject the settings repository
-     *
-     * @param \Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository
-     *
-     * @return void
-     */
-    public function injectSettingsRepository(\Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository $settingsRepository)
-    {
-        $this->settingsRepository = $settingsRepository;
-    }
-
-    /**
-     * Injects the saml Service
-     *
-     * @param SamlService $samlService SamlService
-     *
-     * @return void
-     */
-    public function injectSamlService(SamlService $samlService) : void
-    {
-        $this->samlService = $samlService;
-    }
-
-    /**
-     * Injects The Context
-     *
-     * @param \TYPO3\CMS\Core\Context\Context $context
-     */
-    public function injectContext(\TYPO3\CMS\Core\Context\Context $context)
-    {
-        $this->context = $context;
-    }
-
-    /**
-     * Login Action
+     * Login action - initiates SAML SSO flow or displays logged-in state
      *
      * @throws \OneLogin\Saml2\Error
-     * @return void
      */
-    public function loginAction(): void
+    public function loginAction(): ResponseInterface
     {
-        $this->samlService->setSettingsUid(
-            $this->getSamlSettingsUid()
-        );
+        $this->samlService->setSettingsUid($this->getSamlSettingsUid());
 
         if ($this->isLogoutRequest()) {
-            return;
+            return $this->htmlResponse();
         }
 
         if ($this->isLoggedIn()) {
             $this->view->assign('isLoggedIn', 'true');
-            $this->view->assign('feUser', $GLOBALS['TSFE']->fe_user->user);
+            $this->view->assign('feUser', $this->getFrontendUser());
         } else {
             $this->view->assign('isLoggedIn', 'false');
             $this->samlService->redirectUserToSSO();
         }
+
+        return $this->htmlResponse();
     }
 
     /**
-     * Returns true if user is already logged in
-     *
-     * @return bool
+     * Receives SAML response callback
      */
+    public function receiveSamlResponseAction(): ResponseInterface
+    {
+        return $this->htmlResponse();
+    }
+
     private function isLoggedIn(): bool
     {
         try {
-            return $this->context->getPropertyFromAspect('frontend.user', 'isLoggedIn');
+            return (bool)$this->context->getPropertyFromAspect('frontend.user', 'isLoggedIn');
         } catch (\Exception $exception) {
-            $this->getLogger()->error($exception->getMessage(), ['exception' => $exception]);
+            $this->logger->error('Error checking login state', ['exception' => $exception->getMessage()]);
             return false;
         }
     }
 
-    /**
-     * Returns true if request is logout
-     *
-     * @return bool
-     */
-    private function isLogoutRequest()
+    private function isLogoutRequest(): bool
     {
-        return GeneralUtility::_GET('logintype') === LoginType::LOGOUT;
+        $request = $this->request;
+        $queryParams = $request->getQueryParams();
+
+        return ($queryParams['logintype'] ?? '') === LoginType::LOGOUT;
     }
 
     /**
-     * Returns a logger instance
-     *
-     * @return Logger
+     * @return array<string, mixed>|null
      */
-    private function getLogger(): Logger
+    private function getFrontendUser(): ?array
     {
-        $this->objectManager->get(LogManager::class)->getLogger(__CLASS__);
+        return $GLOBALS['TSFE']->fe_user->user ?? null;
     }
 
-    /**
-     * Returns the saml setings uid from pluginconfig if set or 1.
-     *
-     * @return int
-     */
     private function getSamlSettingsUid(): int
     {
         if (isset($this->settings['samlAuthSettings'])) {
-            return (integer) $this->settings['samlAuthSettings'];
+            return (int)$this->settings['samlAuthSettings'];
         }
 
         return 1;

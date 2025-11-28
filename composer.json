@@ -1,16 +1,55 @@
 {
     "name": "netresearch/nr-saml-auth",
-    "description": "TYPO3 Saml Authentication for frontend",
+    "description": "TYPO3 SAML Authentication for frontend",
     "type": "typo3-cms-extension",
     "homepage": "https://netresearch.de",
-    "license": "GPL-2.0+",
+    "license": "GPL-2.0-or-later",
     "prefer-stable": true,
     "minimum-stability": "dev",
+    "keywords": [
+        "TYPO3",
+        "extension",
+        "saml",
+        "authentication",
+        "sso",
+        "single-sign-on"
+    ],
+    "authors": [
+        {
+            "name": "Torsten Fink",
+            "email": "torsten.fink@netresearch.de",
+            "role": "Developer"
+        },
+        {
+            "name": "Tobias Hein",
+            "email": "tobias.hein@netresearch.de",
+            "role": "Developer"
+        },
+        {
+            "name": "Christopher Rath",
+            "email": "christopher.rath@netresearch.de",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/netresearch/t3x-nr-saml-auth/issues",
+        "source": "https://github.com/netresearch/t3x-nr-saml-auth"
+    },
     "require": {
-        "php": ">=7.1.0",
-        "typo3/cms-core": "^11.5 || ^12.4",
-        "typo3/cms-frontend": "^11.5 || ^12.4",
-        "onelogin/php-saml": "^3.0.0"
+        "php": "^8.1",
+        "typo3/cms-core": "^12.4 || ^13.4",
+        "typo3/cms-frontend": "^12.4 || ^13.4",
+        "typo3/cms-extbase": "^12.4 || ^13.4",
+        "onelogin/php-saml": "^4.0.0"
+    },
+    "require-dev": {
+        "typo3/testing-framework": "^8.2",
+        "phpunit/phpunit": "^10.5",
+        "phpstan/phpstan": "^1.12",
+        "phpstan/phpstan-phpunit": "^1.4",
+        "saschaegerer/phpstan-typo3": "^1.10",
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "typo3/coding-standards": "^0.8"
     },
     "autoload": {
         "psr-4": {
@@ -19,15 +58,42 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Netresearch\\NrSamlAuth\\": "Tests/"
+            "Netresearch\\NrSamlAuth\\Tests\\": "Tests/"
         }
+    },
+    "config": {
+        "vendor-dir": ".Build/vendor",
+        "bin-dir": ".Build/bin",
+        "allow-plugins": {
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "ci:cgl": "php-cs-fixer fix --config .php-cs-fixer.php --dry-run --diff",
+        "ci:cgl:fix": "php-cs-fixer fix --config .php-cs-fixer.php",
+        "ci:phpstan": "phpstan analyse -c phpstan.neon",
+        "ci:phpstan:baseline": "phpstan analyse -c phpstan.neon --generate-baseline",
+        "ci:tests:unit": "phpunit -c Build/phpunit/UnitTests.xml",
+        "ci:tests:functional": "phpunit -c Build/phpunit/FunctionalTests.xml",
+        "ci:tests": [
+            "@ci:tests:unit",
+            "@ci:tests:functional"
+        ],
+        "ci": [
+            "@ci:cgl",
+            "@ci:phpstan",
+            "@ci:tests"
+        ]
     },
     "extra": {
         "typo3/cms": {
-            "extension-key": "nr_saml_auth"
+            "extension-key": "nr_saml_auth",
+            "web-dir": ".Build/public"
         },
         "branch-alias": {
-            "dev-": "11.0.x-dev"
+            "dev-main": "13.0.x-dev"
         }
     }
 }

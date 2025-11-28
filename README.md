@@ -1,66 +1,117 @@
-Netresearch TYPO3 Saml Auth
-===========================
+# Netresearch TYPO3 SAML Auth
 
-> With this TYPO3 extension you can authenticate against a SAML SSO server.\
-> It works for backend and frontend users and make use of the `onelogin/php-saml` package.
+[![CI](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml)
+
+> TYPO3 extension for SAML SSO authentication supporting frontend and backend users using the `onelogin/php-saml` library.
+
+## Requirements
+
+| Version | TYPO3       | PHP        |
+|---------|-------------|------------|
+| 13.x    | 12.4, 13.4  | 8.1 - 8.4  |
+| 10.x    | 10.4, 11.5  | 7.4 - 8.1  |
 
 ## Installation
-Require the package.
+
+Install via Composer:
 
 ```bash
 composer require netresearch/nr-saml-auth
 ```
 
-Then you have to add a new record of `SAML Auth Settings` on the root page in the TYPO3 backend and configure it properly.
+## Configuration
 
-Example configuration
+### Backend Setup
+
+1. Create a new **SAML Auth Settings** record on the root page in the TYPO3 backend
+2. Configure the Service Provider (SP) and Identity Provider (IdP) settings
+
+### Example Configuration
+
 ```
-Entity ID: your-sp
-
-Customer service URL: https://domain.tld/?logintype=login
-
+# Service Provider Settings
+Entity ID: https://your-domain.tld
+Customer service URL: https://your-domain.tld/?logintype=login
 Customer service binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
-
 Name ID format: urn:oasis:names:tc:SAML:2.0:nameid-format:transient
 
 Certificate: -----BEGIN CERTIFICATE-----
-MIIFYDCCA0igAwIBAgIJAMWkGz7F5peWMA0GCSqGSIb3DQEB
-...
-6E29QdAP/7OlaUjL8yb0hAQfcweKg7A9Kw+nVngScgiq99FT
+MIIFYDCCA0igAwIBAgIJAMWkGz7F5peWMA0GCSqGSIb3DQEB...
 -----END CERTIFICATE-----
 
 Private key: -----BEGIN PRIVATE KEY-----
-MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQCk/hHdRe3
-...
-3gxX31MgSwnYq6RTKQvPUlEX2UmMcjk=
+MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoIC...
 -----END PRIVATE KEY-----
 
+# Identity Provider Settings
 Entity ID: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
-
-SSO URL: http://sso-url.de:80/sso
-
+SSO URL: https://idp.example.com/sso
 Binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+Certificate: [IDP Certificate]
 
-# Provided by the SSO server else just input something
-Certificate: ...
-
-# Prefix for created users
-Other: sso-
-
-Groups: Choose you frontenduser folder
-
-Groups: Select the Frontendusergroup which should every logged in user assigned to
+# User Settings
+Username prefix: sso-
+User folder: [Select frontend user folder]
+User groups: [Select default frontend user groups]
 ```
 
-As example SSO server you could use [https://capriza.github.io/samling/samling.html](https://simplesamlphp.org/docs/stable/simplesamlphp-install.html#download-and-install-simplesamlphp).
+### Testing with SimpleSAMLphp
 
-Auto discovery
-==============
-* the login service will try to autodetect the configuration for the current login/logout request
-* Therefor ensure, that your sp_entity_id matches your domain
+For development/testing, you can use [SimpleSAMLphp](https://simplesamlphp.org/docs/stable/simplesamlphp-install.html) or online SAML testing tools like [samling](https://capriza.github.io/samling/samling.html).
 
+## Features
 
-Middleware
-==========
-* the extension provides a middleware to redirect the client to the page he came from after login/logout
-* ensure that RelayState parameter contains the target URL and is transmitted via post/get from SAML server to the configured ACS urls
+### Auto Discovery
+
+The login service automatically detects the SAML configuration for the current request based on the `sp_entity_id` matching your domain.
+
+### Deep Link Support (Middleware)
+
+The extension includes middleware for redirecting users to their original destination after login/logout:
+
+- The `RelayState` parameter should contain the target URL
+- Transmitted via POST (login) or GET (logout) from SAML server to the configured ACS URLs
+
+### Backend Module
+
+Access SAML metadata via the **Admin Tools > SAML Auth** backend module to configure your IdP.
+
+## Upgrading
+
+### From 10.x to 13.x
+
+Version 13.x includes breaking changes:
+
+- **PHP 8.1+ required**: Upgrade your PHP version
+- **TYPO3 12.4+ required**: Upgrade your TYPO3 installation
+- **onelogin/php-saml 4.0**: Library upgraded with security improvements
+- **PSR-14 Events**: Legacy hooks replaced with modern event system
+- **Dependency Injection**: Services now use TYPO3 DI container
+
+No database migrations required.
+
+## Development
+
+### Quality Tools
+
+```bash
+# Install dependencies
+composer install
+
+# Run all CI checks
+composer ci
+
+# Individual checks
+composer ci:phpstan      # Static analysis
+composer ci:cgl          # Code style check
+composer ci:cgl:fix      # Code style fix
+composer ci:tests:unit   # Unit tests
+```
+
+## License
+
+This extension is proprietary software by Netresearch DTT GmbH.
+
+## Support
+
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/netresearch/t3x-nr-saml-auth/issues).
