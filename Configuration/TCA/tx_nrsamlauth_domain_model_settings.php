@@ -1,4 +1,5 @@
 <?php
+
 return [
     'ctrl' => [
         'label' => 'name',
@@ -10,11 +11,11 @@ return [
         'enablecolumns' => [
             'disabled' => 'disable',
             'starttime' => 'starttime',
-            'endtime' => 'endtime'
+            'endtime' => 'endtime',
         ],
     ],
     'interface' => [
-        'showRecordFieldList' => 'name,redirect_url,sp_entity_id,sp_customer_service_url,sp_customer_service_binding,sp_name_id_format,sp_cert,sp_key,idp_entity_id,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,username_prefix,users_pid,usergroup'
+        'showRecordFieldList' => 'name,redirect_url,sp_entity_id,sp_customer_service_url,sp_customer_service_binding,sp_name_id_format,sp_cert,sp_key,idp_entity_id,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,username_prefix,users_pid,usergroup',
     ],
     'columns' => [
         'name' => [
@@ -24,7 +25,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'trim,required',
-            ]
+            ],
         ],
         'redirect_url' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.redirect_url',
@@ -33,7 +34,7 @@ return [
                 'size' => 30,
                 'max' => 1000,
                 'eval' => 'nospace,trim',
-            ]
+            ],
         ],
         'sp_entity_id' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_entity_id',
@@ -42,7 +43,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'sp_customer_service_url' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_customer_service_url',
@@ -51,7 +52,7 @@ return [
                 'size' => 30,
                 'max' => 1000,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'sp_customer_service_binding' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_customer_service_binding',
@@ -60,7 +61,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'sp_name_id_format' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_name_id_format',
@@ -69,7 +70,7 @@ return [
                 'renderType' => 'selectSingle',
                 'itemsProcFunc' => \Netresearch\NrSamlAuth\Service\SamlService::class . '->nameIdFormatItems',
                 'eval' => 'required',
-            ]
+            ],
         ],
         'sp_cert' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_cert',
@@ -79,7 +80,7 @@ return [
                 'rows' => 5,
                 'fixedFont' => true,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'sp_key' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp_key',
@@ -89,7 +90,7 @@ return [
                 'rows' => 5,
                 'fixedFont' => true,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'idp_entity_id' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp_entity_id',
@@ -98,7 +99,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'idp_sso_url' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp_sso_url',
@@ -107,7 +108,7 @@ return [
                 'size' => 30,
                 'max' => 1000,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'idp_sso_binding' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp_sso_binding',
@@ -116,7 +117,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'idp_logout_url' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp_logout_url',
@@ -125,7 +126,7 @@ return [
                 'size' => 30,
                 'max' => 1000,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'idp_cert' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp_cert',
@@ -135,7 +136,7 @@ return [
                 'rows' => 5,
                 'fixedFont' => true,
                 'eval' => 'nospace,trim,required',
-            ]
+            ],
         ],
         'username_prefix' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.username_prefix',
@@ -144,7 +145,7 @@ return [
                 'size' => 30,
                 'max' => 250,
                 'eval' => 'nospace,trim',
-            ]
+            ],
         ],
         'users_pid' => [
             'label' => 'LLL:EXT:frontend/Resources/Private/Language/locallang_tca.xlf:fe_users.usergroup',
@@ -154,8 +155,8 @@ return [
                 'allowed' => 'pages',
                 'size' => 1,
                 'minitems' => 1,
-                'maxitems' => 1
-            ]
+                'maxitems' => 1,
+            ],
         ],
         'usergroup' => [
             'label' => 'LLL:EXT:frontend/Resources/Private/Language/locallang_tca.xlf:fe_users.usergroup',
@@ -167,8 +168,8 @@ return [
                 'enableMultiSelectFilterTextfield' => true,
                 'size' => 6,
                 'minitems' => 1,
-                'maxitems' => 50
-            ]
+                'maxitems' => 50,
+            ],
         ],
     ],
     'types' => [
@@ -183,5 +184,5 @@ return [
         ],
     ],
     'palettes' => [
-    ]
+    ],
 ];

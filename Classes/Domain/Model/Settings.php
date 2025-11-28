@@ -9,8 +9,6 @@ use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
  * Class Settings
  *
  * @category   Authentication
- * @package    Netresearch\NrSamlAuth\Domain\Model
- * @subpackage Domain
  * @author     Axel Seemann <axel.seemann@netresearch.de>
  * @license    Netresearch License
  * @link       https://www.netresearch.de
