@@ -8,10 +8,10 @@ Changelog
 
 All notable changes to this project are documented here.
 
-Version 13.0.0
+Version 12.0.0
 ==============
 
-Released: 2024
+Released: (not yet released)
 
 Added
 -----

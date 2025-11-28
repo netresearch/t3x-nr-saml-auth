@@ -8,7 +8,7 @@
 
 | Version | TYPO3       | PHP        |
 |---------|-------------|------------|
-| 13.x    | 12.4, 13.4  | 8.1 - 8.4  |
+| 12.x    | 12.4, 13.4  | 8.1 - 8.4  |
 | 10.x    | 10.4, 11.5  | 7.4 - 8.1  |
 
 ## Installation
@@ -78,9 +78,9 @@ Access SAML metadata via the **Admin Tools > SAML Auth** backend module to confi
 
 ## Upgrading
 
-### From 10.x to 13.x
+### From 10.x to 12.x
 
-Version 13.x includes breaking changes:
+Version 12.x includes breaking changes:
 
 - **PHP 8.1+ required**: Upgrade your PHP version
 - **TYPO3 12.4+ required**: Upgrade your TYPO3 installation

@@ -8,10 +8,10 @@ Migration Guide
 
 This section provides guidance for upgrading between major versions.
 
-Upgrading from 10.x to 13.x
+Upgrading from 10.x to 12.x
 ===========================
 
-Version 13.x includes breaking changes for TYPO3 12.4/13.4 compatibility.
+Version 12.x includes breaking changes for TYPO3 12.4/13.4 compatibility.
 
 Requirements Changes
 --------------------
