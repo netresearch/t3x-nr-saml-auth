@@ -1,53 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netresearch\NrSamlAuth\Domain\Repository;
 
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
-use TYPO3\CMS\Extbase\Persistence\Generic\Typo3QuerySettings;
 use TYPO3\CMS\Extbase\Persistence\Repository;
 
 /**
- * Class SettingsRepository
- *
- * @category   Authentication
- * @package    Netresearch\NrSamlAuth\Domain\Repository
- * @subpackage Domain
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * Repository for SAML settings configuration.
  */
 class SettingsRepository extends Repository
 {
-    /**
-     * Initializes the repository
-     *
-     * @return void
-     */ 
-    public function initializeObject()
+    public function initializeObject(): void
     {
-
-        $this->setDefaultQuerySettings($this->objectManager->get(Typo3QuerySettings::class));
-        $this->defaultQuerySettings->setRespectStoragePage(false);
-        $this->defaultQuerySettings->setRespectSysLanguage(false);
+        $querySettings = $this->createQuery()->getQuerySettings();
+        $querySettings->setRespectStoragePage(false);
+        $querySettings->setRespectSysLanguage(false);
+        $this->setDefaultQuerySettings($querySettings);
     }
 
     /**
-     * Record $_Server["HTTP_HOST"]
-     *
-     * @param string $host
-     * @return Settings
+     * Find settings by SP entity ID (host URL)
      */
-     public function findEntityIdByHost($host)
+    public function findEntityIdByHost(string $host): ?Settings
     {
         $query = $this->createQuery();
-
         $query->matching(
-            $query->logicalAnd(
-                $query->equals('sp_entity_id', $host),
-            )
+            $query->equals('sp_entity_id', $host)
         );
 
-        return $query->execute()->getFirst();
-    }
+        $result = $query->execute()->getFirst();
 
+        return $result instanceof Settings ? $result : null;
+    }
 }

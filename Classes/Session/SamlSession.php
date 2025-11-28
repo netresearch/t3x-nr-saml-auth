@@ -1,90 +1,76 @@
 <?php
 
-namespace Netresearch\NrSamlAuth\Session;
+declare(strict_types=1);
 
+namespace Netresearch\NrSamlAuth\Session;
 
 use TYPO3\CMS\Core\Authentication\AbstractUserAuthentication;
 use TYPO3\CMS\Core\SingletonInterface;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 
 /**
- * Class SamlSession
+ * Handles SAML session data storage for single logout (SLO) support.
  *
- * @category   Authentication
- * @package    Netresearch\NrSamlAuth\Session
- * @subpackage Session
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * @internal This class is not part of the public API
  */
 class SamlSession implements SingletonInterface
 {
-    private $keyName = 'NrSamlAuth';
+    private const KEY_NAME = 'NrSamlAuth';
 
-    /**
-     * @var AbstractUserAuthentication
-     */
-    private $user;
+    private ?AbstractUserAuthentication $user = null;
 
-    /**
-     * @param AbstractUserAuthentication $userAuthentication
-     */
-    public function setUser(AbstractUserAuthentication $userAuthentication)
+    public function setUser(AbstractUserAuthentication $userAuthentication): void
     {
         $this->user = $userAuthentication;
     }
 
-    /**
-     * Returns frontend user authentication
-     *
-     * @return AbstractUserAuthentication
-     */
-    public function getUser()
+    public function getUser(): ?AbstractUserAuthentication
     {
         return $this->user;
     }
 
-    /**
-     * Returns true if fe user is available
-     *
-     * @return bool
-     */
-    public function isSessionAvailable()
+    public function isSessionAvailable(): bool
     {
         return $this->getUser() instanceof FrontendUserAuthentication;
     }
 
     /**
-     * Returns the session data
-     *
-     * @return mixed|null
+     * @return array<string, mixed>|null
      */
-    public function getSessionData()
+    public function getSessionData(): ?array
     {
-        if (false === $this->isSessionAvailable()) {
+        if (!$this->isSessionAvailable()) {
             return null;
         }
 
-        $this->getUser()->fetchUserSession();
-        return $this->getUser()->getSessionData($this->keyName);
+        $user = $this->getUser();
+        if ($user === null) {
+            return null;
+        }
+
+        $user->fetchUserSession();
+        $data = $user->getSessionData(self::KEY_NAME);
+
+        return is_array($data) ? $data : [];
     }
 
     /**
-     * Set the data to session
-     *
-     * @param array|null $sessionData
-     *
-     * @return bool
+     * @param array<string, mixed>|null $sessionData
      */
-    public function setSessionData(array $sessionData = null)
+    public function setSessionData(?array $sessionData = null): bool
     {
-        if (false === $this->isSessionAvailable()) {
+        if (!$this->isSessionAvailable()) {
             return false;
         }
 
-        $this->getUser()->fetchUserSession();
-        $this->getUser()->setSessionData($this->keyName, $sessionData);
-        $this->getUser()->storeSessionData();
+        $user = $this->getUser();
+        if ($user === null) {
+            return false;
+        }
+
+        $user->fetchUserSession();
+        $user->setSessionData(self::KEY_NAME, $sessionData);
+        $user->storeSessionData();
 
         return true;
     }
