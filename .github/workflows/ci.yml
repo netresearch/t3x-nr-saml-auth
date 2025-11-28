@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  php-lint:
+    name: PHP Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: PHP Lint
+        run: find Classes Configuration -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: php-lint
+    strategy:
+      matrix:
+        php-version: ['8.2']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: intl, mbstring
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction
+
+      - name: PHP-CS-Fixer
+        run: composer ci:cgl
+
+      - name: PHPStan
+        run: composer ci:phpstan
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: php-lint
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.1', '8.2', '8.3', '8.4']
+        typo3-version: ['12.4', '13.4']
+        exclude:
+          - php-version: '8.1'
+            typo3-version: '13.4'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: intl, mbstring
+          tools: composer:v2
+
+      - name: Install TYPO3 ${{ matrix.typo3-version }}
+        run: |
+          composer require --no-progress --no-interaction \
+            "typo3/cms-core:^${{ matrix.typo3-version }}" \
+            "typo3/cms-frontend:^${{ matrix.typo3-version }}" \
+            "typo3/cms-extbase:^${{ matrix.typo3-version }}"
+
+      - name: Run Unit Tests
+        run: composer ci:tests:unit
+
+  functional-tests:
+    name: Functional Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3']
+        typo3-version: ['12.4', '13.4']
+        exclude:
+          - php-version: '8.1'
+            typo3-version: '13.4'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: intl, mbstring, sqlite3
+          tools: composer:v2
+
+      - name: Install TYPO3 ${{ matrix.typo3-version }}
+        run: |
+          composer require --no-progress --no-interaction \
+            "typo3/cms-core:^${{ matrix.typo3-version }}" \
+            "typo3/cms-frontend:^${{ matrix.typo3-version }}" \
+            "typo3/cms-extbase:^${{ matrix.typo3-version }}"
+
+      - name: Run Functional Tests
+        run: composer ci:tests:functional
+        env:
+          typo3DatabaseDriver: pdo_sqlite
