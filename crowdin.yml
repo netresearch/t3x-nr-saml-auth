@@ -1,0 +1,15 @@
+# Crowdin configuration for TYPO3 extension nr_saml_auth
+# https://support.crowdin.com/configuration-file/
+
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_PERSONAL_TOKEN
+
+preserve_hierarchy: true
+
+files:
+  - source: /Resources/Private/Language/*.xlf
+    translation: /Resources/Private/Language/%two_letters_code%.%original_file_name%
+    ignore:
+      - /Resources/Private/Language/de.*.xlf
+      - /Resources/Private/Language/fr.*.xlf
+      - /Resources/Private/Language/*.*.xlf

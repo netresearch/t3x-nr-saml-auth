@@ -12,19 +12,36 @@ use OneLogin\Saml2\ValidationError;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Authentication\AuthenticationService as Typo3AuthService;
 use TYPO3\CMS\Core\Authentication\LoginType;
-use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * SAML Authentication Service for TYPO3 frontend and backend authentication.
+ *
+ * Note: Authentication services are instantiated by TYPO3 core and use
+ * injectX() methods for dependency injection rather than constructor injection.
  */
 class AuthenticationService extends Typo3AuthService
 {
     protected ?Response $samlResponse = null;
 
-    private ?SettingsRepository $settingsRepository = null;
-    private ?SamlService $samlService = null;
+    private SettingsRepository $settingsRepository;
+    private SamlService $samlService;
+    private ConnectionPool $connectionPool;
+
+    public function injectSettingsRepository(SettingsRepository $settingsRepository): void
+    {
+        $this->settingsRepository = $settingsRepository;
+    }
+
+    public function injectSamlService(SamlService $samlService): void
+    {
+        $this->samlService = $samlService;
+    }
+
+    public function injectConnectionPool(ConnectionPool $connectionPool): void
+    {
+        $this->connectionPool = $connectionPool;
+    }
 
     /**
      * Validates the login and returns the user record as array
@@ -35,15 +52,15 @@ class AuthenticationService extends Typo3AuthService
      */
     public function getUser(): bool|array
     {
-        $this->getSamlService()->setSettingsUid($this->getSamlId());
+        $this->samlService->setSettingsUid($this->getSamlId());
 
         if (!$this->isResponsible()) {
-            $this->getSamlService()->redirectUserToSSO();
+            $this->samlService->redirectUserToSSO();
             return false;
         }
 
-        $this->getSamlService()->setSettingsUid($this->getSamlId());
-        $samlResponse = $this->getSamlService()->getResponse($this->getSamlResponse());
+        $this->samlService->setSettingsUid($this->getSamlId());
+        $samlResponse = $this->samlService->getResponse($this->getSamlResponse());
 
         try {
             if (!$samlResponse->isValid()) {
@@ -55,7 +72,7 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
-        $settings = $this->getSettingsRepository()->findByUid($this->getSamlId());
+        $settings = $this->settingsRepository->findByUid($this->getSamlId());
         if (!$settings instanceof Settings) {
             $this->logger?->error('SAML Settings not found', ['saml_id' => $this->getSamlId()]);
             return false;
@@ -82,9 +99,7 @@ class AuthenticationService extends Typo3AuthService
      */
     private function insertUserRecord(string $username, Settings $settings, array $attributes): void
     {
-        /** @var Connection $connection */
-        $connection = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getConnectionForTable('fe_users');
+        $connection = $this->connectionPool->getConnectionForTable('fe_users');
 
         $connection->insert(
             'fe_users',
@@ -176,7 +191,7 @@ class AuthenticationService extends Typo3AuthService
         $uri = $request->getUri();
         $url = $uri->getScheme() . '://' . $uri->getHost() . '/';
 
-        $settings = $this->getSettingsRepository()->findEntityIdByHost($url);
+        $settings = $this->settingsRepository->findEntityIdByHost($url);
 
         if ($settings instanceof Settings && $settings->getUid() !== null) {
             return $settings->getUid();
@@ -185,27 +200,15 @@ class AuthenticationService extends Typo3AuthService
         return 1;
     }
 
+    /**
+     * Returns the current server request.
+     *
+     * Note: Authentication services don't have access to the request via DI,
+     * so accessing $GLOBALS['TYPO3_REQUEST'] is the recommended pattern.
+     */
     private function getRequest(): ?ServerRequestInterface
     {
         return $GLOBALS['TYPO3_REQUEST'] ?? null;
-    }
-
-    private function getSettingsRepository(): SettingsRepository
-    {
-        if ($this->settingsRepository === null) {
-            $this->settingsRepository = GeneralUtility::makeInstance(SettingsRepository::class);
-        }
-
-        return $this->settingsRepository;
-    }
-
-    private function getSamlService(): SamlService
-    {
-        if ($this->samlService === null) {
-            $this->samlService = GeneralUtility::makeInstance(SamlService::class);
-        }
-
-        return $this->samlService;
     }
 
     /**

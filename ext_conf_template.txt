@@ -1,0 +1,14 @@
+# cat=basic/enable; type=boolean; label=Enable debug mode: Log detailed SAML communication for troubleshooting
+debugMode = 0
+
+# cat=basic/enable; type=boolean; label=Strict mode: Enable strict SAML validation (recommended for production)
+strictMode = 1
+
+# cat=security; type=boolean; label=Validate XML: Validate SAML XML documents against schema
+validateXml = 1
+
+# cat=security; type=boolean; label=Lowercase URL encoding: Use lowercase URL encoding for SAML requests
+lowercaseUrlEncoding = 0
+
+# cat=advanced; type=int+; label=Session timeout: SAML session timeout in seconds (0 = use TYPO3 default)
+sessionTimeout = 0

@@ -11,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 
 /**
  * Frontend controller for SAML authentication plugin.
@@ -75,11 +76,18 @@ class AuthController extends ActionController
     }
 
     /**
+     * Returns the current frontend user data from the request.
+     *
      * @return array<string, mixed>|null
      */
     private function getFrontendUser(): ?array
     {
-        return $GLOBALS['TSFE']->fe_user->user ?? null;
+        $frontendUser = $this->request->getAttribute('frontend.user');
+        if ($frontendUser instanceof FrontendUserAuthentication) {
+            return $frontendUser->user ?? null;
+        }
+
+        return null;
     }
 
     private function getSamlSettingsUid(): int

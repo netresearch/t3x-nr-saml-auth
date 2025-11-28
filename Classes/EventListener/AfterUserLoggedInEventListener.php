@@ -64,6 +64,12 @@ final class AfterUserLoggedInEventListener
         }
     }
 
+    /**
+     * Returns the current server request.
+     *
+     * Note: Event listeners receive the event object, not the request directly.
+     * Accessing $GLOBALS['TYPO3_REQUEST'] is the recommended pattern here.
+     */
     private function getRequest(): ?ServerRequestInterface
     {
         return $GLOBALS['TYPO3_REQUEST'] ?? null;

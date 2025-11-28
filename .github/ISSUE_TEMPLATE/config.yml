@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: TYPO3 Documentation
+    url: https://docs.typo3.org/
+    about: Check the official TYPO3 documentation for general questions.
+  - name: TYPO3 Slack
+    url: https://typo3.slack.com/
+    about: Join the TYPO3 community on Slack for discussions.
