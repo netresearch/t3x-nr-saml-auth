@@ -1,0 +1,15 @@
+# Default SAML Auth TypoScript Configuration
+# Balanced settings suitable for most environments
+
+plugin.tx_nrsamlauth {
+    settings {
+        # Enable SAML authentication
+        enabled = 1
+
+        # Redirect behavior after login
+        redirectAfterLogin = referer
+
+        # Session handling
+        sessionLifetime = 3600
+    }
+}

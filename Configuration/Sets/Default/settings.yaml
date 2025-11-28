@@ -1,0 +1,17 @@
+# TYPO3 Configuration Set: Default SAML Authentication
+# This set provides balanced security settings for most environments.
+
+name: nr-saml-auth/default
+label: SAML Auth - Default
+description: Standard SAML authentication configuration with balanced security settings
+
+dependencies: []
+
+settings:
+  # Extension settings (ext_conf_template.txt equivalents)
+  nr_saml_auth:
+    debugMode: false
+    strictMode: true
+    validateXml: true
+    lowercaseUrlEncoding: false
+    sessionTimeout: 0

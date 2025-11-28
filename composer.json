@@ -85,7 +85,9 @@
             "@ci:cgl",
             "@ci:phpstan",
             "@ci:tests"
-        ]
+        ],
+        "docs:render": "docker run --rm -v $(pwd):/project -t ghcr.io/typo3-documentation/render-guides:latest --config Documentation",
+        "docs:clean": "rm -rf Documentation-GENERATED-temp"
     },
     "extra": {
         "typo3/cms": {

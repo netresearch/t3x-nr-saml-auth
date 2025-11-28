@@ -1,0 +1,54 @@
+# EditorConfig is awesome: https://EditorConfig.org
+# TYPO3 EditorConfig: https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/CodingGuidelines/CodingBestPractices.html
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+# PHP files (PSR-12)
+[*.php]
+indent_size = 4
+
+# YAML files
+[*.{yaml,yml}]
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_size = 2
+
+# XML/XLIFF files
+[*.{xml,xlf}]
+indent_size = 4
+
+# RST documentation
+[*.{rst,rst.txt}]
+indent_size = 3
+max_line_length = 80
+
+# TypoScript
+[*.{typoscript,tsconfig}]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+
+# Makefile (requires tabs)
+[Makefile]
+indent_style = tab
+
+# Shell scripts
+[*.sh]
+indent_size = 4
+
+# Git configuration
+[.git*]
+indent_size = 4

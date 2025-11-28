@@ -1,0 +1,18 @@
+# TYPO3 Configuration Set: Strict SAML Authentication
+# This set provides maximum security settings for production environments.
+
+name: nr-saml-auth/strict
+label: SAML Auth - Strict Security
+description: Maximum security SAML configuration for production environments
+
+dependencies:
+  - nr-saml-auth/default
+
+settings:
+  # Extension settings with strict security
+  nr_saml_auth:
+    debugMode: false
+    strictMode: true
+    validateXml: true
+    lowercaseUrlEncoding: false
+    sessionTimeout: 1800  # 30 minute timeout

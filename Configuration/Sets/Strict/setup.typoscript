@@ -1,0 +1,21 @@
+# Strict SAML Auth TypoScript Configuration
+# Maximum security settings for production environments
+
+plugin.tx_nrsamlauth {
+    settings {
+        # Enable SAML authentication
+        enabled = 1
+
+        # Strict redirect behavior - only allow same-domain redirects
+        redirectAfterLogin = home
+
+        # Shorter session lifetime for security
+        sessionLifetime = 1800
+
+        # Require signed assertions
+        requireSignedAssertions = 1
+
+        # Require encrypted assertions
+        requireEncryptedAssertions = 1
+    }
+}

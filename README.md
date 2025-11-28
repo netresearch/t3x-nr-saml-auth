@@ -1,6 +1,10 @@
 # Netresearch TYPO3 SAML Auth
 
 [![CI](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml)
+[![TYPO3](https://img.shields.io/badge/TYPO3-12.4%20|%2013.4-orange.svg)](https://typo3.org/)
+[![PHP](https://img.shields.io/badge/PHP-8.1%20--%208.4-blue.svg)](https://www.php.net/)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](https://phpstan.org/)
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
 > TYPO3 extension for SAML SSO authentication supporting frontend and backend users using the `onelogin/php-saml` library.
 

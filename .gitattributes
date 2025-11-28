@@ -35,3 +35,6 @@
 /phpstan-baseline.neon export-ignore
 /renovate.json export-ignore
 /AGENTS.md export-ignore
+/CONTRIBUTING.md export-ignore
+/SECURITY.md export-ignore
+/Makefile export-ignore
