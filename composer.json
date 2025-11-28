@@ -43,7 +43,7 @@
         "onelogin/php-saml": "^4.0.0"
     },
     "require-dev": {
-        "typo3/testing-framework": "^8.2",
+        "typo3/testing-framework": "^8.2 || ^9.0",
         "phpunit/phpunit": "^10.5",
         "phpstan/phpstan": "^1.12",
         "phpstan/phpstan-phpunit": "^1.4",
