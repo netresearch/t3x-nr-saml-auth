@@ -47,17 +47,17 @@ class AuthenticationService extends Typo3AuthService
 
         try {
             if (!$samlResponse->isValid()) {
-                $this->logger->warning('SAML Response from SSO server is not valid');
+                $this->logger?->warning('SAML Response from SSO server is not valid');
                 return false;
             }
         } catch (ValidationError $e) {
-            $this->logger->error('SAML Response from SSO server is not valid', ['exception' => $e]);
+            $this->logger?->error('SAML Response from SSO server is not valid', ['exception' => $e]);
             return false;
         }
 
         $settings = $this->getSettingsRepository()->findByUid($this->getSamlId());
         if (!$settings instanceof Settings) {
-            $this->logger->error('SAML Settings not found', ['saml_id' => $this->getSamlId()]);
+            $this->logger?->error('SAML Settings not found', ['saml_id' => $this->getSamlId()]);
             return false;
         }
 
@@ -178,7 +178,7 @@ class AuthenticationService extends Typo3AuthService
 
         $settings = $this->getSettingsRepository()->findEntityIdByHost($url);
 
-        if ($settings instanceof Settings) {
+        if ($settings instanceof Settings && $settings->getUid() !== null) {
             return $settings->getUid();
         }
 

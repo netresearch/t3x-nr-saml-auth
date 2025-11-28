@@ -1,464 +1,224 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Netresearch\NrSamlAuth\Domain\Model;
 
-use TYPO3\CMS\Extbase\Annotation\Validate;
+use TYPO3\CMS\Extbase\Annotation as Extbase;
 use TYPO3\CMS\Extbase\DomainObject\AbstractEntity;
 
 /**
- * Class Settings
+ * SAML authentication settings model.
  *
- * @category   Authentication
- * @author     Axel Seemann <axel.seemann@netresearch.de>
- * @license    Netresearch License
- * @link       https://www.netresearch.de
+ * Represents the configuration for a SAML Service Provider (SP)
+ * and Identity Provider (IdP) pair.
  */
 class Settings extends AbstractEntity
 {
-    /**
-     * @var string
-     */
-    protected $name;
+    protected string $name = '';
 
-    /**
-     * @var string
-     */
-    protected $redirectUrl;
+    protected string $redirectUrl = '';
 
-    /**
-     * @var string
-     */
-    protected $spEntityId;
+    protected string $spEntityId = '';
 
-    /**
-     * @var string
-     * @Validate("Url")
-     */
-    protected $spCustomerServiceUrl;
+    #[Extbase\Validate(['validator' => 'Url'])]
+    protected string $spCustomerServiceUrl = '';
 
-    /**
-     * @var string
-     */
-    protected $spCustomerServiceBinding;
+    protected string $spCustomerServiceBinding = '';
 
-    /**
-     * @var string
-     */
-    protected $spNameIdFormat;
+    protected string $spNameIdFormat = '';
 
-    /**
-     * @var string
-     */
-    protected $spCert;
+    protected string $spCert = '';
 
-    /**
-     * @var string
-     */
-    protected $spKey;
+    protected string $spKey = '';
 
-    /**
-     * @var string
-     */
-    protected $idpEntityId;
+    protected string $idpEntityId = '';
 
-    /**
-     * @var string
-     */
-    protected $idpSsoUrl;
+    protected string $idpSsoUrl = '';
 
-    /**
-     * @var string
-     */
-    protected $idpSsoBinding;
+    protected string $idpSsoBinding = '';
 
-    /**
-     * @var string
-     */
-    protected $idpLogoutUrl;
+    protected string $idpLogoutUrl = '';
 
-    /**
-     * @var string
-     */
-    protected $idpCert;
+    protected string $idpCert = '';
 
-    /**
-     * @var string
-     */
-    protected $usernamePrefix;
+    protected string $usernamePrefix = '';
 
-    /**
-     * @var int
-     */
-    protected $usersPid;
+    protected int $usersPid = 0;
 
-    /**
-     * @var string
-     */
-    protected $usergroup;
+    protected string $usergroup = '';
 
-    /**
-     * Returns the property name.
-     *
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * Sets the property name.
-     *
-     * @param string $name The value for name
-     *
-     * @return $this
-     */
-    public function setName($name)
+    public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    /**
-     * Returns the property redirectUrl.
-     *
-     * @return string
-     */
-    public function getRedirectUrl()
+    public function getRedirectUrl(): string
     {
         return $this->redirectUrl;
     }
 
-    /**
-     * Sets the property redirectUrl.
-     *
-     * @param string $redirectUrl The value for redirectUrl
-     *
-     * @return $this
-     */
-    public function setRedirectUrl($redirectUrl)
+    public function setRedirectUrl(string $redirectUrl): self
     {
         $this->redirectUrl = $redirectUrl;
         return $this;
     }
 
-    /**
-     * Returns the property spEntityId.
-     *
-     * @return string
-     */
-    public function getSpEntityId()
+    public function getSpEntityId(): string
     {
         return $this->spEntityId;
     }
 
-    /**
-     * Sets the property spEntityId.
-     *
-     * @param string $spEntityId The value for spEntityId
-     *
-     * @return $this
-     */
-    public function setSpEntityId($spEntityId)
+    public function setSpEntityId(string $spEntityId): self
     {
         $this->spEntityId = $spEntityId;
         return $this;
     }
 
-    /**
-     * Returns the property spCustomerServiceUrl.
-     *
-     * @return string
-     */
-    public function getSpCustomerServiceUrl()
+    public function getSpCustomerServiceUrl(): string
     {
         return $this->spCustomerServiceUrl;
     }
 
-    /**
-     * Sets the property spCustomerServiceUrl.
-     *
-     * @param string $spCustomerServiceUrl The value for spCustomerServiceUrl
-     *
-     * @return $this
-     */
-    public function setSpCustomerServiceUrl($spCustomerServiceUrl)
+    public function setSpCustomerServiceUrl(string $spCustomerServiceUrl): self
     {
         $this->spCustomerServiceUrl = $spCustomerServiceUrl;
         return $this;
     }
 
-    /**
-     * Returns the property spCustomerServiceBinding.
-     *
-     * @return string
-     */
-    public function getSpCustomerServiceBinding()
+    public function getSpCustomerServiceBinding(): string
     {
         return $this->spCustomerServiceBinding;
     }
 
-    /**
-     * Sets the property spCustomerServiceBinding.
-     *
-     * @param string $spCustomerServiceBinding The value for spCustomerServiceBinding
-     *
-     * @return $this
-     */
-    public function setSpCustomerServiceBinding($spCustomerServiceBinding)
+    public function setSpCustomerServiceBinding(string $spCustomerServiceBinding): self
     {
         $this->spCustomerServiceBinding = $spCustomerServiceBinding;
         return $this;
     }
 
-    /**
-     * Returns the property spNameIdFormat.
-     *
-     * @return string
-     */
-    public function getSpNameIdFormat()
+    public function getSpNameIdFormat(): string
     {
         return $this->spNameIdFormat;
     }
 
-    /**
-     * Sets the property spNameIdFormat.
-     *
-     * @param string $spNameIdFormat The value for spNameIdFormat
-     *
-     * @return $this
-     */
-    public function setSpNameIdFormat($spNameIdFormat)
+    public function setSpNameIdFormat(string $spNameIdFormat): self
     {
         $this->spNameIdFormat = $spNameIdFormat;
         return $this;
     }
 
-    /**
-     * Returns the property spCert.
-     *
-     * @return string
-     */
-    public function getSpCert()
+    public function getSpCert(): string
     {
         return $this->spCert;
     }
 
-    /**
-     * Sets the property spCert.
-     *
-     * @param string $spCert The value for spCert
-     *
-     * @return $this
-     */
-    public function setSpCert($spCert)
+    public function setSpCert(string $spCert): self
     {
         $this->spCert = $spCert;
         return $this;
     }
 
-    /**
-     * Returns the property spKey.
-     *
-     * @return string
-     */
-    public function getSpKey()
+    public function getSpKey(): string
     {
         return $this->spKey;
     }
 
-    /**
-     * Sets the property spKey.
-     *
-     * @param string $spKey The value for spKey
-     *
-     * @return $this
-     */
-    public function setSpKey($spKey)
+    public function setSpKey(string $spKey): self
     {
         $this->spKey = $spKey;
         return $this;
     }
 
-    /**
-     * Returns the property idpEntityId.
-     *
-     * @return string
-     */
-    public function getIdpEntityId()
+    public function getIdpEntityId(): string
     {
         return $this->idpEntityId;
     }
 
-    /**
-     * Sets the property idpEntityId.
-     *
-     * @param string $idpEntityId The value for idpEntityId
-     *
-     * @return $this
-     */
-    public function setIdpEntityId($idpEntityId)
+    public function setIdpEntityId(string $idpEntityId): self
     {
         $this->idpEntityId = $idpEntityId;
         return $this;
     }
 
-    /**
-     * Returns the property idpSsoUrl.
-     *
-     * @return string
-     */
-    public function getIdpSsoUrl()
+    public function getIdpSsoUrl(): string
     {
         return $this->idpSsoUrl;
     }
 
-    /**
-     * Sets the property idpSsoUrl.
-     *
-     * @param string $idpSsoUrl The value for idpSsoUrl
-     *
-     * @return $this
-     */
-    public function setIdpSsoUrl($idpSsoUrl)
+    public function setIdpSsoUrl(string $idpSsoUrl): self
     {
         $this->idpSsoUrl = $idpSsoUrl;
         return $this;
     }
 
-    /**
-     * Returns the property idpSsoBinding.
-     *
-     * @return string
-     */
-    public function getIdpSsoBinding()
+    public function getIdpSsoBinding(): string
     {
         return $this->idpSsoBinding;
     }
 
-    /**
-     * Sets the property idpSsoBinding.
-     *
-     * @param string $idpSsoBinding The value for idpSsoBinding
-     *
-     * @return $this
-     */
-    public function setIdpSsoBinding($idpSsoBinding)
+    public function setIdpSsoBinding(string $idpSsoBinding): self
     {
         $this->idpSsoBinding = $idpSsoBinding;
         return $this;
     }
 
-    /**
-     * Returns the property idpCert.
-     *
-     * @return string
-     */
-    public function getIdpCert()
-    {
-        return $this->idpCert;
-    }
-
-    /**
-     * Returns the property idpLogoutUrl.
-     *
-     * @return string
-     */
-    public function getIdpLogoutUrl()
+    public function getIdpLogoutUrl(): string
     {
         return $this->idpLogoutUrl;
     }
 
-    /**
-     * Sets the property idpLogoutUrl.
-     *
-     * @param string $idpLogoutUrl The value for idpLogoutUrl
-     *
-     * @return $this
-     */
-    public function setIdpLogoutUrl($idpLogoutUrl)
+    public function setIdpLogoutUrl(string $idpLogoutUrl): self
     {
         $this->idpLogoutUrl = $idpLogoutUrl;
         return $this;
     }
 
-    /**
-     * Sets the property idpCert.
-     *
-     * @param string $idpCert The value for idpCert
-     *
-     * @return $this
-     */
-    public function setIdpCert($idpCert)
+    public function getIdpCert(): string
+    {
+        return $this->idpCert;
+    }
+
+    public function setIdpCert(string $idpCert): self
     {
         $this->idpCert = $idpCert;
         return $this;
     }
 
-    /**
-     * Returns the property usernamePrefix.
-     *
-     * @return string
-     */
-    public function getUsernamePrefix()
+    public function getUsernamePrefix(): string
     {
         return $this->usernamePrefix;
     }
 
-    /**
-     * Sets the property usernamePrefix.
-     *
-     * @param string $usernamePrefix The value for usernamePrefix
-     *
-     * @return $this
-     */
-    public function setUsernamePrefix($usernamePrefix)
+    public function setUsernamePrefix(string $usernamePrefix): self
     {
         $this->usernamePrefix = $usernamePrefix;
         return $this;
     }
 
-    /**
-     * Returns the property usersPid.
-     *
-     * @return int
-     */
-    public function getUsersPid()
+    public function getUsersPid(): int
     {
         return $this->usersPid;
     }
 
-    /**
-     * Sets the property usersPid.
-     *
-     * @param int $usersPid The value for usersPid
-     *
-     * @return $this
-     */
-    public function setUsersPid($usersPid)
+    public function setUsersPid(int $usersPid): self
     {
         $this->usersPid = $usersPid;
         return $this;
     }
 
-    /**
-     * Returns the property usergroup.
-     *
-     * @return string
-     */
-    public function getUsergroup()
+    public function getUsergroup(): string
     {
         return $this->usergroup;
     }
 
-    /**
-     * Sets the property usergroup.
-     *
-     * @param string $usergroup The value for usergroup
-     *
-     * @return $this
-     */
-    public function setUsergroup($usergroup)
+    public function setUsergroup(string $usergroup): self
     {
         $this->usergroup = $usergroup;
         return $this;

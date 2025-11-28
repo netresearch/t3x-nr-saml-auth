@@ -55,7 +55,13 @@
 				<source>Other</source>
 			</trans-unit>
 			<trans-unit id="nr_saml_auth_domain_model_settings.username_prefix">
-				<source>Other</source>
+				<source>Username prefix</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.users_pid">
+				<source>User storage folder</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.usergroup">
+				<source>User groups</source>
 			</trans-unit>
 		</body>
 	</file>

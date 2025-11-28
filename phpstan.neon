@@ -3,7 +3,7 @@ includes:
     - .Build/vendor/saschaegerer/phpstan-typo3/extension.neon
 
 parameters:
-    level: 6
+    level: 8
     paths:
         - Classes
         - Configuration

@@ -1,19 +1,17 @@
 <html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
       xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
       data-namespace-typo3-fluid="true">
-    <f:layout name="main" />
-    <f:section name="headline">
-        <h1>Saml Auth Metadata</h1>
-    </f:section>
+    <f:layout name="Main" />
     <f:section name="content">
+        <h1><f:translate key="LLL:EXT:nr_saml_auth/Resources/Private/Language/SamlAuthModule.xlf:mlang_tabs_tab" /></h1>
         <f:form name="samlSelect">
             <f:form.select name="samlUid"
                            options="{samlSettings}"
                            optionValueField="uid"
                            optionLabelField="name"
-                           prependOptionLabel="Please Select"
+                           prependOptionLabel="{f:translate(key: 'LLL:EXT:nr_saml_auth/Resources/Private/Language/SamlAuthModule.xlf:select.placeholder')}"
             />
-            <f:form.submit name="Senden" value="Senden" />
+            <f:form.submit name="submit" value="{f:translate(key: 'LLL:EXT:nr_saml_auth/Resources/Private/Language/SamlAuthModule.xlf:button.submit')}" />
         </f:form>
         <f:if condition="{SamlMetaData}">
             <pre><f:format.raw>{SamlMetaData}</f:format.raw></pre>

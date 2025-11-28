@@ -19,9 +19,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getNameReturnsInitiallyNull(): void
+    public function getNameReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getName());
+        self::assertSame('', $this->subject->getName());
     }
 
     #[Test]
@@ -39,9 +39,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getRedirectUrlReturnsInitiallyNull(): void
+    public function getRedirectUrlReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getRedirectUrl());
+        self::assertSame('', $this->subject->getRedirectUrl());
     }
 
     #[Test]
@@ -52,9 +52,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpEntityIdReturnsInitiallyNull(): void
+    public function getSpEntityIdReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpEntityId());
+        self::assertSame('', $this->subject->getSpEntityId());
     }
 
     #[Test]
@@ -65,9 +65,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpCustomerServiceUrlReturnsInitiallyNull(): void
+    public function getSpCustomerServiceUrlReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpCustomerServiceUrl());
+        self::assertSame('', $this->subject->getSpCustomerServiceUrl());
     }
 
     #[Test]
@@ -78,9 +78,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpCustomerServiceBindingReturnsInitiallyNull(): void
+    public function getSpCustomerServiceBindingReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpCustomerServiceBinding());
+        self::assertSame('', $this->subject->getSpCustomerServiceBinding());
     }
 
     #[Test]
@@ -92,9 +92,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpNameIdFormatReturnsInitiallyNull(): void
+    public function getSpNameIdFormatReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpNameIdFormat());
+        self::assertSame('', $this->subject->getSpNameIdFormat());
     }
 
     #[Test]
@@ -106,9 +106,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpCertReturnsInitiallyNull(): void
+    public function getSpCertReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpCert());
+        self::assertSame('', $this->subject->getSpCert());
     }
 
     #[Test]
@@ -120,9 +120,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getSpKeyReturnsInitiallyNull(): void
+    public function getSpKeyReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getSpKey());
+        self::assertSame('', $this->subject->getSpKey());
     }
 
     #[Test]
@@ -134,9 +134,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getIdpEntityIdReturnsInitiallyNull(): void
+    public function getIdpEntityIdReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getIdpEntityId());
+        self::assertSame('', $this->subject->getIdpEntityId());
     }
 
     #[Test]
@@ -147,9 +147,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getIdpSsoUrlReturnsInitiallyNull(): void
+    public function getIdpSsoUrlReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getIdpSsoUrl());
+        self::assertSame('', $this->subject->getIdpSsoUrl());
     }
 
     #[Test]
@@ -160,9 +160,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getIdpSsoBindingReturnsInitiallyNull(): void
+    public function getIdpSsoBindingReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getIdpSsoBinding());
+        self::assertSame('', $this->subject->getIdpSsoBinding());
     }
 
     #[Test]
@@ -174,9 +174,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getIdpLogoutUrlReturnsInitiallyNull(): void
+    public function getIdpLogoutUrlReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getIdpLogoutUrl());
+        self::assertSame('', $this->subject->getIdpLogoutUrl());
     }
 
     #[Test]
@@ -187,9 +187,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getIdpCertReturnsInitiallyNull(): void
+    public function getIdpCertReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getIdpCert());
+        self::assertSame('', $this->subject->getIdpCert());
     }
 
     #[Test]
@@ -201,9 +201,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getUsernamePrefixReturnsInitiallyNull(): void
+    public function getUsernamePrefixReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getUsernamePrefix());
+        self::assertSame('', $this->subject->getUsernamePrefix());
     }
 
     #[Test]
@@ -214,9 +214,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getUsersPidReturnsInitiallyNull(): void
+    public function getUsersPidReturnsInitiallyZero(): void
     {
-        self::assertNull($this->subject->getUsersPid());
+        self::assertSame(0, $this->subject->getUsersPid());
     }
 
     #[Test]
@@ -227,9 +227,9 @@ final class SettingsTest extends UnitTestCase
     }
 
     #[Test]
-    public function getUsergroupReturnsInitiallyNull(): void
+    public function getUsergroupReturnsInitiallyEmptyString(): void
     {
-        self::assertNull($this->subject->getUsergroup());
+        self::assertSame('', $this->subject->getUsergroup());
     }
 
     #[Test]

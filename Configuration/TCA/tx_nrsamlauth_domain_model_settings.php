@@ -5,7 +5,6 @@ return [
         'label' => 'name',
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
-        'cruser_id' => 'cruser_id',
         'title' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings',
         'delete' => 'deleted',
         'enablecolumns' => [
@@ -17,9 +16,6 @@ return [
             'ignorePageTypeRestriction' => true,
         ],
     ],
-    'interface' => [
-        'showRecordFieldList' => 'name,redirect_url,sp_entity_id,sp_customer_service_url,sp_customer_service_binding,sp_name_id_format,sp_cert,sp_key,idp_entity_id,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,username_prefix,users_pid,usergroup',
-    ],
     'columns' => [
         'name' => [
             'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.name',
@@ -27,7 +23,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 250,
-                'eval' => 'trim,required',
+                'eval' => 'trim',
+                'required' => true,
             ],
         ],
         'redirect_url' => [
@@ -45,7 +42,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 250,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'sp_customer_service_url' => [
@@ -54,7 +52,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 1000,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'sp_customer_service_binding' => [
@@ -63,7 +62,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 250,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'sp_name_id_format' => [
@@ -72,7 +72,7 @@ return [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
                 'itemsProcFunc' => \Netresearch\NrSamlAuth\Service\SamlService::class . '->nameIdFormatItems',
-                'eval' => 'required',
+                'required' => true,
             ],
         ],
         'sp_cert' => [
@@ -82,7 +82,8 @@ return [
                 'cols' => 30,
                 'rows' => 5,
                 'fixedFont' => true,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'sp_key' => [
@@ -92,7 +93,8 @@ return [
                 'cols' => 30,
                 'rows' => 5,
                 'fixedFont' => true,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'idp_entity_id' => [
@@ -101,7 +103,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 250,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'idp_sso_url' => [
@@ -110,7 +113,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 1000,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'idp_sso_binding' => [
@@ -119,7 +123,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 250,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'idp_logout_url' => [
@@ -128,7 +133,8 @@ return [
                 'type' => 'input',
                 'size' => 30,
                 'max' => 1000,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'idp_cert' => [
@@ -138,7 +144,8 @@ return [
                 'cols' => 30,
                 'rows' => 5,
                 'fixedFont' => true,
-                'eval' => 'nospace,trim,required',
+                'eval' => 'nospace,trim',
+                'required' => true,
             ],
         ],
         'username_prefix' => [
@@ -151,10 +158,9 @@ return [
             ],
         ],
         'users_pid' => [
-            'label' => 'LLL:EXT:frontend/Resources/Private/Language/locallang_tca.xlf:fe_users.usergroup',
+            'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.users_pid',
             'config' => [
                 'type' => 'group',
-                'internal_type' => 'db',
                 'allowed' => 'pages',
                 'size' => 1,
                 'minitems' => 1,
@@ -162,7 +168,7 @@ return [
             ],
         ],
         'usergroup' => [
-            'label' => 'LLL:EXT:frontend/Resources/Private/Language/locallang_tca.xlf:fe_users.usergroup',
+            'label' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.usergroup',
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectMultipleSideBySide',
@@ -185,7 +191,5 @@ return [
                 --div--;LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.other,
                 username_prefix,users_pid,usergroup',
         ],
-    ],
-    'palettes' => [
     ],
 ];
