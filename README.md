@@ -1,6 +1,12 @@
 Netresearch TYPO3 Saml Auth
 ===========================
 
+> **DEPRECATION NOTICE**: This branch (`TYPO3_10`) supports TYPO3 10.4.x only.
+> For TYPO3 12.4/13.4 support, use the `main` branch (version 13.x).
+> This branch will only receive critical security fixes.
+
+---
+
 > With this TYPO3 extension you can authenticate against a SAML SSO server.\
 > It works for backend and frontend users and make use of the `onelogin/php-saml` package.
 
