@@ -1,0 +1,5 @@
+..  This file is used to include common definitions and substitutions.
+..  You can add your own definitions here.
+
+..  |extension_key| replace:: nr_saml_auth
+..  |extension_name| replace:: Netresearch SAML Auth
