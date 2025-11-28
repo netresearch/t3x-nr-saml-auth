@@ -7,10 +7,6 @@ use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 defined('TYPO3') or die();
 
 (static function (): void {
-    ExtensionManagementUtility::allowTableOnStandardPages(
-        'tx_nrsamlauth_domain_model_settings'
-    );
-
     ExtensionManagementUtility::addStaticFile(
         'nr_saml_auth',
         'Configuration/TypoScript',

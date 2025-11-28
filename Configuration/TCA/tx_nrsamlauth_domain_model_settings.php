@@ -13,6 +13,9 @@ return [
             'starttime' => 'starttime',
             'endtime' => 'endtime',
         ],
+        'security' => [
+            'ignorePageTypeRestriction' => true,
+        ],
     ],
     'interface' => [
         'showRecordFieldList' => 'name,redirect_url,sp_entity_id,sp_customer_service_url,sp_customer_service_binding,sp_name_id_format,sp_cert,sp_key,idp_entity_id,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,username_prefix,users_pid,usergroup',
