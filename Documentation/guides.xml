@@ -16,8 +16,10 @@
                edit-on-github-branch="main"
                edit-on-github-directory="Documentation"
                project-home="https://github.com/netresearch/t3x-nr-saml-auth"
+               project-contact="https://github.com/netresearch/t3x-nr-saml-auth/discussions"
                project-repository="https://github.com/netresearch/t3x-nr-saml-auth"
                project-issues="https://github.com/netresearch/t3x-nr-saml-auth/issues"
+               report-issue="https://github.com/netresearch/t3x-nr-saml-auth/issues"
     />
 
     <!-- Cross-Documentation References -->
