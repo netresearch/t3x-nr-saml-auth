@@ -13,6 +13,7 @@ additional_hostnames:
   - v13.nr-saml-auth
   - v12
   - v13
+  - docs.nr-saml-auth
 
 web_dir: .
 docroot: .
