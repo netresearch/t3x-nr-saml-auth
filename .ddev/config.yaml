@@ -6,6 +6,7 @@ webserver_type: apache-fpm
 router_http_port: "80"
 router_https_port: "443"
 xdebug_enabled: false
+mailpit_enabled: false
 
 additional_hostnames:
   - v12.nr-saml-auth

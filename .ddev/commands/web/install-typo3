@@ -55,6 +55,7 @@ install_version() {
     echo "Setting up TYPO3 with Database (${DB_NAME})..."
     touch public/FIRST_INSTALL
 
+    # Use env vars from docker-compose.web.yaml (default: admin / joh316)
     ./vendor/bin/typo3 setup \
         --no-interaction \
         --driver="mysqli" \
@@ -63,9 +64,9 @@ install_version() {
         --dbname="${DB_NAME}" \
         --username="db" \
         --password="db" \
-        --admin-username="admin" \
-        --admin-user-password="Password123!" \
-        --admin-email="admin@example.com" \
+        --admin-username="${TYPO3_SETUP_ADMIN_USERNAME:-admin}" \
+        --admin-user-password="${TYPO3_SETUP_ADMIN_PASSWORD:-joh316}" \
+        --admin-email="${TYPO3_SETUP_ADMIN_EMAIL:-admin@example.com}" \
         --project-name="TYPO3 v${VERSION} Dev" \
         --server-type="apache" \
         --create-site="https://v${VERSION}.nr-saml-auth.ddev.site/"
