@@ -300,7 +300,7 @@ if (preg_match('/github\.com[:\\/]([^\\/]+)\\/([^\\/]+?)(?:\\.git)?$/', $gitRemo
 
         <div class="credentials-box">
             <h3>Backend Credentials</h3>
-            <p>Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>joh316</code></p>
+            <p>Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>Joh316!</code></p>
         </div>
 
         <div class="grid">

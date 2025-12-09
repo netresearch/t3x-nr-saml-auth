@@ -104,7 +104,7 @@ urls: ## Show all access URLs
 	@echo "  $(BLUE)TYPO3 13:$(RESET)  https://v13.nr-saml-auth.ddev.site/typo3/"
 	@echo "  $(BLUE)Docs:$(RESET)      https://docs.nr-saml-auth.ddev.site/"
 	@echo ""
-	@echo "  $(YELLOW)Credentials:$(RESET) admin / joh316"
+	@echo "  $(YELLOW)Credentials:$(RESET) admin / Joh316!"
 	@echo ""
 
 ssh: ## SSH into DDEV web container
