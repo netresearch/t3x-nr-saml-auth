@@ -2,7 +2,7 @@
 # Self-documenting: run 'make' or 'make help' to see available targets
 
 .DEFAULT_GOAL := help
-.PHONY: help install test lint fix quality ci clean docs
+.PHONY: help install test lint fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh
 
 # Colors for output
 BLUE := \033[34m
@@ -67,6 +67,48 @@ docs: ## Render documentation locally (requires Docker)
 docs-serve: ## Serve documentation locally
 	@echo "$(BLUE)Serving documentation at http://localhost:8000...$(RESET)"
 	@cd Documentation-GENERATED-temp && python3 -m http.server 8000
+
+##@ DDEV Environment
+
+up: ## Complete startup: start DDEV + install all TYPO3 versions
+	@echo "$(GREEN)Starting DDEV and installing TYPO3...$(RESET)"
+	@ddev start
+	@ddev install-typo3 all
+	@echo ""
+	@echo "$(GREEN)Environment ready!$(RESET)"
+	@$(MAKE) urls
+
+start: ## Start DDEV environment
+	@ddev start
+
+stop: ## Stop DDEV environment
+	@ddev stop
+
+restart: ## Restart DDEV environment
+	@ddev restart
+
+install-v12: ## Install/reinstall TYPO3 12.4 LTS
+	@ddev install-typo3 12
+
+install-v13: ## Install/reinstall TYPO3 13.4 LTS
+	@ddev install-typo3 13
+
+install-all: ## Install/reinstall all TYPO3 versions
+	@ddev install-typo3 all
+
+urls: ## Show all access URLs
+	@echo ""
+	@echo "$(GREEN)Access URLs:$(RESET)"
+	@echo "  $(BLUE)Overview:$(RESET)  https://nr-saml-auth.ddev.site/"
+	@echo "  $(BLUE)TYPO3 12:$(RESET)  https://v12.nr-saml-auth.ddev.site/typo3/"
+	@echo "  $(BLUE)TYPO3 13:$(RESET)  https://v13.nr-saml-auth.ddev.site/typo3/"
+	@echo "  $(BLUE)Docs:$(RESET)      https://docs.nr-saml-auth.ddev.site/"
+	@echo ""
+	@echo "  $(YELLOW)Credentials:$(RESET) admin / Password123!"
+	@echo ""
+
+ssh: ## SSH into DDEV web container
+	@ddev ssh
 
 ##@ Cleanup
 

@@ -42,18 +42,11 @@ install_version() {
     echo "Configuring symlink to current extension..."
     cd "$TARGET_DIR" || exit
 
-    # Add root as path repository
-    composer config repositories.local path "../../../" --no-interaction
+    # Add extension as path repository (mounted at /var/www/nr_saml_auth)
+    composer config repositories.local path "/var/www/nr_saml_auth" --no-interaction
 
-    # Get extension name from root composer.json
-    local EXT_NAME
-    EXT_NAME=$(grep '"name":' ../../../composer.json | head -1 | sed 's/.*"name":[[:space:]]*"\([^"]*\)".*/\1/')
-
-    if [ -z "$EXT_NAME" ]; then
-        echo "Could not determine extension name from root composer.json."
-        cd ../..
-        return 1
-    fi
+    # Use PACKAGE_NAME from environment or default
+    local EXT_NAME="${PACKAGE_NAME:-netresearch/nr-saml-auth}"
 
     echo "Installing local extension: $EXT_NAME..."
     composer require "$EXT_NAME:@dev" --no-interaction
@@ -71,7 +64,7 @@ install_version() {
         --username="db" \
         --password="db" \
         --admin-username="admin" \
-        --admin-password="password" \
+        --admin-user-password="Password123!" \
         --admin-email="admin@example.com" \
         --project-name="TYPO3 v${VERSION} Dev" \
         --server-type="apache" \
@@ -83,7 +76,7 @@ install_version() {
     echo "TYPO3 v${VERSION} installed successfully!"
     echo "URL: https://v${VERSION}.nr-saml-auth.ddev.site/"
     echo "Backend: https://v${VERSION}.nr-saml-auth.ddev.site/typo3"
-    echo "Credentials: admin / password"
+    echo "Credentials: admin / Password123!"
     echo ""
 }
 
