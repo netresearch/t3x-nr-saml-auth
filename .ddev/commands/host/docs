@@ -1,0 +1,12 @@
+#!/bin/bash
+
+## Description: Render TYPO3 documentation locally
+## Usage: docs
+## Example: ddev docs
+
+echo "Rendering documentation..."
+docker run --rm -v "$(pwd)":/project -t ghcr.io/typo3-documentation/render-guides:latest --config Documentation
+
+echo ""
+echo "Documentation rendered to Documentation-GENERATED-temp/"
+echo "View at: https://docs.nr-saml-auth.ddev.site/"
