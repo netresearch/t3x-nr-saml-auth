@@ -40,7 +40,7 @@
         "typo3/cms-core": "^12.4 || ^13.4",
         "typo3/cms-frontend": "^12.4 || ^13.4",
         "typo3/cms-extbase": "^12.4 || ^13.4",
-        "onelogin/php-saml": "^4.0.0"
+        "onelogin/php-saml": "^4.3.1"
     },
     "require-dev": {
         "typo3/testing-framework": "^8.2 || ^9.0",
