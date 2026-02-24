@@ -15,7 +15,7 @@
 
 If you discover a security vulnerability in this extension, please report it responsibly:
 
-1. **Email**: Send details to [security@netresearch.de](mailto:security@netresearch.de)
+1. **Email**: Send details to [GitHub Security Advisories](https://github.com/netresearch/t3x-nr-saml-auth/security/advisories/new)
 2. **Subject**: `[SECURITY] TYPO3 nr_saml_auth - Brief description`
 3. **Include**:
    - Type of vulnerability
