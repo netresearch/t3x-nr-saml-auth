@@ -1,143 +1,17 @@
 name: CI
-
 on:
   push:
-    branches:
-      - main
-      - 'feature/**'
   pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: read
-
+permissions: {}
 jobs:
-  php-lint:
-    name: PHP Lint
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-        with:
-          php-version: ${{ matrix.php-version }}
-
-      - name: PHP Lint
-        run: find Classes Configuration -name '*.php' -print0 | xargs -0 -n1 php -l
-
-  code-quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    needs: php-lint
-    strategy:
-      matrix:
-        php-version: ['8.2']
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: intl, mbstring
-          tools: composer:v2
-
-      - name: Install dependencies
-        run: composer install --no-progress --no-interaction
-
-      - name: PHP-CS-Fixer
-        run: composer ci:cgl
-
-      - name: PHPStan
-        run: composer ci:phpstan
-
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    needs: php-lint
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
-        typo3-version: ['12.4', '13.4']
-        exclude:
-          - php-version: '8.1'
-            typo3-version: '13.4'
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: intl, mbstring
-          tools: composer:v2
-
-      - name: Install TYPO3 ${{ matrix.typo3-version }}
-        run: |
-          composer require --no-progress --no-interaction \
-            "typo3/cms-core:^${{ matrix.typo3-version }}" \
-            "typo3/cms-frontend:^${{ matrix.typo3-version }}" \
-            "typo3/cms-extbase:^${{ matrix.typo3-version }}"
-
-      - name: Run Unit Tests
-        run: composer ci:tests:unit
-
-  functional-tests:
-    name: Functional Tests
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.1', '8.2', '8.3', '8.4']
-        typo3-version: ['12.4', '13.4']
-        exclude:
-          - php-version: '8.1'
-            typo3-version: '13.4'
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
-        with:
-          egress-policy: audit
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-        with:
-          php-version: ${{ matrix.php-version }}
-          extensions: intl, mbstring, sqlite3
-          tools: composer:v2
-
-      - name: Install TYPO3 ${{ matrix.typo3-version }}
-        run: |
-          composer require --no-progress --no-interaction \
-            "typo3/cms-core:^${{ matrix.typo3-version }}" \
-            "typo3/cms-frontend:^${{ matrix.typo3-version }}" \
-            "typo3/cms-extbase:^${{ matrix.typo3-version }}"
-
-      - name: Run Functional Tests
-        run: composer ci:tests:functional
-        env:
-          typo3DatabaseDriver: pdo_sqlite
+  ci:
+    uses: netresearch/typo3-ci-workflows/.github/workflows/ci.yml@main
+    permissions:
+      contents: read
+    with:
+      php-versions: '["8.1", "8.2", "8.3", "8.4"]'
+      typo3-versions: '["^12.4", "^13.4"]'
+      typo3-packages: '["typo3/cms-core", "typo3/cms-frontend", "typo3/cms-extbase"]'
+      matrix-exclude: '[{"php": "8.1", "typo3": "^13.4"}]'
+      run-rector: false
+      run-functional-tests: true
