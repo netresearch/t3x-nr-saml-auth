@@ -36,5 +36,22 @@ services:
   Netresearch\NrSamlAuth\Middleware\DeepLinkSsoMiddleware:
     public: true
 
-  # Event Listeners use PHP 8 #[AsEventListener] attributes
-  # No YAML registration needed for TYPO3 v12+
+  # Event Listeners registered via Services.yaml for TYPO3 12 compatibility
+  # (TYPO3 13+ also supports #[AsEventListener] attributes in the classes)
+  Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/before-user-logout'
+        event: TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent
+
+  Netresearch\NrSamlAuth\EventListener\AfterUserLoggedInEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/after-user-logged-in'
+        event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent
+
+  Netresearch\NrSamlAuth\EventListener\AfterUserLoggedOutEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'nr-saml-auth/after-user-logged-out'
+        event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedOutEvent

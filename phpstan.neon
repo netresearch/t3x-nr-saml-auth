@@ -12,6 +12,8 @@ parameters:
     treatPhpDocTypesAsCertain: false
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
+        # TYPO3 13+ attribute not available in TYPO3 12 - listeners registered via Services.yaml
+        - '#Attribute class TYPO3\\CMS\\Core\\Attribute\\AsEventListener does not exist#'
         # TYPO3 specific patterns
         - '#Access to an undefined property TYPO3\\CMS\\Core\\Authentication\\AbstractUserAuthentication::\$#'
         # onelogin/php-saml library patterns
