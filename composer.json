@@ -78,7 +78,7 @@
             "@ci:test:php:functional"
         ],
         "ci:cgl": "php-cs-fixer fix --config .php-cs-fixer.php",
-        "ci:test:php:cgl": "@ci:cgl -- --dry-run --diff",
+        "ci:test:php:cgl": "php-cs-fixer fix --config .php-cs-fixer.php --dry-run --diff",
         "ci:test:php:functional": "phpunit -c Build/phpunit/FunctionalTests.xml",
         "ci:test:php:phpstan": "phpstan analyse -c phpstan.neon",
         "ci:test:php:phpstan:baseline": "phpstan analyse -c phpstan.neon --generate-baseline",
