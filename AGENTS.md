@@ -19,10 +19,10 @@ TYPO3 extension for SAML 2.0 Single Sign-On authentication. Supports TYPO3 12.4/
 ## Minimal pre-commit checks
 
 ```bash
-composer ci:cgl          # PHP-CS-Fixer (dry-run)
-composer ci:phpstan      # PHPStan level 6
-composer ci:tests:unit   # Unit tests
-composer ci:tests:functional  # Functional tests (requires typo3DatabaseDriver=pdo_sqlite)
+composer ci:test:php:cgl          # PHP-CS-Fixer (dry-run)
+composer ci:test:php:phpstan     # PHPStan level 6
+composer ci:test:php:unit        # Unit tests
+composer ci:test:php:functional  # Functional tests (requires typo3DatabaseDriver=pdo_sqlite)
 ```
 
 ## Index of scoped AGENTS.md

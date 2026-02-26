@@ -71,23 +71,20 @@
         "sort-packages": true
     },
     "scripts": {
-        "ci:cgl": "php-cs-fixer fix --config .php-cs-fixer.php --dry-run --diff",
-        "ci:cgl:fix": "php-cs-fixer fix --config .php-cs-fixer.php",
-        "ci:phpstan": "phpstan analyse -c phpstan.neon",
-        "ci:phpstan:baseline": "phpstan analyse -c phpstan.neon --generate-baseline",
-        "ci:tests:unit": "phpunit -c Build/phpunit/UnitTests.xml",
-        "ci:tests:functional": "phpunit -c Build/phpunit/FunctionalTests.xml",
-        "ci:tests": [
-            "@ci:tests:unit",
-            "@ci:tests:functional"
-        ],
         "ci": [
-            "@ci:cgl",
-            "@ci:phpstan",
-            "@ci:tests"
+            "@ci:test:php:cgl",
+            "@ci:test:php:phpstan",
+            "@ci:test:php:unit",
+            "@ci:test:php:functional"
         ],
-        "docs:render": "docker run --rm -v $(pwd):/project -t ghcr.io/typo3-documentation/render-guides:latest --config Documentation",
-        "docs:clean": "rm -rf Documentation-GENERATED-temp"
+        "ci:cgl": "php-cs-fixer fix --config .php-cs-fixer.php",
+        "ci:test:php:cgl": "@ci:cgl -- --dry-run --diff",
+        "ci:test:php:functional": "phpunit -c Build/phpunit/FunctionalTests.xml",
+        "ci:test:php:phpstan": "phpstan analyse -c phpstan.neon",
+        "ci:test:php:phpstan:baseline": "phpstan analyse -c phpstan.neon --generate-baseline",
+        "ci:test:php:unit": "phpunit -c Build/phpunit/UnitTests.xml",
+        "docs:clean": "rm -rf Documentation-GENERATED-temp",
+        "docs:render": "docker run --rm -v $(pwd):/project -t ghcr.io/typo3-documentation/render-guides:latest --config Documentation"
     },
     "extra": {
         "typo3/cms": {

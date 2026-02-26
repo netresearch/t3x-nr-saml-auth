@@ -2,7 +2,7 @@
 # Self-documenting: run 'make' or 'make help' to see available targets
 
 .DEFAULT_GOAL := help
-.PHONY: help install test lint fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh
+.PHONY: help install test cgl cgl-fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh phpstan phpstan-baseline
 
 # Colors for output
 BLUE := \033[34m
@@ -26,31 +26,31 @@ test: test-unit test-functional ## Run all tests
 
 test-unit: ## Run unit tests
 	@echo "$(BLUE)Running unit tests...$(RESET)"
-	@composer ci:tests:unit
+	@composer ci:test:php:unit
 
 test-functional: ## Run functional tests
 	@echo "$(BLUE)Running functional tests...$(RESET)"
-	@composer ci:tests:functional
+	@composer ci:test:php:functional
 
 ##@ Code Quality
 
-lint: ## Check code style (dry-run)
+cgl: ## Check code style (dry-run)
 	@echo "$(BLUE)Checking code style...$(RESET)"
-	@composer ci:cgl
+	@composer ci:test:php:cgl
 
-fix: ## Fix code style issues
+cgl-fix: ## Fix code style issues
 	@echo "$(BLUE)Fixing code style...$(RESET)"
-	@composer ci:cgl:fix
+	@composer ci:cgl
 
 phpstan: ## Run PHPStan static analysis
 	@echo "$(BLUE)Running PHPStan...$(RESET)"
-	@composer ci:phpstan
+	@composer ci:test:php:phpstan
 
 phpstan-baseline: ## Generate PHPStan baseline
 	@echo "$(BLUE)Generating PHPStan baseline...$(RESET)"
-	@composer ci:phpstan:baseline
+	@composer ci:test:php:phpstan:baseline
 
-quality: lint phpstan ## Run all code quality checks
+quality: cgl phpstan ## Run all code quality checks
 
 ##@ CI/CD
 

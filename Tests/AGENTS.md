@@ -24,13 +24,13 @@ composer install
 
 ```bash
 # Unit tests (fast, ~50ms)
-composer ci:tests:unit
+composer ci:test:php:unit
 
 # Functional tests (requires database driver)
-typo3DatabaseDriver=pdo_sqlite composer ci:tests:functional
+typo3DatabaseDriver=pdo_sqlite composer ci:test:php:functional
 
 # All tests
-typo3DatabaseDriver=pdo_sqlite composer ci:tests
+typo3DatabaseDriver=pdo_sqlite composer ci
 ```
 
 ## 4. Code style & conventions
@@ -59,7 +59,7 @@ typo3DatabaseDriver=pdo_sqlite composer ci:tests
 ## 6. PR/commit checklist
 
 - [ ] All new code has test coverage
-- [ ] Tests pass locally: `composer ci:tests`
+- [ ] Tests pass locally: `composer ci`
 - [ ] No skipped or incomplete tests without issue reference
 - [ ] Fixtures use fake/mock data only
 

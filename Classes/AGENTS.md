@@ -24,10 +24,10 @@ composer install
 ## 3. Build & tests
 
 ```bash
-composer ci:cgl          # Check code style
-composer ci:cgl:fix      # Fix code style
-composer ci:phpstan      # Static analysis
-composer ci:tests:unit   # Unit tests
+composer ci:test:php:cgl      # Check code style
+composer ci:cgl               # Fix code style
+composer ci:test:php:phpstan  # Static analysis
+composer ci:test:php:unit     # Unit tests
 ```
 
 ## 4. Code style & conventions
@@ -58,8 +58,8 @@ composer ci:tests:unit   # Unit tests
 
 ## 6. PR/commit checklist
 
-- [ ] `composer ci:cgl` passes
-- [ ] `composer ci:phpstan` passes
+- [ ] `composer ci:test:php:cgl` passes
+- [ ] `composer ci:test:php:phpstan` passes
 - [ ] Unit tests cover new logic
 - [ ] No secrets or certificates in code
 - [ ] Breaking changes documented

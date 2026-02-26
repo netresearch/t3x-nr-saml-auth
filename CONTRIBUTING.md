@@ -59,9 +59,9 @@ composer ci
    composer ci
 
    # Or individual checks
-   composer ci:cgl        # Code style
-   composer ci:phpstan    # Static analysis
-   composer ci:tests      # All tests
+   composer ci:test:php:cgl      # Code style
+   composer ci:test:php:phpstan  # Static analysis
+   composer ci                   # All checks
    ```
 
 4. **Commit your changes**
@@ -101,13 +101,13 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 #### Unit Tests
 
 ```bash
-composer ci:tests:unit
+composer ci:test:php:unit
 ```
 
 #### Functional Tests
 
 ```bash
-composer ci:tests:functional
+composer ci:test:php:functional
 ```
 
 Tests use SQLite by default. For MySQL testing, configure `typo3DatabaseDriver`.

@@ -106,10 +106,10 @@ composer install
 composer ci
 
 # Individual checks
-composer ci:phpstan      # Static analysis
-composer ci:cgl          # Code style check
-composer ci:cgl:fix      # Code style fix
-composer ci:tests:unit   # Unit tests
+composer ci:test:php:phpstan  # Static analysis
+composer ci:test:php:cgl     # Code style check
+composer ci:cgl              # Code style fix
+composer ci:test:php:unit    # Unit tests
 ```
 
 ## License
