@@ -18,8 +18,8 @@ parameters:
         - '#Access to an undefined property TYPO3\\CMS\\Core\\Authentication\\AbstractUserAuthentication::\$#'
         # onelogin/php-saml library patterns
         - '#Parameter .* of class OneLogin\\Saml2\\#'
-        # Session methods available at runtime
-        - '#Call to an undefined method TYPO3\\CMS\\Core\\Authentication\\AbstractUserAuthentication::(fetchUserSession|storeSessionData)\(\)#'
+        # storeSessionData() exists on FrontendUserAuthentication but not on AbstractUserAuthentication
+        - '#Call to an undefined method TYPO3\\CMS\\Core\\Authentication\\AbstractUserAuthentication::storeSessionData\(\)#'
         # Extbase Repository generic types
         - '#extends generic class TYPO3\\CMS\\Extbase\\Persistence\\Repository but does not specify its types#'
         # Request body can be array or object

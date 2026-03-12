@@ -48,7 +48,6 @@ class SamlSession implements SingletonInterface
             return null;
         }
 
-        $user->fetchUserSession();
         $data = $user->getSessionData(self::KEY_NAME);
 
         return is_array($data) ? $data : [];
@@ -68,7 +67,6 @@ class SamlSession implements SingletonInterface
             return false;
         }
 
-        $user->fetchUserSession();
         $user->setSessionData(self::KEY_NAME, $sessionData);
         $user->storeSessionData();
 
