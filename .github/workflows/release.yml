@@ -15,8 +15,8 @@ jobs:
       id-token: write
       attestations: write
     with:
-      archive-prefix: nr-saml-auth
-      package-name: netresearch/nr-saml-auth
-      extension-key: nr_saml_auth
+      archive-prefix: 'nr-saml-auth'
+      package-name: 'netresearch/nr-saml-auth'
+      extension-key: 'nr_saml_auth'
     secrets:
       TYPO3_TER_ACCESS_TOKEN: ${{ secrets.TYPO3_TER_ACCESS_TOKEN }}
