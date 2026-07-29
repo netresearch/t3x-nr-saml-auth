@@ -49,7 +49,7 @@
         "phpstan/phpstan-phpunit": "^1.4 || ^2.0",
         "saschaegerer/phpstan-typo3": "^1.10 || ^2.0 || ^3.0",
         "friendsofphp/php-cs-fixer": "^3.64",
-        "typo3/coding-standards": "^0.8"
+        "typo3/coding-standards": "^0.8 || ^0.9"
     },
     "autoload": {
         "psr-4": {
