@@ -44,7 +44,7 @@ class SamlSession implements SingletonInterface
         }
 
         $user = $this->getUser();
-        if ($user === null) {
+        if (!$user instanceof AbstractUserAuthentication) {
             return null;
         }
 
@@ -63,7 +63,7 @@ class SamlSession implements SingletonInterface
         }
 
         $user = $this->getUser();
-        if ($user === null) {
+        if (!$user instanceof AbstractUserAuthentication) {
             return false;
         }
 

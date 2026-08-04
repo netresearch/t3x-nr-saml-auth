@@ -2,7 +2,7 @@
 # Self-documenting: run 'make' or 'make help' to see available targets
 
 .DEFAULT_GOAL := help
-.PHONY: help install test cgl cgl-fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh phpstan phpstan-baseline
+.PHONY: help install test cgl cgl-fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh phpstan phpstan-baseline rector rector-fix
 
 # Colors for output
 BLUE := \033[34m
@@ -50,7 +50,15 @@ phpstan-baseline: ## Generate PHPStan baseline
 	@echo "$(BLUE)Generating PHPStan baseline...$(RESET)"
 	@composer ci:test:php:phpstan:baseline
 
-quality: cgl phpstan ## Run all code quality checks
+rector: ## Check for pending Rector migrations (dry-run)
+	@echo "$(BLUE)Running Rector...$(RESET)"
+	@composer ci:test:php:rector
+
+rector-fix: ## Apply Rector migrations
+	@echo "$(BLUE)Applying Rector migrations...$(RESET)"
+	@composer ci:rector
+
+quality: cgl phpstan rector ## Run all code quality checks
 
 ##@ CI/CD
 

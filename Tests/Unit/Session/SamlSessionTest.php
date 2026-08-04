@@ -77,7 +77,7 @@ final class SamlSessionTest extends UnitTestCase
         $expectedData = ['id' => 1, 'AssertionId' => 'abc123', 'nameId' => 'user@example.com'];
 
         $frontendUser = $this->createMock(FrontendUserAuthentication::class);
-        $frontendUser->expects(self::once())
+        $frontendUser->expects($this->once())
             ->method('getSessionData')
             ->with('NrSamlAuth')
             ->willReturn($expectedData);
@@ -93,10 +93,10 @@ final class SamlSessionTest extends UnitTestCase
         $testData = ['id' => 1, 'AssertionId' => 'xyz789', 'nameId' => 'test@example.com'];
 
         $frontendUser = $this->createMock(FrontendUserAuthentication::class);
-        $frontendUser->expects(self::once())
+        $frontendUser->expects($this->once())
             ->method('setSessionData')
             ->with('NrSamlAuth', $testData);
-        $frontendUser->expects(self::once())
+        $frontendUser->expects($this->once())
             ->method('storeSessionData');
 
         $this->subject->setUser($frontendUser);

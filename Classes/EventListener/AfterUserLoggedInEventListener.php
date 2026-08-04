@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\EventListener;
 
+use Exception;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Session\SamlSession;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,7 +33,7 @@ final class AfterUserLoggedInEventListener
     public function __invoke(AfterUserLoggedInEvent $event): void
     {
         $request = $this->getRequest();
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return;
         }
 
@@ -57,7 +58,7 @@ final class AfterUserLoggedInEventListener
 
             $this->samlSession->setUser($event->getUser());
             $this->samlSession->setSessionData($sessionData);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('Failed to store SAML session data', [
                 'exception' => $exception->getMessage(),
             ]);

@@ -44,7 +44,7 @@ final class SamlAssertionFactory
             'displayName' => $firstName . ' ' . $lastName,
         ], $additionalAttributes);
 
-        if (!empty($groups)) {
+        if ($groups !== []) {
             $attributes['groups'] = $groups;
         }
 
@@ -115,7 +115,7 @@ final class SamlAssertionFactory
             'cn' => $firstName . ' ' . $lastName,
         ], $additionalAttributes);
 
-        if (!empty($usergroups)) {
+        if ($usergroups !== []) {
             $attributes['memberOf'] = $usergroups;
         }
 

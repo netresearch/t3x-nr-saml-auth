@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Tests\Functional\Saml;
 
+use DateTimeImmutable;
+use DOMDocument;
+use DOMXPath;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\MockIdpProvider;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\SamlAssertionFactory;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\SamlResponseBuilder;
@@ -33,7 +36,7 @@ final class SamlProtocolTest extends FunctionalTestCase
     {
         $xml = file_get_contents($this->fixturesPath . 'valid_response_user_attributes.xml');
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $result = @$dom->loadXML($xml);
 
         self::assertTrue($result, 'Fixture XML should be well-formed');
@@ -43,10 +46,10 @@ final class SamlProtocolTest extends FunctionalTestCase
     public function validResponseFixtureContainsRequiredElements(): void
     {
         $xml = file_get_contents($this->fixturesPath . 'valid_response_user_attributes.xml');
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
@@ -63,10 +66,10 @@ final class SamlProtocolTest extends FunctionalTestCase
     public function validResponseFixtureContainsExpectedAttributes(): void
     {
         $xml = file_get_contents($this->fixturesPath . 'valid_response_user_attributes.xml');
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
         $attributes = $xpath->query('//saml:Attribute/@Name');
@@ -85,17 +88,17 @@ final class SamlProtocolTest extends FunctionalTestCase
     public function expiredAssertionFixtureHasPastTimestamps(): void
     {
         $xml = file_get_contents($this->fixturesPath . 'expired_assertion.xml');
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
         $conditions = $xpath->query('//saml:Conditions')->item(0);
-        $notOnOrAfter = new \DateTimeImmutable($conditions->getAttribute('NotOnOrAfter'));
+        $notOnOrAfter = new DateTimeImmutable($conditions->getAttribute('NotOnOrAfter'));
 
         self::assertLessThan(
-            new \DateTimeImmutable(),
+            new DateTimeImmutable(),
             $notOnOrAfter,
             'Expired assertion should have NotOnOrAfter in the past'
         );
@@ -105,10 +108,10 @@ final class SamlProtocolTest extends FunctionalTestCase
     public function wrongAudienceFixtureHasIncorrectAudience(): void
     {
         $xml = file_get_contents($this->fixturesPath . 'wrong_audience.xml');
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
         $audience = $xpath->query('//saml:Audience')->item(0)->nodeValue;
@@ -130,10 +133,10 @@ final class SamlProtocolTest extends FunctionalTestCase
     public function failedStatusFixtureContainsErrorStatus(): void
     {
         $xml = file_get_contents($this->fixturesPath . 'failed_status.xml');
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($xml);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
         $statusCode = $xpath->query('//samlp:StatusCode/@Value')->item(0)->nodeValue;
@@ -155,12 +158,12 @@ final class SamlProtocolTest extends FunctionalTestCase
 
         $xml = $builder->build();
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $result = $dom->loadXML($xml);
 
         self::assertTrue($result);
 
-        $xpath = new \DOMXPath($dom);
+        $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
         $nameId = $xpath->query('//saml:NameID')->item(0)->nodeValue;
@@ -183,7 +186,7 @@ final class SamlProtocolTest extends FunctionalTestCase
         $decoded = base64_decode($response['SAMLResponse'], true);
         self::assertNotFalse($decoded);
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         self::assertTrue(@$dom->loadXML($decoded));
     }
 
@@ -229,7 +232,7 @@ final class SamlProtocolTest extends FunctionalTestCase
 
         $metadata = $idp->getMetadataXml();
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         self::assertTrue(@$dom->loadXML($metadata));
 
         self::assertStringContainsString('https://custom-idp.example.com', $metadata);
@@ -284,7 +287,7 @@ final class SamlProtocolTest extends FunctionalTestCase
     {
         $xml = file_get_contents($this->fixturesPath . $filename);
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $result = @$dom->loadXML($xml);
 
         self::assertTrue($result, "Fixture '$filename' should be well-formed XML");

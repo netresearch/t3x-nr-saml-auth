@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Tests\Functional\Helper;
 
+use DateTimeImmutable;
+
 /**
  * Builds SAML Response XML for testing purposes.
  *
@@ -14,26 +16,38 @@ namespace Netresearch\NrSamlAuth\Tests\Functional\Helper;
 final class SamlResponseBuilder
 {
     private string $issuer = 'https://idp.example.com';
+
     private string $destination = 'https://sp.example.com/acs';
+
     private string $audience = 'https://sp.example.com';
+
     private string $nameId = 'user@example.com';
+
     private string $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
+
     private string $sessionIndex = '_session_index_12345';
+
     private array $attributes = [];
-    private ?\DateTimeImmutable $issueInstant = null;
-    private ?\DateTimeImmutable $notBefore = null;
-    private ?\DateTimeImmutable $notOnOrAfter = null;
+
+    private ?DateTimeImmutable $issueInstant;
+
+    private ?DateTimeImmutable $notBefore;
+
+    private ?DateTimeImmutable $notOnOrAfter;
+
     private string $responseId;
+
     private string $assertionId;
+
     private string $statusCode = 'urn:oasis:names:tc:SAML:2.0:status:Success';
+
     private bool $includeSignature = false;
-    private bool $encrypted = false;
 
     public function __construct()
     {
         $this->responseId = '_' . bin2hex(random_bytes(16));
         $this->assertionId = '_' . bin2hex(random_bytes(16));
-        $this->issueInstant = new \DateTimeImmutable();
+        $this->issueInstant = new DateTimeImmutable();
         $this->notBefore = $this->issueInstant->modify('-5 minutes');
         $this->notOnOrAfter = $this->issueInstant->modify('+5 minutes');
     }
@@ -66,6 +80,7 @@ final class SamlResponseBuilder
         if ($format !== null) {
             $clone->nameIdFormat = $format;
         }
+
         return $clone;
     }
 
@@ -85,24 +100,25 @@ final class SamlResponseBuilder
         foreach ($attributes as $name => $value) {
             $clone = $clone->withAttribute($name, $value);
         }
+
         return $clone;
     }
 
-    public function withIssueInstant(\DateTimeImmutable $instant): self
+    public function withIssueInstant(DateTimeImmutable $instant): self
     {
         $clone = clone $this;
         $clone->issueInstant = $instant;
         return $clone;
     }
 
-    public function withNotBefore(\DateTimeImmutable $notBefore): self
+    public function withNotBefore(DateTimeImmutable $notBefore): self
     {
         $clone = clone $this;
         $clone->notBefore = $notBefore;
         return $clone;
     }
 
-    public function withNotOnOrAfter(\DateTimeImmutable $notOnOrAfter): self
+    public function withNotOnOrAfter(DateTimeImmutable $notOnOrAfter): self
     {
         $clone = clone $this;
         $clone->notOnOrAfter = $notOnOrAfter;
@@ -112,7 +128,7 @@ final class SamlResponseBuilder
     public function expired(): self
     {
         $clone = clone $this;
-        $clone->issueInstant = new \DateTimeImmutable('-1 hour');
+        $clone->issueInstant = new DateTimeImmutable('-1 hour');
         $clone->notBefore = $clone->issueInstant->modify('-5 minutes');
         $clone->notOnOrAfter = $clone->issueInstant->modify('+5 minutes');
         return $clone;
@@ -121,7 +137,7 @@ final class SamlResponseBuilder
     public function notYetValid(): self
     {
         $clone = clone $this;
-        $clone->issueInstant = new \DateTimeImmutable('+1 hour');
+        $clone->issueInstant = new DateTimeImmutable('+1 hour');
         $clone->notBefore = $clone->issueInstant;
         $clone->notOnOrAfter = $clone->issueInstant->modify('+5 minutes');
         return $clone;
@@ -150,9 +166,7 @@ final class SamlResponseBuilder
 
     public function encrypted(): self
     {
-        $clone = clone $this;
-        $clone->encrypted = true;
-        return $clone;
+        return clone $this;
     }
 
     public function build(): string
@@ -164,7 +178,7 @@ final class SamlResponseBuilder
         $attributeStatements = $this->buildAttributeStatement();
         $signature = $this->includeSignature ? $this->buildSignaturePlaceholder() : '';
 
-        $xml = <<<XML
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
                 xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -204,8 +218,6 @@ final class SamlResponseBuilder
     </saml:Assertion>
 </samlp:Response>
 XML;
-
-        return $xml;
     }
 
     public function buildBase64Encoded(): string
@@ -215,7 +227,7 @@ XML;
 
     private function buildAttributeStatement(): string
     {
-        if (empty($this->attributes)) {
+        if ($this->attributes === []) {
             return '';
         }
 
@@ -239,9 +251,8 @@ XML;
 
             $statements .= '</saml:Attribute>';
         }
-        $statements .= '</saml:AttributeStatement>';
 
-        return $statements;
+        return $statements . '</saml:AttributeStatement>';
     }
 
     private function buildSignaturePlaceholder(): string

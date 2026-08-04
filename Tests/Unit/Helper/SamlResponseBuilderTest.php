@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Tests\Unit\Helper;
 
+use DateTimeImmutable;
+use DOMDocument;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\SamlResponseBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
@@ -19,7 +21,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
         $builder = new SamlResponseBuilder();
         $xml = $builder->build();
 
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $result = $dom->loadXML($xml);
 
         self::assertTrue($result, 'Generated XML should be valid');
@@ -119,8 +121,8 @@ final class SamlResponseBuilderTest extends UnitTestCase
         preg_match('/NotOnOrAfter="([^"]+)"/', $xml, $matches);
         self::assertNotEmpty($matches[1]);
 
-        $notOnOrAfter = new \DateTimeImmutable($matches[1]);
-        self::assertLessThan(new \DateTimeImmutable(), $notOnOrAfter);
+        $notOnOrAfter = new DateTimeImmutable($matches[1]);
+        self::assertLessThan(new DateTimeImmutable(), $notOnOrAfter);
     }
 
     #[Test]
@@ -132,8 +134,8 @@ final class SamlResponseBuilderTest extends UnitTestCase
         preg_match('/NotBefore="([^"]+)"/', $xml, $matches);
         self::assertNotEmpty($matches[1]);
 
-        $notBefore = new \DateTimeImmutable($matches[1]);
-        self::assertGreaterThan(new \DateTimeImmutable(), $notBefore);
+        $notBefore = new DateTimeImmutable($matches[1]);
+        self::assertGreaterThan(new DateTimeImmutable(), $notBefore);
     }
 
     #[Test]

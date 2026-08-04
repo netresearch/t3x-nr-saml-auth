@@ -7,6 +7,7 @@ namespace Netresearch\NrSamlAuth\Sv;
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
+use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\ValidationError;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +26,9 @@ class AuthenticationService extends Typo3AuthService
     protected ?Response $samlResponse = null;
 
     private SettingsRepository $settingsRepository;
+
     private SamlService $samlService;
+
     private ConnectionPool $connectionPool;
 
     public function injectSettingsRepository(SettingsRepository $settingsRepository): void
@@ -48,7 +51,7 @@ class AuthenticationService extends Typo3AuthService
      *
      * @return bool|array<string, mixed>
      * @throws ValidationError
-     * @throws \OneLogin\Saml2\Error
+     * @throws Error
      */
     public function getUser(): bool|array
     {
@@ -81,7 +84,7 @@ class AuthenticationService extends Typo3AuthService
         $username = $this->getUsername($samlResponse->getAttributes());
 
         $user = $this->fetchUserRecord($username, '', [
-            'check_pid_clause' => '`pid` = \'' . $settings->getUsersPid() . '\'',
+            'check_pid_clause' => "`pid` = '" . $settings->getUsersPid() . "'",
         ] + $this->db_user);
 
         if (!is_array($user)) {
@@ -157,7 +160,7 @@ class AuthenticationService extends Typo3AuthService
     private function getSamlResponse(): string
     {
         $request = $this->getRequest();
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return '';
         }
 
@@ -170,7 +173,7 @@ class AuthenticationService extends Typo3AuthService
      */
     private function hasSamlResponse(): bool
     {
-        return !empty($this->getSamlResponse());
+        return !in_array($this->getSamlResponse(), ['', '0'], true);
     }
 
     /**
@@ -179,7 +182,7 @@ class AuthenticationService extends Typo3AuthService
     private function getSamlId(): int
     {
         $request = $this->getRequest();
-        if ($request === null) {
+        if (!$request instanceof ServerRequestInterface) {
             return 1;
         }
 

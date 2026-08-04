@@ -12,20 +12,20 @@ namespace Netresearch\NrSamlAuth\Tests\Functional\Helper;
 final class MockIdpProvider
 {
     private string $entityId = 'https://mock-idp.example.com';
-    private string $ssoUrl = 'https://mock-idp.example.com/sso';
-    private string $sloUrl = 'https://mock-idp.example.com/slo';
-    private ?string $certificate = null;
-    private array $defaultAttributes = [];
-    private array $userDatabase = [];
 
-    public function __construct()
-    {
-        $this->defaultAttributes = [
-            'email' => 'user@example.com',
-            'firstName' => 'Mock',
-            'lastName' => 'User',
-        ];
-    }
+    private string $ssoUrl = 'https://mock-idp.example.com/sso';
+
+    private string $sloUrl = 'https://mock-idp.example.com/slo';
+
+    private ?string $certificate = null;
+
+    private array $defaultAttributes = [
+        'email' => 'user@example.com',
+        'firstName' => 'Mock',
+        'lastName' => 'User',
+    ];
+
+    private array $userDatabase = [];
 
     public function withEntityId(string $entityId): self
     {
@@ -222,24 +222,24 @@ XML;
      */
     private function getDefaultCertificate(): string
     {
-        return <<<CERT
------BEGIN CERTIFICATE-----
-MIICpDCCAYwCCQDU+pQ4P3UtbzANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDDAls
-b2NhbGhvc3QwHhcNMjQwMTAxMDAwMDAwWhcNMjUwMTAxMDAwMDAwWjAUMRIwEAYD
-VQQDDAlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7
-o5e7XvJmFHBQowg3OH4wYZP+RRZ4h3rO9aLZvM8KZzWDd7VJWHhESpRYmPu0bnPe
-xEoH3sN+pPvCugxUoI7GORw3sYr4IVj8JQQqC3+WmgCqLxu5pGaK0ycvZGbIz0qp
-kL6bR9F7E1VH0lMRjCcQnSRoGEVjP3WXH1VlpKCFz3bvaKR5B7qLQXWJC8vVFJyU
-bXE0xN3W2xvLTB8F0VPiNDXpXh5LM3GxLWHN5fMaNqPfE+JjF7mC7DXeCI/y6dnZ
-QQP0JF8yMFP5DAcOPfvlSqEAgUpK9IypLe/z0HJr7LFmBcXKMxLNNQY/BZ2UT0YG
-T7KBpxh1aPFM9kq5r4l1AgMBAAEwDQYJKoZIhvcNAQELBQADggEBAHVKSbDddMi8
-Y7zK5aEXL4ZKKLbUF4TGHjlJE1VIu9WW+K7BgQc2RPbSXAqrWTn/UEzYCXqGEC/2
-KRAKiFg5Vmk4rIpZBPR1VH6HT+kvHk5fPhDM3GxQiRK6K+7e0u4Lp5zjzMV4EUoX
-v0C5XVCpk0v3ON6S0tnVnJXDQGIwW2lFbnfzP4tXk8VgR7F9GhsH7K4PdGdLgQrr
-ehIJBJPpS7BN9LBad96u4mS9MSPW3VaReAPxvmS1aphJGsBhXe7MnYzNJQGyC8By
-k8G/fDvl2G0PG5nKLCVoF4TdFQ9R7BfT3WmBvIXwFHRey3VThgQoSt8U3RVx4tCi
-mL5PAm5KI7Y=
------END CERTIFICATE-----
-CERT;
+        return <<<CERT_WRAP
+        -----BEGIN CERTIFICATE-----
+        MIICpDCCAYwCCQDU+pQ4P3UtbzANBgkqhkiG9w0BAQsFADAUMRIwEAYDVQQDDAls
+        b2NhbGhvc3QwHhcNMjQwMTAxMDAwMDAwWhcNMjUwMTAxMDAwMDAwWjAUMRIwEAYD
+        VQQDDAlsb2NhbGhvc3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7
+        o5e7XvJmFHBQowg3OH4wYZP+RRZ4h3rO9aLZvM8KZzWDd7VJWHhESpRYmPu0bnPe
+        xEoH3sN+pPvCugxUoI7GORw3sYr4IVj8JQQqC3+WmgCqLxu5pGaK0ycvZGbIz0qp
+        kL6bR9F7E1VH0lMRjCcQnSRoGEVjP3WXH1VlpKCFz3bvaKR5B7qLQXWJC8vVFJyU
+        bXE0xN3W2xvLTB8F0VPiNDXpXh5LM3GxLWHN5fMaNqPfE+JjF7mC7DXeCI/y6dnZ
+        QQP0JF8yMFP5DAcOPfvlSqEAgUpK9IypLe/z0HJr7LFmBcXKMxLNNQY/BZ2UT0YG
+        T7KBpxh1aPFM9kq5r4l1AgMBAAEwDQYJKoZIhvcNAQELBQADggEBAHVKSbDddMi8
+        Y7zK5aEXL4ZKKLbUF4TGHjlJE1VIu9WW+K7BgQc2RPbSXAqrWTn/UEzYCXqGEC/2
+        KRAKiFg5Vmk4rIpZBPR1VH6HT+kvHk5fPhDM3GxQiRK6K+7e0u4Lp5zjzMV4EUoX
+        v0C5XVCpk0v3ON6S0tnVnJXDQGIwW2lFbnfzP4tXk8VgR7F9GhsH7K4PdGdLgQrr
+        ehIJBJPpS7BN9LBad96u4mS9MSPW3VaReAPxvmS1aphJGsBhXe7MnYzNJQGyC8By
+        k8G/fDvl2G0PG5nKLCVoF4TdFQ9R7BfT3WmBvIXwFHRey3VThgQoSt8U3RVx4tCi
+        mL5PAm5KI7Y=
+        -----END CERTIFICATE-----
+        CERT_WRAP;
     }
 }

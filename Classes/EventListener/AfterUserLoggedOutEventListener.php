@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\EventListener;
 
+use Exception;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Attribute\AsEventListener;
@@ -38,7 +39,7 @@ final class AfterUserLoggedOutEventListener
 
             $this->samlService->setSettingsUid((int)$samlId);
             $this->samlService->redirectUserToLogout($nameId, $assertionId);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $this->logger->error('SAML logout failed', [
                 'exception' => $exception->getMessage(),
             ]);
