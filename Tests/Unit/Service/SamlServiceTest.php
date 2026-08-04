@@ -8,12 +8,14 @@ use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\MockObject\MockObject;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class SamlServiceTest extends UnitTestCase
 {
     private SamlService $subject;
-    private SettingsRepository $settingsRepository;
+
+    private SettingsRepository&MockObject $settingsRepository;
 
     protected function setUp(): void
     {
@@ -95,6 +97,7 @@ final class SamlServiceTest extends UnitTestCase
                 break;
             }
         }
+
         self::assertTrue($foundUnspecified, 'Should contain NAMEID_UNSPECIFIED constant');
     }
 }

@@ -38,7 +38,11 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
 
     private function isResponsible(ServerRequestInterface $request): bool
     {
-        return $this->isSamlLoginRequest($request) || $this->isSamlLogoutRequest($request);
+        if ($this->isSamlLoginRequest($request)) {
+            return true;
+        }
+
+        return $this->isSamlLogoutRequest($request);
     }
 
     private function getRedirectTarget(ServerRequestInterface $request): ?string

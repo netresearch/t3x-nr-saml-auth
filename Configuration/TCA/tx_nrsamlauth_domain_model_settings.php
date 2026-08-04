@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+use Netresearch\NrSamlAuth\Service\SamlService;
+
 return [
     'ctrl' => [
         'label' => 'name',
@@ -71,7 +75,7 @@ return [
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
-                'itemsProcFunc' => \Netresearch\NrSamlAuth\Service\SamlService::class . '->nameIdFormatItems',
+                'itemsProcFunc' => SamlService::class . '->nameIdFormatItems',
                 'required' => true,
             ],
         ],

@@ -1,9 +1,11 @@
 <?php
 
-defined('TYPO3') or die();
+use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
+
+defined('TYPO3') || die();
 
 (static function (): void {
-    \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
+    ExtensionUtility::registerPlugin(
         'NrSamlAuth',
         'Authentication',
         'Saml Authentication'

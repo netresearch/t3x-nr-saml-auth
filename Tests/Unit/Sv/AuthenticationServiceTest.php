@@ -7,6 +7,7 @@ namespace Netresearch\NrSamlAuth\Tests\Unit\Sv;
 use Netresearch\NrSamlAuth\Sv\AuthenticationService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class AuthenticationServiceTest extends UnitTestCase
@@ -119,7 +120,7 @@ final class AuthenticationServiceTest extends UnitTestCase
      */
     private function invokePrivateMethod(string $methodName, array $arguments = []): mixed
     {
-        $reflection = new \ReflectionClass($this->subject);
+        $reflection = new ReflectionClass($this->subject);
         $method = $reflection->getMethod($methodName);
 
         return $method->invokeArgs($this->subject, $arguments);

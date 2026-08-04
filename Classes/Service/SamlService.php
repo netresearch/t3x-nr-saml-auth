@@ -8,9 +8,13 @@ use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use OneLogin\Saml2\Auth;
 use OneLogin\Saml2\Constants;
+use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings as SamlSettings;
+use OneLogin\Saml2\ValidationError;
+use ReflectionClass;
+use ReflectionException;
 use TYPO3\CMS\Core\SingletonInterface;
 
 /**
@@ -65,7 +69,7 @@ final class SamlService implements SingletonInterface
     /**
      * Redirects the user to SSO Service
      *
-     * @throws \OneLogin\Saml2\Error
+     * @throws Error
      */
     public function redirectUserToSSO(): void
     {
@@ -76,7 +80,7 @@ final class SamlService implements SingletonInterface
     /**
      * Redirects user to SAML logout (SLO)
      *
-     * @throws \OneLogin\Saml2\Error
+     * @throws Error
      */
     public function redirectUserToLogout(?string $nameId, ?string $sessionIndex): void
     {
@@ -97,8 +101,8 @@ final class SamlService implements SingletonInterface
     /**
      * Returns the SAML Response from POST data
      *
-     * @throws \OneLogin\Saml2\Error
-     * @throws \OneLogin\Saml2\ValidationError
+     * @throws Error
+     * @throws ValidationError
      */
     public function getResponse(string $postSamlResponse): Response
     {
@@ -110,12 +114,12 @@ final class SamlService implements SingletonInterface
     /**
      * Returns possible NameFormat values for TCA itemsProcFunc
      *
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function nameIdFormatItems(array &$parameters): void
     {
         $items = [];
-        $reflectionClass = new \ReflectionClass(Constants::class);
+        $reflectionClass = new ReflectionClass(Constants::class);
 
         foreach ($reflectionClass->getConstants() as $name => $value) {
             if (!str_starts_with($name, 'NAMEID_')) {
@@ -131,20 +135,19 @@ final class SamlService implements SingletonInterface
     /**
      * Returns the SAML metadata as XML string
      *
-     * @throws \OneLogin\Saml2\Error
+     * @throws Error
      */
     public function getMetadata(): string
     {
         $settings = new SamlSettings($this->getSettings()['saml']);
         $validUntil = time() + 60 * 60 * 24 * 14;
 
-        $metadata = Metadata::builder($settings->getSPData(), true, true, $validUntil, null);
-        $metadata = Metadata::addX509KeyDescriptors(
+        $metadata = Metadata::builder($settings->getSPData(), true, true, $validUntil);
+
+        return Metadata::addX509KeyDescriptors(
             $metadata,
             $this->getSettings()['saml']['sp']['x509cert']
         );
-
-        return $metadata;
     }
 
     /**
@@ -163,7 +166,7 @@ final class SamlService implements SingletonInterface
     private function buildSettings(): void
     {
         $settingsModel = $this->fetchSettings();
-        if ($settingsModel === null) {
+        if (!$settingsModel instanceof Settings) {
             return;
         }
 

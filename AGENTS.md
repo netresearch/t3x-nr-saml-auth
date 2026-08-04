@@ -21,6 +21,7 @@ TYPO3 extension for SAML 2.0 Single Sign-On authentication. Supports TYPO3 12.4/
 ```bash
 composer ci:test:php:cgl          # PHP-CS-Fixer (dry-run)
 composer ci:test:php:phpstan     # PHPStan level 6
+composer ci:test:php:rector      # Rector (dry-run, shared org config)
 composer ci:test:php:unit        # Unit tests
 composer ci:test:php:functional  # Functional tests (requires typo3DatabaseDriver=pdo_sqlite)
 ```

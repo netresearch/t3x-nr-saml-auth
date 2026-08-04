@@ -31,7 +31,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);
@@ -51,7 +51,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);
@@ -71,7 +71,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);
@@ -95,7 +95,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);
@@ -118,7 +118,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);
@@ -138,7 +138,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
         $handler = $this->createMock(RequestHandlerInterface::class);
-        $handler->expects(self::once())
+        $handler->expects($this->once())
             ->method('handle')
             ->with($request)
             ->willReturn($expectedResponse);

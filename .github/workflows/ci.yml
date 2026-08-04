@@ -18,9 +18,15 @@ jobs:
     permissions:
       contents: read
     with:
-      php-versions: '["8.1","8.2","8.3","8.4","8.5"]'
+      # First entry drives the non-matrixed tool jobs (CGL, Rector), so it has to
+      # stay >= 8.2: netresearch/typo3-ci-workflows requires php ^8.2 and those
+      # jobs install the full require-dev. 8.1 stays in the matrix as the floor.
+      php-versions: '["8.2","8.1","8.3","8.4","8.5"]'
       typo3-versions: '["^12.4","^13.4"]'
       matrix-exclude: '[{"php":"8.1","typo3":"^13.4"},{"php":"8.5","typo3":"^12.4"}]'
+      # The meta package is unresolvable under typo3/cms-core ^12.4, so the ^12.4
+      # cells drop it. The Rector job is not TYPO3-matrixed and keeps it.
+      remove-dev-deps: '[{"dep":"netresearch/typo3-ci-workflows","only-for":"^13.4|^14.3"}]'
       run-functional-tests: true
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
