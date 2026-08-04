@@ -131,3 +131,7 @@ make docs-serve  # Serve at http://localhost:8000
 ## License
 
 By contributing, you agree that your contributions will be licensed under GPL-2.0-or-later.
+
+## Commit Signing
+
+All commits must be cryptographically signed and carry a DCO sign-off: `git commit -S --signoff`. The `require-signed-commits` ruleset on the default branch enforces the signature (the "Verified" badge on GitHub); the DCO check enforces the `Signed-off-by` trailer — these are two different things and both are required. Quickest setup is SSH signing: register your SSH key as a *signing key* on your GitHub account, then `git config gpg.format ssh && git config user.signingkey ~/.ssh/<key>.pub`.
