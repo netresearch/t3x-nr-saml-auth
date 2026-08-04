@@ -164,11 +164,6 @@ final class SamlResponseBuilder
         return $clone;
     }
 
-    public function encrypted(): self
-    {
-        return clone $this;
-    }
-
     public function build(): string
     {
         $issueInstant = $this->issueInstant->format('Y-m-d\TH:i:s\Z');
