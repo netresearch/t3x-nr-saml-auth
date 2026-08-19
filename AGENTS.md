@@ -1,4 +1,4 @@
-<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2025-11-28 -->
+<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2026-08-19 -->
 
 # AGENTS.md (root)
 
@@ -6,7 +6,7 @@
 
 ## Project
 
-TYPO3 extension for SAML 2.0 Single Sign-On authentication. Supports TYPO3 12.4/13.4 LTS with PHP 8.1+.
+TYPO3 extension for SAML 2.0 Single Sign-On authentication (extension key `nr_saml_auth`, version: see `ext_emconf.php`). Supports TYPO3 12.4/13.4 LTS with PHP 8.1+. Component map: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md); execution plans: [`docs/exec-plans/`](docs/exec-plans/README.md).
 
 ## Global rules
 
@@ -16,23 +16,27 @@ TYPO3 extension for SAML 2.0 Single Sign-On authentication. Supports TYPO3 12.4/
 - Never commit secrets, certificates, or PII
 - Follow TYPO3 CGL and PSR-12 coding standards
 
-## Minimal pre-commit checks
+## Commands
+
+Minimal pre-commit checks (`composer ci` runs all five):
 
 ```bash
-composer ci:test:php:cgl          # PHP-CS-Fixer (dry-run)
-composer ci:test:php:phpstan     # PHPStan level 6
-composer ci:test:php:rector      # Rector (dry-run, shared org config)
+composer ci:test:php:cgl         # PHP-CS-Fixer (dry-run; fix with composer ci:cgl)
+composer ci:test:php:phpstan     # PHPStan level 8
+composer ci:test:php:rector      # Rector (dry-run, shared org config via Build/rector.php)
 composer ci:test:php:unit        # Unit tests
 composer ci:test:php:functional  # Functional tests (requires typo3DatabaseDriver=pdo_sqlite)
 ```
+
+Harness self-check: `bash Build/Scripts/verify-harness.sh` (also runs in CI via `.github/workflows/harness-verify.yml`).
 
 ## Index of scoped AGENTS.md
 
 | Path | Purpose |
 |------|---------|
-| [`Classes/AGENTS.md`](Classes/AGENTS.md) | PHP backend code, services, controllers |
-| [`Tests/AGENTS.md`](Tests/AGENTS.md) | Unit and functional testing |
-| [`Documentation/AGENTS.md`](Documentation/AGENTS.md) | RST documentation for docs.typo3.org |
+| [`Classes/AGENTS.md`](./Classes/AGENTS.md) | PHP backend code, services, controllers |
+| [`Tests/AGENTS.md`](./Tests/AGENTS.md) | Unit and functional testing |
+| [`Documentation/AGENTS.md`](./Documentation/AGENTS.md) | RST documentation for docs.typo3.org |
 
 ## When instructions conflict
 

@@ -1,8 +1,8 @@
-<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2025-11-28 -->
+<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2026-08-19 -->
 
 # AGENTS.md — Classes (PHP Backend)
 
-## 1. Overview
+## Overview
 
 Core PHP classes for SAML 2.0 SSO authentication in TYPO3. Uses `onelogin/php-saml` library for protocol handling.
 
@@ -13,7 +13,7 @@ Core PHP classes for SAML 2.0 SSO authentication in TYPO3. Uses `onelogin/php-sa
 - `Middleware/DeepLinkSsoMiddleware.php` — Deep link SSO handling
 - `Domain/` — Extbase models and repositories
 
-## 2. Setup & environment
+## Setup & environment
 
 ```bash
 composer install
@@ -21,7 +21,7 @@ composer install
 
 **Requirements:** PHP 8.1+, TYPO3 12.4+ or 13.4+
 
-## 3. Build & tests
+## Build & tests
 
 ```bash
 composer ci:test:php:cgl      # Check code style
@@ -30,14 +30,14 @@ composer ci:test:php:phpstan  # Static analysis
 composer ci:test:php:unit     # Unit tests
 ```
 
-## 4. Code style & conventions
+## Code style & conventions
 
 - **PSR-12** coding standard (enforced by PHP-CS-Fixer)
 - **Strict types** in all files: `declare(strict_types=1);`
 - **Readonly properties** for immutable data
 - **Constructor property promotion** for DI
 - **Final classes** unless inheritance is required
-- **PHPStan level 6** compliance
+- **PHPStan level 8** compliance (`phpstan.neon`)
 
 ### Naming conventions
 
@@ -48,7 +48,7 @@ composer ci:test:php:unit     # Unit tests
 | Constants | UPPER_SNAKE | `DEFAULT_TIMEOUT` |
 | Properties | camelCase | `$samlSettings` |
 
-## 5. Security & safety
+## Security & safety
 
 - **Never log** SAML responses, tokens, or session data
 - **Validate all** SAML attributes before use
@@ -56,7 +56,7 @@ composer ci:test:php:unit     # Unit tests
 - **Escape output** in templates (handled by Fluid)
 - **No direct `$_POST`/`$_GET`** — use PSR-7 requests
 
-## 6. PR/commit checklist
+## PR/commit checklist
 
 - [ ] `composer ci:test:php:cgl` passes
 - [ ] `composer ci:test:php:phpstan` passes
@@ -64,7 +64,7 @@ composer ci:test:php:unit     # Unit tests
 - [ ] No secrets or certificates in code
 - [ ] Breaking changes documented
 
-## 7. Good vs. bad examples
+## Good vs. bad examples
 
 ### Dependency Injection
 
@@ -98,22 +98,30 @@ public function getUsername($samlAttributes)
 
 ### PSR-14 Events
 
-```php
-// ✅ Good: Use PSR-14 events
-$this->eventDispatcher->dispatch(new BeforeUserCreationEvent($userData));
+```yaml
+# ✅ Good: Listen to TYPO3 core events via Services.yaml (see existing listeners)
+Netresearch\NrSamlAuth\EventListener\AfterUserLoggedInEventListener:
+  tags:
+    - name: event.listener
+      identifier: 'nr-saml-auth/after-user-logged-in'
+      event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent
+```
 
+```php
 // ❌ Bad: Legacy hooks (removed)
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['nr_saml_auth']['beforeUserCreation']
 ```
 
-## 8. When stuck
+Note: the extension currently only *listens* to TYPO3 core events (`Classes/EventListener/`); it does not dispatch events of its own — there is no `Classes/Event/` namespace.
+
+## When stuck
 
 - **TYPO3 API:** https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/
 - **onelogin/php-saml:** https://github.com/onelogin/php-saml
 - **Extension docs:** `Documentation/` folder
 
-## 9. House Rules
+## House Rules
 
 - All new classes must have corresponding unit tests
 - EventListeners must be registered in `Configuration/Services.yaml`
-- Use `LoggerAwareTrait` for logging, not direct Logger instantiation
+- Inject `Psr\Log\LoggerInterface` via the constructor for logging (the pattern used across `Controller/` and `EventListener/`), not direct Logger instantiation
