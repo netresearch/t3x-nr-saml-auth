@@ -1,8 +1,8 @@
-<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2025-11-28 -->
+<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2026-08-19 -->
 
 # AGENTS.md — Tests
 
-## 1. Overview
+## Overview
 
 PHPUnit 10+ test suite with unit and functional tests for SAML authentication.
 
@@ -12,7 +12,7 @@ PHPUnit 10+ test suite with unit and functional tests for SAML authentication.
 - `Functional/Helper/` — SAML testing utilities
 - `Functional/Fixtures/` — Test data and SAML response samples
 
-## 2. Setup & environment
+## Setup & environment
 
 ```bash
 composer install
@@ -20,7 +20,7 @@ composer install
 
 **For functional tests:** SQLite (no external database needed)
 
-## 3. Build & tests
+## Build & tests
 
 ```bash
 # Unit tests (fast, ~50ms)
@@ -33,7 +33,7 @@ typo3DatabaseDriver=pdo_sqlite composer ci:test:php:functional
 typo3DatabaseDriver=pdo_sqlite composer ci
 ```
 
-## 4. Code style & conventions
+## Code style & conventions
 
 - **PHPUnit 10+ attributes** (not annotations)
 - **#[Test]** attribute on test methods
@@ -49,21 +49,21 @@ typo3DatabaseDriver=pdo_sqlite composer ci
 | Functional test | `*Test.php` | `SettingsRepositoryTest.php` |
 | Data provider | `*DataProvider` | `samlAttributeDataProvider` |
 
-## 5. Security & safety
+## Security & safety
 
 - **Never use real SAML responses** in fixtures
 - **Mock external services** (IdP, certificates)
 - **Use fake credentials** in test data
 - **Clean up** test database after tests
 
-## 6. PR/commit checklist
+## PR/commit checklist
 
 - [ ] All new code has test coverage
 - [ ] Tests pass locally: `composer ci`
 - [ ] No skipped or incomplete tests without issue reference
 - [ ] Fixtures use fake/mock data only
 
-## 7. Good vs. bad examples
+## Good vs. bad examples
 
 ### Test structure
 
@@ -123,13 +123,13 @@ $samlResponse = $mockIdp->authenticate('user@example.com', $acsUrl, $spEntityId)
 $response = file_get_contents('https://real-idp.com/sso');
 ```
 
-## 8. When stuck
+## When stuck
 
 - **TYPO3 Testing Framework:** https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/Testing/
 - **PHPUnit 10 docs:** https://docs.phpunit.de/en/10.5/
 - **Test helpers:** `Tests/Functional/Helper/` classes
 
-## 9. House Rules
+## House Rules
 
 - **Unit tests:** No database, no file I/O, mock all dependencies
 - **Functional tests:** Use `FunctionalTestCase`, `pdo_sqlite` driver

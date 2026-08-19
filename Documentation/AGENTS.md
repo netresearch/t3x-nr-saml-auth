@@ -1,8 +1,8 @@
-<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2025-11-28 -->
+<!-- Managed by agent: keep sections & order; edit content, not structure. Last updated: 2026-08-19 -->
 
 # AGENTS.md — Documentation
 
-## 1. Overview
+## Overview
 
 RST documentation for rendering on docs.typo3.org. Follows TYPO3 documentation standards.
 
@@ -15,28 +15,26 @@ RST documentation for rendering on docs.typo3.org. Follows TYPO3 documentation s
 - `Migration/` — Upgrade guides
 - `Changelog/` — Version history
 
-## 2. Setup & environment
+## Setup & environment
 
-Documentation renders automatically on docs.typo3.org when pushed to main branch.
+Rendering configuration lives in `guides.xml` (docs.typo3.org toolchain). `Settings.cfg` holds legacy metadata.
 
-**Local preview:**
+**Local preview (requires Docker):**
 ```bash
-# Using Docker (TYPO3 docs rendering)
-docker run --rm -v $(pwd)/Documentation:/project/Documentation \
-  t3docs/render-documentation makehtml
+composer docs:render   # or: make docs — renders via ghcr.io/typo3-documentation/render-guides
+make docs-serve        # serve Documentation-GENERATED-temp at http://localhost:8000
+composer docs:clean    # remove the generated output
 ```
 
-## 3. Build & tests
+## Build & tests
+
+There is no dedicated RST lint script in this repo. The render itself is the check — it fails on invalid RST and reports broken `:ref:` targets:
 
 ```bash
-# Validate RST syntax (requires docutils)
-rst-lint Documentation/**/*.rst
-
-# Check internal links
-sphinx-build -b linkcheck Documentation _build/linkcheck
+composer docs:render
 ```
 
-## 4. Code style & conventions
+## Code style & conventions
 
 - **reStructuredText** format (`.rst` files)
 - **4-space indentation** for directives
@@ -76,13 +74,13 @@ Level 4
         autowire: true
 ```
 
-## 5. Security & safety
+## Security & safety
 
 - **Never include** real SAML configurations, certificates, or secrets
 - **Use example.com** domains in examples
 - **Sanitize** any screenshots (blur sensitive data)
 
-## 6. PR/commit checklist
+## PR/commit checklist
 
 - [ ] RST syntax is valid
 - [ ] Internal links work (`:ref:` targets exist)
@@ -90,7 +88,7 @@ Level 4
 - [ ] No real credentials or secrets
 - [ ] Changelog updated for user-facing changes
 
-## 7. Good vs. bad examples
+## Good vs. bad examples
 
 ### Cross-references
 
@@ -108,15 +106,14 @@ See `Developer/Events.rst` for the complete event reference.
 ..  Good: Specify language and use realistic examples
 ..  code-block:: php
 
-    use Netresearch\NrSamlAuth\Event\BeforeUserCreationEvent;
+    use TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent;
 
     final class CustomListener
     {
-        public function __invoke(BeforeUserCreationEvent $event): void
+        public function __invoke(AfterUserLoggedInEvent $event): void
         {
-            $userData = $event->getUserData();
-            $userData['company'] = $event->getSamlAttributes()['company'][0] ?? '';
-            $event->setUserData($userData);
+            $user = $event->getUser();
+            // react to the SSO login
         }
     }
 
@@ -126,6 +123,8 @@ See `Developer/Events.rst` for the complete event reference.
     // do something with the event
     $event->setUserData($data);
 ```
+
+Caution: `Developer/Events.rst` documents a `Netresearch\NrSamlAuth\Event\*` namespace (`BeforeUserCreationEvent` etc.) that does not exist in `Classes/` — the code only ships listeners for TYPO3 core events. Do not copy those class names into new docs or code examples until the drift is resolved.
 
 ### Configuration references
 
@@ -141,13 +140,13 @@ See `Developer/Events.rst` for the complete event reference.
 sp.entityId - The Service Provider entity ID. Required. String type.
 ```
 
-## 8. When stuck
+## When stuck
 
 - **TYPO3 Doc Style Guide:** https://docs.typo3.org/m/typo3/docs-how-to-document/main/en-us/
 - **RST Primer:** https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 - **TYPO3 Rendering:** https://docs.typo3.org/m/typo3/docs-how-to-document/main/en-us/WritingReST/
 
-## 9. House Rules
+## House Rules
 
 - **Settings.cfg** must have correct version and release
 - **guides.xml** must exist for docs.typo3.org rendering
