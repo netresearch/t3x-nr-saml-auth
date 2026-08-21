@@ -11,6 +11,10 @@ SCRIPT_PATH=$(dirname $(realpath "$0"))
 ROOT_PATH=$(realpath "${SCRIPT_PATH}/../..")
 BUILD_PATH="${ROOT_PATH}/.Build"
 
+# Composer's bin-dir is configured in composer.json; read it there instead of
+# assuming vendor/bin, which does not exist once bin-dir is set.
+BIN_PATH="${ROOT_PATH}/$(php -r '$c = json_decode(file_get_contents($argv[1]), true); echo $c["config"]["bin-dir"] ?? "vendor/bin";' "${ROOT_PATH}/composer.json")"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -59,35 +63,35 @@ composerInstall() {
 runUnitTests() {
     composerInstall
     echo -e "${GREEN}Running unit tests...${NC}"
-    "${BUILD_PATH}/vendor/bin/phpunit" -c "${ROOT_PATH}/Build/phpunit/UnitTests.xml" "$@"
+    "${BIN_PATH}/phpunit" -c "${ROOT_PATH}/Build/phpunit/UnitTests.xml" "$@"
 }
 
 # Run functional tests
 runFunctionalTests() {
     composerInstall
     echo -e "${GREEN}Running functional tests...${NC}"
-    "${BUILD_PATH}/vendor/bin/phpunit" -c "${ROOT_PATH}/Build/phpunit/FunctionalTests.xml" "$@"
+    "${BIN_PATH}/phpunit" -c "${ROOT_PATH}/Build/phpunit/FunctionalTests.xml" "$@"
 }
 
 # Run PHP-CS-Fixer
 runCgl() {
     composerInstall
     echo -e "${GREEN}Running PHP-CS-Fixer...${NC}"
-    "${BUILD_PATH}/vendor/bin/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" --dry-run --diff "$@"
+    "${BIN_PATH}/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" --dry-run --diff "$@"
 }
 
 # Fix code style
 runCglFix() {
     composerInstall
     echo -e "${GREEN}Fixing code style...${NC}"
-    "${BUILD_PATH}/vendor/bin/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" "$@"
+    "${BIN_PATH}/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" "$@"
 }
 
 # Run PHPStan
 runPhpstan() {
     composerInstall
     echo -e "${GREEN}Running PHPStan...${NC}"
-    "${BUILD_PATH}/vendor/bin/phpstan" analyse -c "${ROOT_PATH}/phpstan.neon" "$@"
+    "${BIN_PATH}/phpstan" analyse -c "${ROOT_PATH}/phpstan.neon" "$@"
 }
 
 # Run PHP linting
