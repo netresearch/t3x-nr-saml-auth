@@ -1,157 +1,55 @@
 #!/usr/bin/env bash
 
 #
-# TYPO3 Extension Test Runner
-# Runs various tests for the nr_saml_auth extension
+# Bootstrap for the shared TYPO3 extension test runner.
+#
+# Copy this file to Build/Scripts/runTests.sh in an extension. It is NOT the
+# runner: the runner is versioned once in netresearch/typo3-ci-workflows and
+# composer links it to .Build/bin/runTests.sh. This stub exists only because
+# the runner provisions the very environment it lives in, so it cannot be
+# behind a completed `composer install` — the first run on a fresh clone has
+# to create it.
+#
+# Per-extension settings belong in Build/Scripts/runTests.conf, never here.
+# Anything this stub grows beyond handing over is drift; fix the shared runner
+# instead.
 #
 
-set -e
+set -euo pipefail
 
-SCRIPT_PATH=$(dirname $(realpath "$0"))
-ROOT_PATH=$(realpath "${SCRIPT_PATH}/../..")
-BUILD_PATH="${ROOT_PATH}/.Build"
+cd "$(dirname "$0")/../.."
 
-# Composer's bin-dir is configured in composer.json; read it there instead of
-# assuming vendor/bin, which does not exist once bin-dir is set.
-BIN_PATH="${ROOT_PATH}/$(php -r '$c = json_decode(file_get_contents($argv[1]), true); echo $c["config"]["bin-dir"] ?? "vendor/bin";' "${ROOT_PATH}/composer.json")"
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Default PHP version
-PHP_VERSION="8.2"
-
-# Show usage
-usage() {
-    echo "Usage: $0 [options] <test-suite>"
-    echo ""
-    echo "Test Suites:"
-    echo "  unit              Run unit tests"
-    echo "  functional        Run functional tests"
-    echo "  cgl               Run PHP-CS-Fixer code style checks"
-    echo "  cgl-fix           Fix code style issues"
-    echo "  phpstan           Run PHPStan static analysis"
-    echo "  lint              Run PHP linting"
-    echo "  composer          Run composer commands"
-    echo ""
-    echo "Options:"
-    echo "  -p <version>      PHP version (8.1, 8.2, 8.3, 8.4) default: ${PHP_VERSION}"
-    echo "  -x                Enable Xdebug"
-    echo "  -v                Verbose output"
-    echo "  -h                Show this help"
-    echo ""
-    echo "Examples:"
-    echo "  $0 unit"
-    echo "  $0 -p 8.3 functional"
-    echo "  $0 cgl-fix"
-    echo "  $0 phpstan"
-    exit 0
-}
-
-# Install composer dependencies if needed
-composerInstall() {
-    if [ ! -d "${BUILD_PATH}/vendor" ]; then
-        echo -e "${YELLOW}Installing composer dependencies...${NC}"
-        composer install --working-dir="${ROOT_PATH}" --no-progress --no-interaction
+# composer.json says where composer puts binaries. Hardcoding .Build/bin was
+# wrong for nine extensions in this fleet: seven use lowercase .build/bin and
+# two use vendor/bin, and there this stub would not have found the runner at
+# all. The runner detects the same thing for itself; the stub has to do it
+# before the runner exists.
+bin_dir() {
+    local dir=""
+    if type jq >/dev/null 2>&1; then
+        dir="$(jq -r '.config["bin-dir"] // ((.config["vendor-dir"] // "vendor") + "/bin") // empty' composer.json 2>/dev/null)"
+    else
+        dir="$(sed -n 's/.*"bin-dir"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' composer.json | head -n1)"
+        [[ -n "${dir}" ]] || dir="$(sed -n 's/.*"vendor-dir"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1\/bin/p' composer.json | head -n1)"
     fi
+    printf '%s' "${dir:-vendor/bin}"
 }
 
-# Run unit tests
-runUnitTests() {
-    composerInstall
-    echo -e "${GREEN}Running unit tests...${NC}"
-    "${BIN_PATH}/phpunit" -c "${ROOT_PATH}/Build/phpunit/UnitTests.xml" "$@"
-}
+RUNNER="$(bin_dir)/runTests.sh"
 
-# Run functional tests
-runFunctionalTests() {
-    composerInstall
-    echo -e "${GREEN}Running functional tests...${NC}"
-    "${BIN_PATH}/phpunit" -c "${ROOT_PATH}/Build/phpunit/FunctionalTests.xml" "$@"
-}
+if [[ ! -x "${RUNNER}" ]]; then
+    echo "runTests.sh: ${RUNNER} not found — installing dependencies first." >&2
+    if ! type composer >/dev/null 2>&1; then
+        echo "runTests.sh: composer is not on PATH, cannot bootstrap ${RUNNER}." >&2
+        exit 1
+    fi
+    composer install --no-interaction --no-progress
+fi
 
-# Run PHP-CS-Fixer
-runCgl() {
-    composerInstall
-    echo -e "${GREEN}Running PHP-CS-Fixer...${NC}"
-    "${BIN_PATH}/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" --dry-run --diff "$@"
-}
+if [[ ! -x "${RUNNER}" ]]; then
+    echo "runTests.sh: ${RUNNER} is still missing after composer install." >&2
+    echo "             Is netresearch/typo3-ci-workflows in require-dev?" >&2
+    exit 1
+fi
 
-# Fix code style
-runCglFix() {
-    composerInstall
-    echo -e "${GREEN}Fixing code style...${NC}"
-    "${BIN_PATH}/php-cs-fixer" fix --config="${ROOT_PATH}/.php-cs-fixer.php" "$@"
-}
-
-# Run PHPStan
-runPhpstan() {
-    composerInstall
-    echo -e "${GREEN}Running PHPStan...${NC}"
-    "${BIN_PATH}/phpstan" analyse -c "${ROOT_PATH}/phpstan.neon" "$@"
-}
-
-# Run PHP linting
-runLint() {
-    echo -e "${GREEN}Running PHP linting...${NC}"
-    find "${ROOT_PATH}/Classes" "${ROOT_PATH}/Configuration" -name "*.php" -print0 | xargs -0 -n1 php -l
-}
-
-# Parse options
-while getopts "p:xvh" opt; do
-    case ${opt} in
-        p)
-            PHP_VERSION="$OPTARG"
-            ;;
-        x)
-            export XDEBUG_MODE=debug
-            ;;
-        v)
-            VERBOSE="-v"
-            ;;
-        h)
-            usage
-            ;;
-        \?)
-            usage
-            ;;
-    esac
-done
-
-shift $((OPTIND - 1))
-
-# Get test suite
-TEST_SUITE="${1:-}"
-shift || true
-
-case "$TEST_SUITE" in
-    unit)
-        runUnitTests "$@"
-        ;;
-    functional)
-        runFunctionalTests "$@"
-        ;;
-    cgl)
-        runCgl "$@"
-        ;;
-    cgl-fix)
-        runCglFix "$@"
-        ;;
-    phpstan)
-        runPhpstan "$@"
-        ;;
-    lint)
-        runLint
-        ;;
-    composer)
-        composer --working-dir="${ROOT_PATH}" "$@"
-        ;;
-    *)
-        usage
-        ;;
-esac
-
-echo -e "${GREEN}Done!${NC}"
+exec "${RUNNER}" "$@"
