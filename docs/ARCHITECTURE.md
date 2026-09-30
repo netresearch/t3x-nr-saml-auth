@@ -34,7 +34,7 @@ Agent-facing component map for `nr_saml_auth`. For prose documentation see `Docu
 
 ## Dependency rules
 
-No enforced architecture test exists (no `Tests/Architecture/`). Observable conventions: DI via `Configuration/Services.yaml` (autowire/autoconfigure, `Domain/Model` excluded); the `onelogin/php-saml` API is used by `SamlService`, `Sv/AuthenticationService`, `Middleware/DeepLinkSsoMiddleware` (`Utils::redirect()`) and the SAML test helpers; the controllers and event listeners reach it only through `SamlService` (the controllers import `OneLogin\Saml2\Error` for their `@throws` annotations).
+No enforced architecture test exists (no `Tests/Architecture/`). Observable conventions: DI via `Configuration/Services.yaml` (autowire/autoconfigure, `Domain/Model` excluded); the `onelogin/php-saml` API is used by `SamlService`, `Sv/AuthenticationService`, and `Middleware/DeepLinkSsoMiddleware` (`Utils::redirect()`); no file under `Tests/` uses it; the controllers and event listeners reach it only through `SamlService` (the controllers import `OneLogin\Saml2\Error` for their `@throws` annotations).
 
 ## Key decisions
 
