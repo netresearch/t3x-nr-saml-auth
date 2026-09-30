@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
 
 ## Description: Installs a specific TYPO3 version (12 or 13) in .build/ directory and links the extension
 ## Usage: install-typo3 [12|13|all]

@@ -4,6 +4,9 @@
  * nr_saml_auth - TYPO3 SAML Authentication Extension
  *
  * @author Netresearch DTT GmbH
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-FileCopyrightText: Netresearch DTT GmbH
  */
 
 // Get git information

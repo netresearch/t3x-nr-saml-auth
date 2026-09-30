@@ -1,5 +1,10 @@
 <?php
 
+/*
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-FileCopyrightText: Netresearch DTT GmbH
+ */
+
 $EM_CONF[$_EXTKEY] = [
     'title' => 'SAML Authentication for Frontend',
     'description' => 'TYPO3 SAML Authentication for frontend users using single sign-on (SSO)',

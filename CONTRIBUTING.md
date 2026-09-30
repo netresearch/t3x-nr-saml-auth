@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Contributing to TYPO3 SAML Auth
 
 Thank you for your interest in contributing to this TYPO3 extension!

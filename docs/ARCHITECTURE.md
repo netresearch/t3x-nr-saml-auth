@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Architecture
 
 Agent-facing component map for `nr_saml_auth`. For prose documentation see `Documentation/` (rendered for docs.typo3.org); for contribution rules see `AGENTS.md` and `CONTRIBUTING.md`.

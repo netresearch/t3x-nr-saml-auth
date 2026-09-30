@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
+
 # TYPO3 Configuration Set: Default SAML Authentication
 # This set provides balanced security settings for most environments.
 
