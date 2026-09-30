@@ -25,10 +25,9 @@ The extension opens no network connections. It does not fetch IdP metadata: the 
 Users can expect:
 
 - A SAML response that contains a document type declaration is rejected, which counters XML external entity attacks (php-saml `Utils::loadXML()`, `src/Saml2/Utils.php` lines 94–99).
-- A SAML response logs a user in only if it declares SAML version 2.0, carries an ID, has the status `Success`, contains exactly one assertion, and the response or the assertion carries an XML signature that validates against the IdP certificate of the selected settings record (`Response::isValid()`, `src/Saml2/Response.php` lines 137–173 and 402–435). A response without a signature is rejected. Any other result makes `AuthenticationService::getUser()` return `false`, and no user is logged in.
+- `AuthenticationService::getUser()` accepts a SAML response only if it declares SAML version 2.0, carries an ID, has the status `Success`, contains exactly one assertion, and the response or the assertion carries an XML signature that validates against the IdP certificate of the selected settings record (`Response::isValid()`, `src/Saml2/Response.php` lines 137–173 and 402–435). A response without a signature is rejected. For any other result `getUser()` returns `false`.
 - The user storage folder and the user groups of a user created at login come from the settings record, never from the assertion. The assertion supplies only the username and the `mail`, `companyname`, `fullname` and `country` values, each cast to a string (`AuthenticationService::insertUserRecord()`, `getValueFromAttribute()`).
 - The SP private key is never shown or sent: the backend module prints SP metadata built from the SP certificate only (`SamlService::getMetadata()`), and the metadata is HTML-escaped with `htmlentities()` before the template outputs it (`SamlAuthController::metadataAction()`, `Resources/Private/Templates/SamlAuth/Metadata.html`).
-- The backend module is available to system maintainers only (`Configuration/Backend/Modules.php`).
 - php-saml's own debug output is off (`'debug' => false` in `SamlService`), so validation errors are not echoed to the client. A rejected response is logged as a warning without its content (`AuthenticationService::getUser()`).
 - Database writes and lookups use Doctrine DBAL `Connection::insert()`, Extbase queries and named parameters (`AuthenticationService`, `SettingsRepository`, `AfterUserLoggedInEventListener`); the one SQL fragment the extension builds, the storage folder condition in `getUser()`, interpolates an integer.
 
@@ -49,14 +48,13 @@ Users cannot expect:
 | Client → Assertion Consumer Service | `SAMLResponse`, `saml_id` | php-saml parser with DOCTYPE rejection; status, assertion count and signature checks against the IdP certificate of the selected record; `saml_id` is cast to an integer |
 | IdP → TYPO3 | Username and attributes in a signed assertion | Trusted once the signature is valid; storage folder and user groups come from the settings record; values written with DBAL |
 | Visitor → frontend plugin | Page request | Only redirects to the SSO URL of the record selected in the plugin's FlexForm |
-| Backend user → settings records, backend module | Record fields, module arguments | TYPO3 table permissions; module restricted to system maintainers; metadata HTML-escaped |
+| Backend user → settings records, backend module | Record fields, module arguments | TYPO3 table permissions; module registered with `'access' => 'systemMaintainer'`; metadata HTML-escaped |
 | Integrator → extension | Settings records, extension configuration | Trusted |
 
 ## Secure design principles applied
 
 - **Reuse of a maintained implementation.** SAML parsing, signature validation and decryption are delegated to php-saml and xmlseclibs; the extension contains no XML or cryptographic code of its own. `SamlService` is the only place that builds the library settings.
-- **Fail-safe defaults.** A response that fails validation, or a missing settings record, ends in `getUser()` returning `false`; an exception while building the response aborts the login instead of continuing without a check.
-- **Least privilege.** The backend module requires system maintainer rights, and the storage folder and groups of provisioned users are fixed by the settings record.
+- **Configuration over assertion content.** The storage folder and groups of provisioned users are fixed by the settings record, not by the assertion.
 - **Minimal disclosure.** The private key never leaves the settings record through the extension's output, library debug output is off, and log entries carry messages, not SAML documents.
 
 ## Countering common weaknesses
@@ -73,7 +71,7 @@ Users cannot expect:
 
 ## Verification
 
-The unit and functional tests run in CI on every pull request (`.github/workflows/ci.yml`); PHPStan runs at level 8 and Opengrep fails a pull request on findings of severity WARNING or higher. The full list of pull-request checks is in [CONTRIBUTING.md](../CONTRIBUTING.md#governance-and-policies). Locally:
+The unit and functional tests run in CI on every pull request (`.github/workflows/ci.yml`); PHPStan runs at level 8, and Opengrep runs under the [organisation rule](https://github.com/netresearch/.github/blob/main/SECURITY.md#static-analysis-sast). The full list of pull-request checks is in [CONTRIBUTING.md](../CONTRIBUTING.md#governance-and-policies). Locally:
 
 ```bash
 composer ci:test:php:unit
