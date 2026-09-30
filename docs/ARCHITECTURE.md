@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Architecture
 
 Agent-facing component map for `nr_saml_auth`. For prose documentation see `Documentation/` (rendered for docs.typo3.org); for contribution rules see `AGENTS.md` and `CONTRIBUTING.md`.
@@ -32,7 +34,7 @@ Agent-facing component map for `nr_saml_auth`. For prose documentation see `Docu
 
 ## Dependency rules
 
-No enforced architecture test exists (no `Tests/Architecture/`). Observable conventions: DI via `Configuration/Services.yaml` (autowire/autoconfigure, `Domain/Model` excluded); the `onelogin/php-saml` API is confined to `SamlService`, `Sv/AuthenticationService` and the SAML test helpers.
+No enforced architecture test exists (no `Tests/Architecture/`). Observable conventions: DI via `Configuration/Services.yaml` (autowire/autoconfigure, `Domain/Model` excluded); the `onelogin/php-saml` API is used by `SamlService`, `Sv/AuthenticationService`, and `Middleware/DeepLinkSsoMiddleware` (`Utils::redirect()`); no file under `Tests/` uses it; the controllers and event listeners reach it only through `SamlService` (the controllers import `OneLogin\Saml2\Error` for their `@throws` annotations).
 
 ## Key decisions
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
+
 # TYPO3 DDEV Development Aliases
 alias cd12='cd /var/www/html/.build/v12'
 alias cd13='cd /var/www/html/.build/v13'

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
+
 plugin.tx_nrsamlauth_authentication {
     view {
         templateRootPaths.0 = EXT:nr_saml_auth/Resources/Private/Templates/

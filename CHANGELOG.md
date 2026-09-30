@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -10,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - TYPO3 v12.4 and v13.4 LTS support
-- PHP 8.1, 8.2, 8.3, and 8.4 support
+- PHP 8.1, 8.2, 8.3, 8.4, and 8.5 support
 - PSR-14 event system for authentication hooks
   - `AfterUserLoggedInEventListener` - replaces `postUserLookUp` hook
   - `BeforeUserLogoutEventListener` - replaces `logoff_pre_processing` hook

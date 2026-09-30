@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Contributing to TYPO3 SAML Auth
 
 Thank you for your interest in contributing to this TYPO3 extension!
@@ -127,6 +129,25 @@ make docs-serve  # Serve at http://localhost:8000
 
 - Open a [GitHub Discussion](https://github.com/netresearch/t3x-nr-saml-auth/discussions)
 - Join [TYPO3 Slack](https://typo3.slack.com) #typo3-extensions
+
+## Governance and policies
+
+This extension follows the organisation-wide Netresearch policies:
+
+- [Governance](https://github.com/netresearch/.github/blob/main/GOVERNANCE.md): ownership, roles, how decisions are made and conflicts resolved.
+- [Roadmap](https://github.com/netresearch/.github/blob/main/ROADMAP.md): planned and excluded work for the next twelve months.
+- [Handling of dependency and code analysis findings](https://github.com/netresearch/.github/blob/main/SECURITY.md#handling-of-dependency-and-code-analysis-findings): which vulnerability, licence and static-analysis findings must be fixed, by when, and how exceptions are recorded.
+- [Secret management](https://github.com/netresearch/.github/blob/main/SECURITY.md#secret-management): where CI and release credentials are stored, who may use them, how committed secrets are detected, and when secrets are rotated.
+- [Access roster](https://github.com/netresearch/.github/blob/main/docs/access-roster.md): the people and teams with administrative or write access to this repository.
+
+Checks that run on every pull request in this repository:
+
+- `.github/workflows/checks.yml`: Composer Audit (fails on any advisory for an installed package) and Opengrep SAST (fails a pull request as the [organisation rule](https://github.com/netresearch/.github/blob/main/SECURITY.md#static-analysis-sast) sets out), both through `typo3-ci-workflows`' `security.yml`; Dependency Review (fails on newly added dependencies with a vulnerability of severity high or higher); PHP License Audit (`license-check.yml`, fails when `composer licenses` reports a dependency licence that is exactly `SSPL` or `BSL`); CodeQL for the workflow files (the repository contains no JavaScript, and CodeQL has no PHP analysis; PHPStan and Opengrep cover the PHP code); Betterleaks secret scanning; zizmor for the workflow files; the pull request quality check (`pr-quality`); the aggregate gate `All security checks`, which fails when any of these jobs fails. The fuzz job looks for `Build/phpunit.xml`, which does not exist here, and is skipped.
+- `.github/workflows/ci.yml`: PHP lint, code style (PHP-CS-Fixer, `.php-cs-fixer.php`), PHPStan (level 8, `phpstan.neon`, and, advisory by default, once more against the newest PHPUnit as `PHPStan (unpinned PHPUnit)`), Rector (`Build/rector.php`), unit tests and functional tests (SQLite) on PHP 8.1 to 8.5 with TYPO3 12.4 and 13.4 (PHP 8.1 only with 12.4, PHP 8.5 only with 13.4), and the rendering of `Documentation/`, summarised by the aggregate gate `ci / All CI checks`.
+- `.github/workflows/harness-verify.yml`: `Build/Scripts/verify-harness.sh`.
+- `.github/workflows/check-template-drift.yml`: drift of the workflow files from the `netresearch/.github` typo3-extension template.
+
+The security expectations, trust boundaries and the code behind them are in [docs/SECURITY-ASSURANCE.md](docs/SECURITY-ASSURANCE.md).
 
 ## License
 

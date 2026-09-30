@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Execution plans
 
 Working directory for agent execution plans (multi-step task breakdowns that outlive a single session).

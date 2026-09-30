@@ -1,6 +1,9 @@
 <?php
 
 /*
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-FileCopyrightText: Netresearch DTT GmbH
+ *
  * This file is part of the package netresearch/nr-saml-auth.
  *
  * For the full copyright and license information, please read the

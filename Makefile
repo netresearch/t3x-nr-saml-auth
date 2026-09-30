@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
+
 # Makefile for TYPO3 Extension nr_saml_auth
 # Self-documenting: run 'make' or 'make help' to see available targets
 

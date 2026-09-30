@@ -1,3 +1,6 @@
+.. SPDX-License-Identifier: CC-BY-4.0
+.. SPDX-FileCopyrightText: Netresearch DTT GmbH
+
 ..  include:: /Includes.rst.txt
 
 ..  _introduction:
@@ -36,7 +39,7 @@ Requirements
     ..  group-tab:: Version 13.x
 
         *  TYPO3 12.4 LTS or 13.4 LTS
-        *  PHP 8.1 - 8.4
+        *  PHP 8.1 - 8.5
         *  onelogin/php-saml 4.0+
 
     ..  group-tab:: Version 10.x
