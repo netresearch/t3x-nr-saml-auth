@@ -21,7 +21,7 @@ Added
 
 *  TYPO3 12.4 LTS support
 *  TYPO3 13.4 LTS support
-*  PHP 8.1, 8.2, 8.3, 8.4 support
+*  PHP 8.1, 8.2, 8.3, 8.4, 8.5 support
 *  PSR-14 events for authentication customization
 *  Dependency injection for all services
 *  Comprehensive unit and functional tests
