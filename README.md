@@ -114,6 +114,10 @@ composer ci:cgl              # Code style fix
 composer ci:test:php:unit    # Unit tests
 ```
 
+## Security
+
+What the extension protects and what it does not, its trust boundaries and the checks behind them: [docs/SECURITY-ASSURANCE.md](docs/SECURITY-ASSURANCE.md). Report vulnerabilities as described in [SECURITY.md](SECURITY.md), not in public issues.
+
 ## License
 
 GPL-2.0-or-later. See [LICENSE](LICENSE) for details.

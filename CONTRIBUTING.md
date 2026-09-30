@@ -147,6 +147,8 @@ Checks that run on every pull request in this repository:
 - `.github/workflows/harness-verify.yml`: `Build/Scripts/verify-harness.sh`.
 - `.github/workflows/check-template-drift.yml`: drift of the workflow files from the `netresearch/.github` typo3-extension template.
 
+The security expectations, trust boundaries and the code behind them are in [docs/SECURITY-ASSURANCE.md](docs/SECURITY-ASSURANCE.md).
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under GPL-2.0-or-later.
