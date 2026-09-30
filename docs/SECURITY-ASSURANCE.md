@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Security assurance
 
-This document states what users of `netresearch/nr-saml-auth` can and cannot expect in terms of security, where the extension's trust boundaries are, and which code counters the weaknesses that matter for it. It describes the code on `main` and the SAML processing of the frontend login in `AuthenticationService::getUser()` and `SamlService`; when this file and the code disagree, the code wins and this file is corrected. Vulnerabilities are reported as described in [SECURITY.md](../SECURITY.md), not in public issues. The component map is in [ARCHITECTURE.md](ARCHITECTURE.md).
+This document states what users of `netresearch/nr-saml-auth` can and cannot expect in terms of security, where the extension's trust boundaries are, and which code counters the weaknesses that matter for it. It describes the code on `main` and the SAML processing of the frontend login in `AuthenticationService::getUser()` and `SamlService`, the backend module and the settings records; when this file and the code disagree, the code wins and this file is corrected. Vulnerabilities are reported as described in [SECURITY.md](../SECURITY.md), not in public issues. The component map is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 The SAML protocol, the XML parsing and the cryptography are done by [onelogin/php-saml](https://github.com/SAML-Toolkits/php-saml) (`composer.json` requires `^4.3.1`; the line references below are to 4.3.2) and its dependency `robrichards/xmlseclibs`. The extension's own code builds the library settings from a database record, hands the posted response to the library, and maps the result onto a TYPO3 frontend user.
 
