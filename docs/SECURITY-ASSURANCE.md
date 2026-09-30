@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
 # Security assurance
 
-This document states what users of `netresearch/nr-saml-auth` can and cannot expect in terms of security, where the extension's trust boundaries are, and which code counters the weaknesses that matter for it. It describes the code on `main` and the frontend login path; when this file and the code disagree, the code wins and this file is corrected. Vulnerabilities are reported as described in [SECURITY.md](../SECURITY.md), not in public issues. The component map is in [ARCHITECTURE.md](ARCHITECTURE.md).
+This document states what users of `netresearch/nr-saml-auth` can and cannot expect in terms of security, where the extension's trust boundaries are, and which code counters the weaknesses that matter for it. It describes the code on `main` and the SAML processing of the frontend login in `AuthenticationService::getUser()` and `SamlService`; when this file and the code disagree, the code wins and this file is corrected. Vulnerabilities are reported as described in [SECURITY.md](../SECURITY.md), not in public issues. The component map is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 The SAML protocol, the XML parsing and the cryptography are done by [onelogin/php-saml](https://github.com/SAML-Toolkits/php-saml) (`composer.json` requires `^4.3.1`; the line references below are to 4.3.2) and its dependency `robrichards/xmlseclibs`. The extension's own code builds the library settings from a database record, hands the posted response to the library, and maps the result onto a TYPO3 frontend user.
 
@@ -25,10 +25,10 @@ The extension opens no network connections. It does not fetch IdP metadata: the 
 Users can expect:
 
 - A SAML response that contains a document type declaration is rejected, which counters XML external entity attacks (php-saml `Utils::loadXML()`, `src/Saml2/Utils.php` lines 94–99).
-- `AuthenticationService::getUser()` accepts a SAML response only if it declares SAML version 2.0, carries an ID, has the status `Success`, contains exactly one assertion, and the response or the assertion carries an XML signature that validates against the IdP certificate of the selected settings record (`Response::isValid()`, `src/Saml2/Response.php` lines 137–173 and 402–435). A response without a signature is rejected. For any other result `getUser()` returns `false`.
+- `AuthenticationService::getUser()` accepts a SAML response only if it declares SAML version 2.0, carries an ID, has the status `Success`, contains exactly one assertion, and the response or the assertion carries an XML signature that validates against the IdP certificate of the selected settings record (`Response::isValid()`, `src/Saml2/Response.php` lines 137–173 and 402–435). A response without a signature is rejected. For a response that fails `isValid()`, `getUser()` returns `false`; a response that php-saml cannot load, parse or decrypt ends in the library's exception, thrown from the `Response` constructor.
 - The user storage folder and the user groups of a user created at login come from the settings record, never from the assertion. The assertion supplies only the username and the `mail`, `companyname`, `fullname` and `country` values, each cast to a string (`AuthenticationService::insertUserRecord()`, `getValueFromAttribute()`).
 - The SP private key is never shown or sent: the backend module prints SP metadata built from the SP certificate only (`SamlService::getMetadata()`), and the metadata is HTML-escaped with `htmlentities()` before the template outputs it (`SamlAuthController::metadataAction()`, `Resources/Private/Templates/SamlAuth/Metadata.html`).
-- php-saml's own debug output is off (`'debug' => false` in `SamlService`), so validation errors are not echoed to the client. A rejected response is logged as a warning without its content (`AuthenticationService::getUser()`).
+- php-saml's own debug output is off (`'debug' => false` in `SamlService`), so validation errors are not echoed to the client. A response that fails `isValid()` is logged without its content (`AuthenticationService::getUser()`).
 - Database writes and lookups use Doctrine DBAL `Connection::insert()`, Extbase queries and named parameters (`AuthenticationService`, `SettingsRepository`, `AfterUserLoggedInEventListener`); the one SQL fragment the extension builds, the storage folder condition in `getUser()`, interpolates an integer.
 
 Users cannot expect:
@@ -38,14 +38,13 @@ Users cannot expect:
 - Updates of existing users. Attribute values are written only when the user is created; a later login does not change the record.
 - Deprovisioning. A user removed at the IdP keeps the TYPO3 frontend user and any session that has not expired.
 - IdP-initiated single logout. The extension sends the user to the IdP's logout URL after a TYPO3 logout (`AfterUserLoggedOutEventListener`); it does not process a `LogoutRequest` or `LogoutResponse` from the IdP.
-- Password logins on the same site. While the service is installed, a frontend login request without a `SAMLResponse` is redirected to the IdP (`AuthenticationService::getUser()`).
 - Protection against a misconfigured installation. The extension trusts its settings records, the IdP certificate entered there, and the TYPO3 and web server configuration, including HTTPS for the Assertion Consumer Service URL.
 
 ## Threat model and trust boundaries
 
 | Boundary | Untrusted input | Control |
 |----------|-----------------|---------|
-| Client → Assertion Consumer Service | `SAMLResponse`, `saml_id` | php-saml parser with DOCTYPE rejection; status, assertion count and signature checks against the IdP certificate of the selected record; `saml_id` is cast to an integer |
+| Client → `AuthenticationService::getUser()` | `SAMLResponse`, `saml_id` | `getUser()` accepts only a response that php-saml loads without a DOCTYPE and validates (status, assertion count, signature against the IdP certificate of the selected record); `saml_id` is cast to an integer |
 | IdP → TYPO3 | Username and attributes in a signed assertion | Trusted once the signature is valid; storage folder and user groups come from the settings record; values written with DBAL |
 | Visitor → frontend plugin | Page request | Only redirects to the SSO URL of the record selected in the plugin's FlexForm |
 | Backend user → settings records, backend module | Record fields, module arguments | TYPO3 table permissions; module registered with `'access' => 'systemMaintainer'`; metadata HTML-escaped |
@@ -62,7 +61,7 @@ Users cannot expect:
 | Weakness (CWE / OWASP) | Counter | Evidence |
 |------------------------|---------|----------|
 | XML external entities (CWE-611, A05:2021) | php-saml rejects documents with a DOCTYPE | `.Build/vendor/onelogin/php-saml/src/Saml2/Utils.php` (`loadXML()`) |
-| Improper verification of a cryptographic signature (CWE-347) | A signature on the response or the assertion is required and validated against the configured IdP certificate | `Response::isValid()`; `AuthenticationService::getUser()`. No test in this repository runs `isValid()`; the fixtures in `Tests/Functional/Fixtures/SamlResponses/` are checked for their structure only (`Tests/Functional/Saml/SamlProtocolTest.php`) |
+| Improper verification of a cryptographic signature (CWE-347) | `getUser()` accepts a response only if php-saml validates a signature on the response or the assertion against the configured IdP certificate | `Response::isValid()`; `AuthenticationService::getUser()`. No test in this repository runs `isValid()`; the fixtures in `Tests/Functional/Fixtures/SamlResponses/` are checked for their structure only (`Tests/Functional/Saml/SamlProtocolTest.php`) |
 | SQL injection (CWE-89, A03:2021) | DBAL insert, Extbase queries, named parameters, integer cast | `Classes/Sv/AuthenticationService.php`, `Classes/EventListener/AfterUserLoggedInEventListener.php`, `Classes/Domain/Repository/SettingsRepository.php` |
 | Cross-site scripting (CWE-79, A03:2021) | `htmlentities()` before the raw output of the metadata; Fluid escaping in the login template | `Classes/Controller/SamlAuthController.php`, `Resources/Private/Templates/Auth/Login.html` |
 | Insertion of sensitive information into log files (CWE-532) | Log entries contain messages and the settings uid, not the SAML response | `Classes/Sv/AuthenticationService.php`, `Classes/EventListener/` |
