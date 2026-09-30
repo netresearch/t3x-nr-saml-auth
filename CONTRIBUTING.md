@@ -130,6 +130,23 @@ make docs-serve  # Serve at http://localhost:8000
 - Open a [GitHub Discussion](https://github.com/netresearch/t3x-nr-saml-auth/discussions)
 - Join [TYPO3 Slack](https://typo3.slack.com) #typo3-extensions
 
+## Governance and policies
+
+This extension follows the organisation-wide Netresearch policies:
+
+- [Governance](https://github.com/netresearch/.github/blob/main/GOVERNANCE.md): ownership, roles, how decisions are made and conflicts resolved.
+- [Roadmap](https://github.com/netresearch/.github/blob/main/ROADMAP.md): planned and excluded work for the next twelve months.
+- [Handling of dependency and code analysis findings](https://github.com/netresearch/.github/blob/main/SECURITY.md#handling-of-dependency-and-code-analysis-findings): which vulnerability, licence and static-analysis findings must be fixed, by when, and how exceptions are recorded.
+- [Secret management](https://github.com/netresearch/.github/blob/main/SECURITY.md#secret-management): where CI and release credentials are stored, who may use them, how committed secrets are detected, and when secrets are rotated.
+- [Access roster](https://github.com/netresearch/.github/blob/main/docs/access-roster.md): the people and teams with administrative or write access to this repository.
+
+Checks that run on every pull request in this repository:
+
+- `.github/workflows/checks.yml`: Composer Audit (fails on any advisory for an installed package) and Opengrep SAST (fails on findings of severity WARNING or higher), both through `typo3-ci-workflows`' `security.yml`; Dependency Review (fails on newly added dependencies with a vulnerability of severity high or higher); PHP License Audit (`license-check.yml`, fails on an SSPL or BSL licensed Composer dependency); CodeQL for the workflow files (the repository contains no JavaScript, and CodeQL has no PHP analysis; PHPStan and Opengrep cover the PHP code); Betterleaks secret scanning; zizmor for the workflow files; the pull request quality check. The fuzz job finds no fuzz suite in `Build/phpunit/` and is skipped.
+- `.github/workflows/ci.yml`: PHP lint, code style (PHP-CS-Fixer, `.php-cs-fixer.php`), PHPStan (level 8, `phpstan.neon`), Rector (`Build/rector.php`), unit tests and functional tests (SQLite) on PHP 8.1 to 8.5 with TYPO3 12.4 and 13.4 (PHP 8.1 only with 12.4, PHP 8.5 only with 13.4), and the rendering of `Documentation/`.
+- `.github/workflows/harness-verify.yml`: `Build/Scripts/verify-harness.sh`.
+- `.github/workflows/check-template-drift.yml`: drift of the workflow files from the `netresearch/.github` typo3-extension template.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under GPL-2.0-or-later.
