@@ -45,9 +45,7 @@ Certificate: -----BEGIN CERTIFICATE-----
 MIIFYDCCA0igAwIBAgIJAMWkGz7F5peWMA0GCSqGSIb3DQEB...
 -----END CERTIFICATE-----
 
-Private key: -----BEGIN PRIVATE KEY-----
-MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoIC...
------END PRIVATE KEY-----
+Private key: [SP private key, PEM]
 
 # Identity Provider Settings
 Entity ID: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
