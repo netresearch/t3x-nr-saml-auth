@@ -341,8 +341,15 @@ class AuthenticationService extends Typo3AuthService
             return 0;
         }
 
-        $isSameUser = (string)($user['username'] ?? '') === $assertion[0]
-            && (int)($user['pid'] ?? -1) === (int)$settings->getUsersPid();
+        // The user getUser() resolves for this response, found with the same
+        // lookup; compared by uid, as the database may match usernames
+        // without regard to letter case
+        $dbUser = ['check_pid_clause' => $this->getStorageFolderCondition($settings)] + $this->db_user;
+        $resolvedUser = $this->fetchUserRecord($assertion[0], '', $dbUser);
+
+        $isSameUser = is_array($resolvedUser)
+            && isset($user['uid'])
+            && (int)$resolvedUser['uid'] === (int)$user['uid'];
 
         return $isSameUser ? 200 : 0;
     }
