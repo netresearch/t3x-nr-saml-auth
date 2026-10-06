@@ -185,7 +185,9 @@ class AuthenticationService extends Typo3AuthService
             return null;
         }
 
-        $identifier = hash('sha256', $settings->getUid() . '|' . $assertionId);
+        // Assertion IDs are unique per identity provider, so an assertion is
+        // accepted once across all settings records that trust that provider
+        $identifier = hash('sha256', $settings->getIdpEntityId() . '|' . $assertionId);
         $request = $this->getRequest();
 
         if ($consume) {

@@ -256,6 +256,24 @@ final class SamlLoginTest extends FunctionalTestCase
     }
 
     #[Test]
+    public function responseIsAcceptedOnceAcrossSettingsRecordsOfTheSameIdentityProvider(): void
+    {
+        $connection = $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings');
+        $record = $connection->select(['*'], 'tx_nrsamlauth_domain_model_settings', ['uid' => 1])->fetchAssociative();
+        self::assertIsArray($record);
+        $connection->insert('tx_nrsamlauth_domain_model_settings', ['uid' => 2] + $record);
+
+        $samlResponse = $this->identityProvider->sign($this->validResponse());
+        $this->postSamlResponse($samlResponse, [], self::ACS_URL . '&saml_id=1');
+        self::assertCount(1, $this->loggedInUserIds());
+        $this->getConnectionPool()->getConnectionForTable('fe_sessions')->truncate('fe_sessions');
+
+        $this->postSamlResponse($samlResponse, [], self::ACS_URL . '&saml_id=2');
+
+        self::assertSame([], $this->loggedInUserIds());
+    }
+
+    #[Test]
     public function responseWithoutUsernameIsRejected(): void
     {
         $builder = (new SamlResponseBuilder())
@@ -383,9 +401,9 @@ final class SamlLoginTest extends FunctionalTestCase
     /**
      * @param array<string, string> $additionalFields
      */
-    private function postSamlResponse(string $samlResponse, array $additionalFields = []): ResponseInterface
+    private function postSamlResponse(string $samlResponse, array $additionalFields = [], string $url = self::ACS_URL): ResponseInterface
     {
-        $request = (new InternalRequest(self::ACS_URL))
+        $request = (new InternalRequest($url))
             ->withMethod('POST')
             ->withParsedBody(['SAMLResponse' => $samlResponse] + $additionalFields);
 
