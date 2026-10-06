@@ -139,8 +139,9 @@ class SamlService implements SingletonInterface
 
     /**
      * php-saml compares the response's Destination and Recipient with the URL
-     * the response was received at. That URL is taken from TYPO3's view of the
-     * request, so TYPO3's reverse proxy settings apply.
+     * the response was received at. Scheme, host and port of that URL are
+     * taken from TYPO3's view of the request, so TYPO3's reverse proxy
+     * settings apply to them.
      */
     private function useCurrentRequestAsSelfUrl(): void
     {
@@ -162,6 +163,8 @@ class SamlService implements SingletonInterface
 
         // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
         // reverse proxy prefix in front of it; php-saml adds it as base path.
+        // php-saml 4.3 and later keep the whole path below that base path;
+        // earlier versions keep only its last segment.
         $publicPath = (string)parse_url((string)GeneralUtility::getIndpEnv('REQUEST_URI'), PHP_URL_PATH);
         $serverPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
         $prefix = '';

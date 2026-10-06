@@ -45,7 +45,7 @@ class DeepLinkSsoMiddleware implements MiddlewareInterface
         }
 
         // This middleware runs after the frontend authentication middleware,
-        // which adds the session cookie to the response returned here.
+        // which has already sent the session cookie header.
         return new RedirectResponse($target, 303);
     }
 
