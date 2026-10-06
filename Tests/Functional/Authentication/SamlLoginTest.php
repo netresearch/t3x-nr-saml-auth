@@ -46,6 +46,13 @@ final class SamlLoginTest extends FunctionalTestCase
      * that TYPO3's own username and password lookup finds users in any folder.
      */
     protected array $configurationToUseInTestInstance = [
+        // An installation that still carries the removed strictMode setting
+        // switched off: strict validation stays on (see the rejection tests).
+        'EXTENSIONS' => [
+            'nr_saml_auth' => [
+                'strictMode' => '0',
+            ],
+        ],
         'FE' => [
             'loginRateLimit' => 0,
             'checkFeUserPid' => false,
@@ -426,6 +433,11 @@ final class SamlLoginTest extends FunctionalTestCase
             "    locale: 'en_US.UTF-8'",
             "    navigationTitle: 'English'",
             "    flag: 'us'",
+            '',
+        ]));
+        file_put_contents($directory . '/settings.yaml', implode("\n", [
+            'nr_saml_auth:',
+            '  strictMode: false',
             '',
         ]));
     }
