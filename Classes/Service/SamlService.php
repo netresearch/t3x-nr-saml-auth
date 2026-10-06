@@ -9,6 +9,7 @@ use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class SamlService
@@ -33,7 +34,10 @@ class SamlService implements SingletonInterface
         'usergroup' => '',
         'debug' => true,
         'saml' => [
-            'strict' => false,
+            // Strict mode makes php-saml check the destination, audience, issuer,
+            // validity period and subject confirmation of a response, not only its
+            // signature.
+            'strict' => true,
             'debug' => false,
             'sp' => [
                 'entityId' => '',
@@ -128,8 +132,45 @@ class SamlService implements SingletonInterface
     public function getResponse(string $postSamlResponse) : Response
     {
         $settings = new Settings($this->getSettings()['saml']);
+        $this->useCurrentRequestAsSelfUrl();
 
         return new Response($settings, $postSamlResponse);
+    }
+
+    /**
+     * php-saml compares the response's Destination and Recipient with the URL
+     * the response was received at. That URL is taken from TYPO3's view of the
+     * request, so TYPO3's reverse proxy settings apply.
+     */
+    private function useCurrentRequestAsSelfUrl(): void
+    {
+        $host = (string)GeneralUtility::getIndpEnv('TYPO3_HOST_ONLY');
+        if ($host === '') {
+            return;
+        }
+
+        $isHttps = (bool)GeneralUtility::getIndpEnv('TYPO3_SSL');
+        $port = (int)GeneralUtility::getIndpEnv('TYPO3_PORT');
+
+        if ($port <= 0) {
+            $port = $isHttps ? 443 : 80;
+        }
+
+        Utils::setSelfProtocol($isHttps ? 'https' : 'http');
+        Utils::setSelfHost($host);
+        Utils::setSelfPort($port);
+
+        // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
+        // reverse proxy prefix in front of it; php-saml adds it as base path.
+        $publicPath = (string)parse_url((string)GeneralUtility::getIndpEnv('REQUEST_URI'), PHP_URL_PATH);
+        $serverPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $prefix = '';
+        if ($serverPath !== '' && strlen($publicPath) > strlen($serverPath)
+            && substr($publicPath, -strlen($serverPath)) === $serverPath
+        ) {
+            $prefix = substr($publicPath, 0, -strlen($serverPath));
+        }
+        Utils::setBaseURLPath($prefix);
     }
 
     /**

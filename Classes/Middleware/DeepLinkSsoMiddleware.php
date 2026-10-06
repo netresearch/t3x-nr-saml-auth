@@ -4,17 +4,22 @@
  * This middleware handles the redirect of the user during login/logout process during saml authentication
  * I relies on that the target for redirecting is passed via RelayState parameter during ACS call from saml server towards
  * TYPO3.
+ *
+ * Only targets on the host of the current request are followed: a path
+ * starting with a single slash, or an absolute http(s) URL whose scheme, host
+ * and port equal those of the request. Any other RelayState is ignored and the
+ * request is handled as usual.
  */
 
 namespace Netresearch\NrSamlAuth\Middleware;
 
 
-use OneLogin\Saml2\Error;
-use OneLogin\Saml2\Utils;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Http\NormalizedParams;
+use TYPO3\CMS\Core\Http\RedirectResponse;
 
 
 class DeepLinkSsoMiddleware implements MiddlewareInterface
@@ -27,7 +32,6 @@ class DeepLinkSsoMiddleware implements MiddlewareInterface
      * @param RequestHandlerInterface $handler
      *
      * @return ResponseInterface
-     * @throws Error
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -35,10 +39,14 @@ class DeepLinkSsoMiddleware implements MiddlewareInterface
             return  $handler->handle($request);
         }
 
-        $this->handleSamlRedirectIfRequired();
+        $target = $this->getRedirectTarget($request);
+        if ($target === '' || !$this->isTargetOnCurrentHost($target, $request)) {
+            return $handler->handle($request);
+        }
 
-
-        return  $handler->handle($request);
+        // This middleware runs after the frontend authentication middleware,
+        // which adds the session cookie to the response returned here.
+        return new RedirectResponse($target, 303);
     }
 
     /**
@@ -53,43 +61,84 @@ class DeepLinkSsoMiddleware implements MiddlewareInterface
             return true;
         }
 
-        if ($this->isSamlLogoutRequest()) {
+        if ($this->isSamlLogoutRequest($request)) {
             return true;
         }
         return false;
     }
 
     /**
-     * Returns the passed redirect target.
+     * Returns the passed redirect target, from the POST body (login) or the query (logout).
      *
-     * @return mixed|void
+     * @param ServerRequestInterface $request
+     * @return string
      */
-    private function  getRedirectTarget()
+    private function getRedirectTarget(ServerRequestInterface $request): string
     {
-        if (!isset($_REQUEST['RelayState'])) {
-            return;
+        $parsedBody = $request->getParsedBody();
+        $queryParams = $request->getQueryParams();
+        $relayState = $parsedBody['RelayState'] ?? $queryParams['RelayState'] ?? '';
+
+        return is_string($relayState) ? $relayState : '';
+    }
+
+    private function isTargetOnCurrentHost(string $target, ServerRequestInterface $request): bool
+    {
+        // Control characters and backslashes are interpreted differently by browsers
+        if (preg_match('/[\x00-\x1F\x7F\\\\]/', $target) === 1) {
+            return false;
         }
 
-        return $_REQUEST['RelayState'];
+        if (strpos($target, '/') === 0) {
+            return strpos($target, '//') !== 0;
+        }
+
+        $parts = parse_url($target);
+        if ($parts === false || isset($parts['user']) || isset($parts['pass'])) {
+            return false;
+        }
+
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = strtolower($parts['host'] ?? '');
+        if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return false;
+        }
+
+        list($requestScheme, $requestHost, $requestPort) = $this->getRequestOrigin($request);
+
+        return $scheme === $requestScheme
+            && $host === $requestHost
+            && (int)($parts['port'] ?? $this->getDefaultPort($scheme)) === $requestPort;
     }
 
     /**
-     * Process the redirect for the given target.
-     *
-     * @return void
-     *
-     * @throws \OneLogin\Saml2\Error
+     * @param ServerRequestInterface $request
+     * @return array [scheme, host, port]
      */
-    private function handleSamlRedirectIfRequired()
+    private function getRequestOrigin(ServerRequestInterface $request): array
     {
-        $target = $this->getRedirectTarget();
+        $normalizedParams = $request->getAttribute('normalizedParams');
+        if ($normalizedParams instanceof NormalizedParams) {
+            $scheme = $normalizedParams->isHttps() ? 'https' : 'http';
+            $port = $normalizedParams->getRequestPort();
 
-        if (empty($target)) {
-            return;
+            return [
+                $scheme,
+                strtolower($normalizedParams->getRequestHostOnly()),
+                $port > 0 ? $port : $this->getDefaultPort($scheme),
+            ];
         }
-        Utils::redirect($target);
+
+        $uri = $request->getUri();
+        $scheme = strtolower($uri->getScheme());
+
+        return [$scheme, strtolower($uri->getHost()), $uri->getPort() ?? $this->getDefaultPort($scheme)];
     }
 
+    private function getDefaultPort(string $scheme): int
+    {
+        return $scheme === 'https' ? 443 : 80;
+    }
 
     /**
      * Returns true, if the current request is sent from saml server towards TYPO3 as login request.
@@ -99,16 +148,23 @@ class DeepLinkSsoMiddleware implements MiddlewareInterface
      */
     private function isSamlLoginRequest(ServerRequestInterface $request)
     {
-        return $request->getMethod() == 'POST' && isset($_POST['RelayState']);
+        $parsedBody = $request->getParsedBody();
+
+        return $request->getMethod() == 'POST' && isset($parsedBody['RelayState']);
     }
 
     /**
      * Returns true, if the current request is sent from saml server towards TYPO3 as logout request.
      *
+     * @param ServerRequestInterface $request the request
      * @return bool
      */
-    private function isSamlLogoutRequest()
+    private function isSamlLogoutRequest(ServerRequestInterface $request)
     {
-        return isset($_GET['logintype']) && $_GET['logintype'] == 'logout' && isset($_GET['RelayState']) && isset($_GET['SAMLResponse']);
+        $queryParams = $request->getQueryParams();
+
+        return ($queryParams['logintype'] ?? '') === 'logout'
+            && isset($queryParams['RelayState'])
+            && isset($queryParams['SAMLResponse']);
     }
 }
