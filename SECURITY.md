@@ -4,10 +4,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-|---------|--------------------|
-| 12.x    | :white_check_mark: |
-| 10.x    | :x:                |
+| Version | Supported                                       |
+|---------|-------------------------------------------------|
+| 12.x    | :white_check_mark: (`main`, not yet released)   |
+| 10.0.x  | Security fixes only (branch `TYPO3_10`)         |
 
 ## Reporting a Vulnerability
 
@@ -55,8 +55,7 @@ When using this extension:
 
 ### SAML Configuration
 
-- Enable strict mode in production (`strictMode = 1`)
-- Validate XML signatures (`validateXml = 1`)
+- Keep schema validation of SAML responses on (`validateXml = 1`); php-saml's strict validation is always on
 - Use HTTPS for all SAML endpoints
 - Configure proper audience restrictions
 - Implement session timeout policies
