@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
@@ -104,6 +105,47 @@ final class SamlLoginTest extends FunctionalTestCase
         $this->postSamlResponse($samlResponse, ['user' => 'localuser', 'pass' => 'wrong-password']);
 
         self::assertSame([], $this->loggedInUserIds());
+    }
+
+    /**
+     * @return array<string, array{0: array<string, int>}>
+     */
+    public static function inactiveUserDataProvider(): array
+    {
+        return [
+            'disabled' => [['disable' => 1]],
+            'start time in the future' => [['starttime' => time() + 3600]],
+            'end time passed' => [['endtime' => time() - 3600]],
+        ];
+    }
+
+    /**
+     * @param array<string, int> $fields
+     */
+    #[Test]
+    #[DataProvider('inactiveUserDataProvider')]
+    public function inactiveUserIsNotLoggedInAndNotCreatedAgain(array $fields): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('fe_users')
+            ->update('fe_users', $fields, ['username' => 'localuser']);
+
+        $this->postSamlResponse($this->identityProvider->sign(
+            $this->validResponse()->withAttribute('username', 'localuser')
+        ));
+
+        self::assertSame([], $this->loggedInUserIds());
+
+        $queryBuilder = $this->getConnectionPool()->getQueryBuilderForTable('fe_users');
+        $queryBuilder->getRestrictions()->removeAll();
+        $count = $queryBuilder->count('uid')
+            ->from('fe_users')
+            ->where(
+                $queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter('localuser')),
+                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter(self::SAML_USERS_PID, Connection::PARAM_INT)),
+            )
+            ->executeQuery()
+            ->fetchOne();
+        self::assertSame(1, (int)$count, 'No second user with the same name is created');
     }
 
     #[Test]

@@ -92,7 +92,7 @@ Version 12.x includes breaking changes:
 - **PSR-14 Events**: Legacy hooks replaced with modern event system
 - **Dependency Injection**: Services now use TYPO3 DI container
 - **Username prefix**: the username prefix of a settings record is applied to the username from the SAML response. Users created by 10.x carry no prefix; with a prefix configured, their next login creates a new, prefixed user.
-- **Database**: run the database compare after updating. The extension registers the cache `nr_saml_auth_assertions`, which uses the database cache backend.
+- **Database**: run the database compare after updating. The extension adds the table `tx_nrsamlauth_assertion`, which records the assertions that logged a user in.
 
 ## Development
 
