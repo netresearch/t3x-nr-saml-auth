@@ -185,6 +185,52 @@ final class SamlServiceTest extends UnitTestCase
     }
 
     #[Test]
+    public function theRelayStateOfTheSsoRedirectIsTheUrlTypo3SeesBehindATlsProxy(): void
+    {
+        $settingsModel = self::createStub(Settings::class);
+        $settingsModel->method('getSpEntityId')->willReturn('https://sp.example.com/');
+        $settingsModel->method('getSpCustomerServiceUrl')->willReturn('https://sp.example.com/?logintype=login');
+        $settingsModel->method('getSpCustomerServiceBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
+        $settingsModel->method('getSpNameIdFormat')->willReturn('NAMEID_UNSPECIFIED');
+        $settingsModel->method('getIdpEntityId')->willReturn('https://idp.example.com');
+        $settingsModel->method('getIdpSsoUrl')->willReturn('https://idp.example.com/sso');
+        $settingsModel->method('getIdpSsoBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+        $settingsModel->method('getIdpCert')->willReturn('MIIBtest');
+        $this->settingsRepository->method('findByUid')->willReturn($settingsModel);
+        $this->subject->setSettingsUid(1);
+
+        // The proxy terminates TLS: the web server sees plain HTTP on port 80
+        $serverParams = [
+            'HTTP_HOST' => 'sp.example.com',
+            'SERVER_PORT' => '80',
+            'REQUEST_URI' => '/members/deep-page',
+            'SCRIPT_NAME' => '/index.php',
+            'REMOTE_ADDR' => '10.0.0.5',
+        ];
+        $systemConfiguration = [
+            'reverseProxyIP' => '10.0.0.5',
+            'reverseProxySSL' => '*',
+            'reverseProxyHeaderMultiValue' => 'none',
+        ];
+        $request = (new ServerRequest('http://sp.example.com/members/deep-page', 'GET', null, [], $serverParams))
+            ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, $systemConfiguration));
+
+        $serverBackup = $_SERVER;
+        $_SERVER = array_replace($_SERVER, $serverParams);
+        unset($_SERVER['HTTPS']);
+        try {
+            $url = $this->subject->getSsoRedirectUrl($request);
+        } finally {
+            $_SERVER = $serverBackup;
+            Utils::setBaseURL('');
+        }
+
+        parse_str((string)parse_url($url, PHP_URL_QUERY), $query);
+        self::assertStringStartsWith('https://idp.example.com/sso?', $url);
+        self::assertSame('https://sp.example.com/members/deep-page', $query['RelayState'] ?? null);
+    }
+
+    #[Test]
     public function nameIdFormatItemsPopulatesItems(): void
     {
         $parameters = ['items' => []];

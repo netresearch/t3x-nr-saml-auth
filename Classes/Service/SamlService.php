@@ -88,10 +88,25 @@ final class SamlService implements SingletonInterface
      *
      * @throws Error
      */
-    public function redirectUserToSSO(): void
+    public function redirectUserToSSO(?ServerRequestInterface $request = null): void
+    {
+        Utils::redirect($this->getSsoRedirectUrl($request));
+    }
+
+    /**
+     * Returns the URL of the IdP's SSO service with the AuthnRequest.
+     *
+     * The RelayState is the current URL as TYPO3 sees it, the same view the
+     * deep-link middleware checks a RelayState against.
+     *
+     * @throws Error
+     */
+    public function getSsoRedirectUrl(?ServerRequestInterface $request = null): string
     {
         $auth = new Auth($this->getSettings()['saml']);
-        $auth->login();
+        $this->useRequestAsCurrentUrl($request);
+
+        return (string)$auth->login(null, [], false, false, true);
     }
 
     /**

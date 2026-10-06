@@ -47,7 +47,7 @@ class AuthController extends ActionController
             $this->view->assign('feUser', $this->getFrontendUser());
         } else {
             $this->view->assign('isLoggedIn', 'false');
-            $this->samlService->redirectUserToSSO();
+            $this->samlService->redirectUserToSSO($this->request);
         }
 
         return $this->htmlResponse();

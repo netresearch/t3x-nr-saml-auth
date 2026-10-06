@@ -104,7 +104,7 @@ class AuthenticationService extends Typo3AuthService
         $this->samlService->setSettingsUid($this->getSamlId());
 
         if (!$this->isResponsible()) {
-            $this->samlService->redirectUserToSSO();
+            $this->samlService->redirectUserToSSO($this->getRequest());
             return false;
         }
 
