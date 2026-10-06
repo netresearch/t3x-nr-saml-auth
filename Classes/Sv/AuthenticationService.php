@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Netresearch\NrSamlAuth\Sv;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Exception;
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
@@ -18,6 +17,7 @@ use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Response;
 use Psr\Http\Message\ServerRequestInterface;
+use Throwable;
 use TYPO3\CMS\Core\Authentication\AuthenticationService as Typo3AuthService;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -172,7 +172,7 @@ class AuthenticationService extends Typo3AuthService
             $attributes = $samlResponse->getAttributes();
             $assertionId = $samlResponse->getAssertionId();
             $notOnOrAfter = $samlResponse->getAssertionNotOnOrAfter();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logger?->warning('SAML Response from SSO server is not valid', [
                 'reason' => $e->getMessage(),
             ]);

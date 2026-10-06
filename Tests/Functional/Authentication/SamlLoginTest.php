@@ -234,6 +234,27 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame([], $this->loggedInUserIds());
     }
 
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function undecodableResponseDataProvider(): array
+    {
+        return [
+            'not base64' => ['!!!!'],
+            'blank' => [' '],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('undecodableResponseDataProvider')]
+    public function responseThatDecodesToNothingIsRejectedWithoutError(string $samlResponse): void
+    {
+        $response = $this->postSamlResponse($samlResponse);
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame([], $this->loggedInUserIds());
+    }
+
     #[Test]
     public function responseWithoutUsernameIsRejected(): void
     {
