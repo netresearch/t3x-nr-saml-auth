@@ -60,12 +60,17 @@ Location: ``Classes/Domain/Repository/SettingsRepository.php``
 Middleware
 ----------
 
-The ``RelayStateMiddleware`` handles post-authentication redirects:
+The ``DeepLinkSsoMiddleware`` handles post-authentication redirects:
 
 *  Deep link support
 *  Logout redirect handling
 
-Location: ``Classes/Middleware/RelayStateMiddleware.php``
+It redirects to the ``RelayState`` only if the value is a path on the
+site (starting with a single ``/``) or an absolute URL with the scheme,
+host and port of the current request. Any other value is ignored and the
+request is handled as usual.
+
+Location: ``Classes/Middleware/DeepLinkSsoMiddleware.php``
 
 Dependency Injection
 ====================

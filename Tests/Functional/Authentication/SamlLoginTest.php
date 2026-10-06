@@ -217,6 +217,65 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame([(int)$user['uid']], $this->loggedInUserIds());
     }
 
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function relayStatesOnThisHostDataProvider(): array
+    {
+        return [
+            'path' => ['/some/page?a=1', '/some/page?a=1'],
+            'absolute URL on this host' => ['https://sp.example.com/some/page', 'https://sp.example.com/some/page'],
+            'host in other letter case' => ['https://SP.example.com/some/page', 'https://SP.example.com/some/page'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('relayStatesOnThisHostDataProvider')]
+    public function relayStateOnThisHostRedirectsAfterLogin(string $relayState, string $expectedLocation): void
+    {
+        $response = $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()),
+            ['RelayState' => $relayState],
+        );
+
+        self::assertSame(303, $response->getStatusCode());
+        self::assertSame($expectedLocation, $response->getHeaderLine('Location'));
+        self::assertStringContainsString('fe_typo_user=', $response->getHeaderLine('Set-Cookie'));
+        self::assertCount(1, $this->loggedInUserIds());
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function relayStatesOffThisHostDataProvider(): array
+    {
+        return [
+            'other host' => ['https://elsewhere.example.org/'],
+            'host as prefix of another host' => ['https://sp.example.com.example.org/'],
+            'scheme-relative URL' => ['//elsewhere.example.org/'],
+            'backslash after slash' => ['/\\elsewhere.example.org/'],
+            'other scheme on this host' => ['http://sp.example.com/'],
+            'other port on this host' => ['https://sp.example.com:8443/'],
+            'credentials in URL' => ['https://user@sp.example.com/'],
+            'script URL' => ['javascript:alert(1)'],
+            'relative path without slash' => ['elsewhere.example.org/'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('relayStatesOffThisHostDataProvider')]
+    public function relayStateOffThisHostIsNotFollowed(string $relayState): void
+    {
+        $response = $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()),
+            ['RelayState' => $relayState],
+        );
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('', $response->getHeaderLine('Location'));
+        self::assertCount(1, $this->loggedInUserIds());
+    }
+
     private function validResponse(): SamlResponseBuilder
     {
         return (new SamlResponseBuilder())

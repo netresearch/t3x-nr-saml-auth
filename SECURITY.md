@@ -81,7 +81,7 @@ $GLOBALS['TYPO3_CONF_VARS']['FE']['sessionDataLifetime'] = 86400;
 
 ### Relay State Validation
 
-The deep link middleware validates RelayState URLs against the current domain. Custom URL validation can be implemented via PSR-14 events.
+The deep link middleware redirects to a RelayState only if it is a path on the site (starting with a single `/`) or an absolute URL with the scheme, host and port of the current request. Any other RelayState is ignored.
 
 ## Dependencies
 
