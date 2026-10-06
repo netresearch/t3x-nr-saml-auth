@@ -149,7 +149,11 @@ final class SamlService implements SingletonInterface
 
         Utils::setSelfProtocol($isHttps ? 'https' : 'http');
         Utils::setSelfHost($normalizedParams->getRequestHostOnly());
-        Utils::setSelfPort($port > 0 ? $port : ($isHttps ? 443 : 80));
+        if ($port <= 0) {
+            $port = $isHttps ? 443 : 80;
+        }
+
+        Utils::setSelfPort($port);
 
         // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
         // reverse proxy prefix in front of it; php-saml adds it as base path.
