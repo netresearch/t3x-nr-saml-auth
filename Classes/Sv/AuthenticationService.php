@@ -112,7 +112,7 @@ class AuthenticationService extends Typo3AuthService
                 return null;
             }
             $attributes = $samlResponse->getAttributes();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->logger->warning('SAMLResponse from SSO server is not valid', ['reason' => $e->getMessage()]);
             return null;
         }
