@@ -15,7 +15,6 @@ settings:
   # Extension settings with strict security
   nr_saml_auth:
     debugMode: false
-    strictMode: true
     validateXml: true
     lowercaseUrlEncoding: false
     sessionTimeout: 1800  # 30 minute timeout
