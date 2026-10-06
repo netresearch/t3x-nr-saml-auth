@@ -12,9 +12,14 @@ namespace Netresearch\NrSamlAuth\Tests\Unit\Service;
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
+use OneLogin\Saml2\Utils;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Stub;
+use ReflectionMethod;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Http\NormalizedParams;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class SamlServiceTest extends UnitTestCase
@@ -106,6 +111,54 @@ final class SamlServiceTest extends UnitTestCase
 
         self::assertTrue($subject->getSettings()['saml']['security']['wantXMLValidation']);
         self::assertFalse($subject->getSettings()['saml']['security']['wantXMLValidation']);
+    }
+
+    /**
+     * @return array<string, array{0: array<string, string>, 1: string}>
+     */
+    public static function currentUrlDataProvider(): array
+    {
+        return [
+            'no proxy prefix' => [[], 'https://sp.example.com/saml/acs'],
+            'proxy prefix' => [['reverseProxyPrefix' => '/site'], 'https://sp.example.com/site/saml/acs'],
+        ];
+    }
+
+    /**
+     * @param array<string, string> $proxyConfiguration
+     */
+    #[Test]
+    #[DataProvider('currentUrlDataProvider')]
+    public function theUrlPhpSamlComparesWithTheDestinationIsTheUrlTypo3Sees(array $proxyConfiguration, string $expectedUrl): void
+    {
+        $serverParams = [
+            'HTTP_HOST' => 'sp.example.com',
+            'HTTPS' => 'on',
+            'SERVER_PORT' => '443',
+            'REQUEST_URI' => '/saml/acs?logintype=login',
+            'QUERY_STRING' => 'logintype=login',
+            'SCRIPT_NAME' => '/index.php',
+            'REMOTE_ADDR' => '10.0.0.1',
+        ];
+        $systemConfiguration = $proxyConfiguration === [] ? [] : $proxyConfiguration + [
+            'reverseProxyIP' => '10.0.0.1',
+            'reverseProxyHeaderMultiValue' => 'none',
+        ];
+        $request = (new ServerRequest('https://sp.example.com/saml/acs?logintype=login', 'POST', null, [], $serverParams))
+            ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, $systemConfiguration));
+
+        // php-saml reads the path from the server variables
+        $serverBackup = $_SERVER;
+        $_SERVER = array_replace($_SERVER, $serverParams);
+        try {
+            (new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl'))->invoke($this->subject, $request);
+            $url = Utils::getSelfRoutedURLNoQuery();
+        } finally {
+            $_SERVER = $serverBackup;
+            Utils::setBaseURL('');
+        }
+
+        self::assertSame($expectedUrl, $url);
     }
 
     #[Test]

@@ -135,7 +135,11 @@ final class SamlService implements SingletonInterface
 
     private function useRequestAsCurrentUrl(?ServerRequestInterface $request): void
     {
-        $normalizedParams = $request?->getAttribute('normalizedParams');
+        if (!$request instanceof ServerRequestInterface) {
+            return;
+        }
+
+        $normalizedParams = $request->getAttribute('normalizedParams');
         if (!$normalizedParams instanceof NormalizedParams) {
             return;
         }
@@ -146,6 +150,17 @@ final class SamlService implements SingletonInterface
         Utils::setSelfProtocol($isHttps ? 'https' : 'http');
         Utils::setSelfHost($normalizedParams->getRequestHostOnly());
         Utils::setSelfPort($port > 0 ? $port : ($isHttps ? 443 : 80));
+
+        // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
+        // reverse proxy prefix in front of it; php-saml adds it as base path.
+        $publicPath = (string)parse_url($normalizedParams->getRequestUri(), PHP_URL_PATH);
+        $serverPath = (string)parse_url((string)($request->getServerParams()['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $prefix = '';
+        if ($serverPath !== '' && strlen($publicPath) > strlen($serverPath) && str_ends_with($publicPath, $serverPath)) {
+            $prefix = substr($publicPath, 0, -strlen($serverPath));
+        }
+
+        Utils::setBaseURLPath($prefix);
     }
 
     /**
