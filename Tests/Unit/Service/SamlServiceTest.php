@@ -13,21 +13,25 @@ use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class SamlServiceTest extends UnitTestCase
 {
     private SamlService $subject;
 
-    private SettingsRepository&MockObject $settingsRepository;
+    private SettingsRepository&Stub $settingsRepository;
+
+    private ExtensionConfiguration&Stub $extensionConfiguration;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->settingsRepository = $this->createMock(SettingsRepository::class);
-        $this->subject = new SamlService($this->settingsRepository);
+        $this->settingsRepository = self::createStub(SettingsRepository::class);
+        $this->extensionConfiguration = self::createStub(ExtensionConfiguration::class);
+        $this->subject = new SamlService($this->settingsRepository, $this->extensionConfiguration);
     }
 
     #[Test]
@@ -82,6 +86,26 @@ final class SamlServiceTest extends UnitTestCase
         self::assertSame('saml_', $settings['username_prefix']);
         self::assertSame(123, $settings['users_pid']);
         self::assertSame('1,2,3', $settings['usergroup']);
+    }
+
+    #[Test]
+    public function getSettingsAlwaysEnablesStrictValidation(): void
+    {
+        self::assertTrue($this->subject->getSettings()['saml']['strict']);
+    }
+
+    #[Test]
+    public function getSettingsValidatesXmlUnlessTheExtensionSettingTurnsItOff(): void
+    {
+        $extensionConfiguration = $this->createMock(ExtensionConfiguration::class);
+        $extensionConfiguration->expects($this->exactly(2))
+            ->method('get')
+            ->with('nr_saml_auth', 'validateXml')
+            ->willReturnOnConsecutiveCalls('1', '0');
+        $subject = new SamlService($this->settingsRepository, $extensionConfiguration);
+
+        self::assertTrue($subject->getSettings()['saml']['security']['wantXMLValidation']);
+        self::assertFalse($subject->getSettings()['saml']['security']['wantXMLValidation']);
     }
 
     #[Test]

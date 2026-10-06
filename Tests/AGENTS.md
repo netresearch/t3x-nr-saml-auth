@@ -77,10 +77,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 final class AuthenticationServiceTest extends UnitTestCase
 {
     #[Test]
-    public function authUserReturnsSuccessCode(): void
+    public function authUserLeavesARequestWithoutLoginToOtherServices(): void
     {
         $result = $this->subject->authUser(['uid' => 1]);
-        self::assertSame(200, $result);
+        self::assertSame(100, $result);
     }
 
     #[Test]
@@ -95,7 +95,7 @@ final class AuthenticationServiceTest extends UnitTestCase
 /** @test */
 public function testAuthUser()
 {
-    $this->assertEquals(200, $this->subject->authUser(['uid' => 1]));
+    $this->assertEquals(100, $this->subject->authUser(['uid' => 1]));
 }
 ```
 
@@ -113,6 +113,8 @@ $response = SamlResponseBuilder::validResponse()
 // ❌ Bad: Hardcoded XML strings
 $response = '<?xml version="1.0"?><samlp:Response>...</samlp:Response>';
 ```
+
+A response that has to pass php-saml's validation needs a real signature: sign it with `TestIdentityProvider::sign()`, which creates a key pair per instance. `SamlResponseBuilder::signed()` only inserts a placeholder that never validates. `Tests/Functional/Authentication/SamlLoginTest.php` posts signed responses through the frontend application.
 
 ### Mocking
 

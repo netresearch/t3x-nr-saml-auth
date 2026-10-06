@@ -17,9 +17,14 @@ use OneLogin\Saml2\Error;
 use OneLogin\Saml2\Metadata;
 use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings as SamlSettings;
+use OneLogin\Saml2\Utils;
 use OneLogin\Saml2\ValidationError;
+use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use ReflectionException;
+use Throwable;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\SingletonInterface;
 
 /**
@@ -37,8 +42,14 @@ final class SamlService implements SingletonInterface
         'usergroup' => '',
         'debug' => true,
         'saml' => [
-            'strict' => false,
+            // Strict mode makes php-saml check the destination, audience, issuer,
+            // validity period and subject confirmation of a response, not only its
+            // signature. It is not configurable.
+            'strict' => true,
             'debug' => false,
+            'security' => [
+                'wantXMLValidation' => true,
+            ],
             'sp' => [
                 'entityId' => '',
                 'assertionConsumerService' => [
@@ -64,6 +75,7 @@ final class SamlService implements SingletonInterface
 
     public function __construct(
         private readonly SettingsRepository $settingsRepository,
+        private readonly ExtensionConfiguration $extensionConfiguration,
     ) {}
 
     public function setSettingsUid(int $uid): void
@@ -106,14 +118,34 @@ final class SamlService implements SingletonInterface
     /**
      * Returns the SAML Response from POST data
      *
+     * php-saml compares the response's Destination and Recipient with the URL
+     * the response was received at. That URL is taken from the request as
+     * TYPO3 normalised it, so the reverse proxy configuration of TYPO3 applies.
+     *
      * @throws Error
      * @throws ValidationError
      */
-    public function getResponse(string $postSamlResponse): Response
+    public function getResponse(string $postSamlResponse, ?ServerRequestInterface $request = null): Response
     {
         $settings = new SamlSettings($this->getSettings()['saml']);
+        $this->useRequestAsCurrentUrl($request);
 
         return new Response($settings, $postSamlResponse);
+    }
+
+    private function useRequestAsCurrentUrl(?ServerRequestInterface $request): void
+    {
+        $normalizedParams = $request?->getAttribute('normalizedParams');
+        if (!$normalizedParams instanceof NormalizedParams) {
+            return;
+        }
+
+        $isHttps = $normalizedParams->isHttps();
+        $port = $normalizedParams->getRequestPort();
+
+        Utils::setSelfProtocol($isHttps ? 'https' : 'http');
+        Utils::setSelfHost($normalizedParams->getRequestHostOnly());
+        Utils::setSelfPort($port > 0 ? $port : ($isHttps ? 443 : 80));
     }
 
     /**
@@ -170,6 +202,8 @@ final class SamlService implements SingletonInterface
      */
     private function buildSettings(): void
     {
+        $this->settings['saml']['security']['wantXMLValidation'] = $this->isXmlValidationEnabled();
+
         $settingsModel = $this->fetchSettings();
         if (!$settingsModel instanceof Settings) {
             return;
@@ -191,6 +225,20 @@ final class SamlService implements SingletonInterface
         $this->settings['username_prefix'] = $settingsModel->getUsernamePrefix();
         $this->settings['users_pid'] = $settingsModel->getUsersPid();
         $this->settings['usergroup'] = $settingsModel->getUsergroup();
+    }
+
+    /**
+     * Schema validation of responses, extension setting `validateXml` (default on)
+     */
+    private function isXmlValidationEnabled(): bool
+    {
+        try {
+            $value = $this->extensionConfiguration->get('nr_saml_auth', 'validateXml');
+        } catch (Throwable) {
+            return true;
+        }
+
+        return $value === null || $value === '' || (bool)$value;
     }
 
     /**
