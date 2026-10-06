@@ -101,8 +101,9 @@ class SamlService implements SingletonInterface
     /**
      * Returns the URL of the IdP's SSO service with the AuthnRequest.
      *
-     * The RelayState is the current URL as TYPO3 sees it, the same view the
-     * deep-link middleware checks a RelayState against.
+     * The RelayState is the current URL without its query string, with scheme,
+     * host and port as TYPO3 sees them, the same view the deep-link middleware
+     * checks a RelayState against.
      *
      * @throws \OneLogin\Saml2\Error
      */
@@ -177,8 +178,8 @@ class SamlService implements SingletonInterface
 
         // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
         // reverse proxy prefix in front of it; php-saml adds it as base path.
-        // php-saml 4.3 and later keep the whole path below that base path;
-        // earlier versions keep only its last segment.
+        // php-saml 3.8.2 and 4.3.2 keep the whole path below that base path;
+        // 4.2.0 keeps only its last segment.
         $publicPath = (string)parse_url((string)GeneralUtility::getIndpEnv('REQUEST_URI'), PHP_URL_PATH);
         $serverPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
         $prefix = '';
