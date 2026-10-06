@@ -134,8 +134,10 @@ class AuthenticationService extends Typo3AuthService
 
         $request = $this->getRequest();
         if ($request instanceof ServerRequestInterface) {
-            self::$userResolvedForRequest ??= new WeakMap();
-            self::$userResolvedForRequest[$request] = (int)$user['uid'];
+            /** @var WeakMap<ServerRequestInterface, int> $users */
+            $users = self::$userResolvedForRequest ?? new WeakMap();
+            $users[$request] = (int)$user['uid'];
+            self::$userResolvedForRequest = $users;
         }
 
         return $user;
@@ -185,7 +187,6 @@ class AuthenticationService extends Typo3AuthService
 
         $identifier = hash('sha256', $settings->getUid() . '|' . $assertionId);
         $request = $this->getRequest();
-        self::$assertionAcceptedForRequest ??= new WeakMap();
 
         if ($consume) {
             if (!$this->recordAssertion($identifier, $notOnOrAfter)) {
@@ -194,7 +195,10 @@ class AuthenticationService extends Typo3AuthService
             }
 
             if ($request instanceof ServerRequestInterface) {
-                self::$assertionAcceptedForRequest[$request] = $identifier;
+                /** @var WeakMap<ServerRequestInterface, string> $assertions */
+                $assertions = self::$assertionAcceptedForRequest ?? new WeakMap();
+                $assertions[$request] = $identifier;
+                self::$assertionAcceptedForRequest = $assertions;
             }
         } elseif (!$request instanceof ServerRequestInterface
             || (self::$assertionAcceptedForRequest[$request] ?? null) !== $identifier
