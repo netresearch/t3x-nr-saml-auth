@@ -162,6 +162,29 @@ final class SamlServiceTest extends UnitTestCase
     }
 
     #[Test]
+    public function withoutNormalizedRequestPhpSamlUsesTheServerVariablesAgain(): void
+    {
+        $serverParams = ['HTTP_HOST' => 'first.example.com', 'HTTPS' => 'on', 'SERVER_PORT' => '443', 'SCRIPT_NAME' => '/index.php'];
+        $method = new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl');
+        $serverBackup = $_SERVER;
+        try {
+            $method->invoke(
+                $this->subject,
+                (new ServerRequest('https://first.example.com/', 'POST', null, [], $serverParams))
+                    ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, []))
+            );
+            $_SERVER = array_replace($_SERVER, ['HTTP_HOST' => 'second.example.com', 'HTTPS' => 'off', 'SERVER_PORT' => '80']);
+            $method->invoke($this->subject, null);
+            $host = Utils::getSelfURLhost();
+        } finally {
+            $_SERVER = $serverBackup;
+            Utils::setBaseURL('');
+        }
+
+        self::assertSame('http://second.example.com', $host);
+    }
+
+    #[Test]
     public function nameIdFormatItemsPopulatesItems(): void
     {
         $parameters = ['items' => []];

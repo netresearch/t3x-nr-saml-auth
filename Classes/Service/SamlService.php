@@ -135,12 +135,11 @@ final class SamlService implements SingletonInterface
 
     private function useRequestAsCurrentUrl(?ServerRequestInterface $request): void
     {
-        if (!$request instanceof ServerRequestInterface) {
-            return;
-        }
-
-        $normalizedParams = $request->getAttribute('normalizedParams');
-        if (!$normalizedParams instanceof NormalizedParams) {
+        // Without TYPO3's view of the request, php-saml falls back to the
+        // server variables; values from an earlier call are dropped.
+        $normalizedParams = $request?->getAttribute('normalizedParams');
+        if (!$request instanceof ServerRequestInterface || !$normalizedParams instanceof NormalizedParams) {
+            Utils::setBaseURL('');
             return;
         }
 
