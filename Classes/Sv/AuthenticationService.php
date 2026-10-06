@@ -71,6 +71,13 @@ class AuthenticationService extends Typo3AuthService
      */
     private static ?WeakMap $assertionAcceptedForRequest = null;
 
+    /**
+     * Uid of the frontend user getUser() resolved per request
+     *
+     * @var WeakMap<ServerRequestInterface, int>|null
+     */
+    private static ?WeakMap $userResolvedForRequest = null;
+
     public function injectSettingsRepository(SettingsRepository $settingsRepository): void
     {
         $this->settingsRepository = $settingsRepository;
@@ -123,6 +130,12 @@ class AuthenticationService extends Typo3AuthService
         if ($user === null) {
             $this->logger?->warning('Frontend user for the SAML response is disabled', ['saml_id' => $settings->getUid()]);
             return false;
+        }
+
+        $request = $this->getRequest();
+        if ($request instanceof ServerRequestInterface) {
+            self::$userResolvedForRequest ??= new WeakMap();
+            self::$userResolvedForRequest[$request] = (int)$user['uid'];
         }
 
         return $user;
@@ -401,11 +414,12 @@ class AuthenticationService extends Typo3AuthService
      *
      * A request without a SAML response is left to the other services (100).
      * A request with a SAML response authenticates the user only if the
-     * response is valid and names exactly this user in the storage folder of
-     * the settings record (200); otherwise authentication fails (0).
+     * response is valid and the user is the one getUser() resolved from it
+     * for this request (200); otherwise authentication fails (0).
      *
      * getUser() and authUser() are called on separate instances of this
-     * service, so the response is validated here again.
+     * service, so the response is validated here again. The user is compared
+     * by uid: the database may match the username without regard to case.
      *
      * @param array<string, mixed> $user User
      */
@@ -426,8 +440,11 @@ class AuthenticationService extends Typo3AuthService
             return 0;
         }
 
+        $request = $this->getRequest();
         $isSameUser = ($this->db_user['table'] ?? '') === self::USER_TABLE
-            && (string)($user['username'] ?? '') === $assertion[0]
+            && $request instanceof ServerRequestInterface
+            && isset($user['uid'])
+            && (int)$user['uid'] === (self::$userResolvedForRequest[$request] ?? null)
             && (int)($user['pid'] ?? -1) === $settings->getUsersPid();
 
         return $isSameUser ? 200 : 0;

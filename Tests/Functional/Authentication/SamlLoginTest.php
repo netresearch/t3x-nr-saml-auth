@@ -148,6 +148,28 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame(1, (int)$count, 'No second user with the same name is created');
     }
 
+    /**
+     * Databases with a case-insensitive collation (MariaDB, MySQL) find the
+     * existing user; SQLite creates a second one. Either way exactly the
+     * user getUser() resolved is logged in.
+     */
+    #[Test]
+    public function usernameInOtherLetterCaseLogsInTheUserTheDatabaseFinds(): void
+    {
+        $this->postSamlResponse($this->identityProvider->sign(
+            $this->validResponse()->withAttribute('username', 'LocalUser')
+        ));
+
+        $loggedIn = $this->loggedInUserIds();
+        self::assertCount(1, $loggedIn);
+        $user = $this->getConnectionPool()->getConnectionForTable('fe_users')
+            ->select(['username', 'pid'], 'fe_users', ['uid' => $loggedIn[0]])
+            ->fetchAssociative();
+        self::assertIsArray($user);
+        self::assertSame('localuser', strtolower((string)$user['username']));
+        self::assertSame(self::SAML_USERS_PID, (int)$user['pid']);
+    }
+
     #[Test]
     public function responseSignedWithAnotherKeyIsRejected(): void
     {
