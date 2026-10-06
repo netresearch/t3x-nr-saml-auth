@@ -74,8 +74,9 @@ jobs:
         run: |
           composer install -d Resources/Private/Libs/Build
           composer global exec phar-composer build Resources/Private/Libs/Build Resources/Private/Libs/vendors.phar
+      # Non-composer installations get the bundled libraries from the PHAR
       - name: Include PHAR file
-        run: echo "\\Netresearch\\NrSamlAuth\\Configuration\\Extension::loadVendorLibraries();" >> ext_localconf.php
+        run: echo "require_once 'phar://' . \\TYPO3\\CMS\\Core\\Utility\\ExtensionManagementUtility::extPath('nr_saml_auth') . 'Resources/Private/Libs/vendors.phar/vendor/autoload.php';" >> ext_localconf.php
 
       # Release
       - name: Publish to TER

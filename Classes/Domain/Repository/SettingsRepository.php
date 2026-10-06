@@ -42,7 +42,7 @@ class SettingsRepository extends Repository
 
         $query->matching(
             $query->logicalAnd(
-                $query->equals('sp_entity_id', $host),
+                $query->equals('sp_entity_id', $host)
             )
         );
         return $query->execute()->getFirst();

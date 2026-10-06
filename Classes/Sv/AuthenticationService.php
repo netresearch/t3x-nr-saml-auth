@@ -66,39 +66,79 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
-        $this->getSamlService()->setSettingsUid($this->getSamlId());
-
-        /**
-         * @var Response $samlResponse
-         */
-        $samlResponse = $this->getSamlService()->getResponse($this->getSamlResponse());
-        try {
-            if (false === $samlResponse->isValid()) {
-                $this->logger->warning('SAMLResponse form SSO server is not valid');
-
-                return false;
-            }
-        } catch(ValidationError $e) {
-            $this->logger->error('SAMLResponse form SSO server is not valid', ['exception' => $e]);
+        $settings = $this->getSettingsRepository()->findByUid($this->getSamlId());
+        if (!$settings instanceof Settings) {
+            $this->logger->error('SAML settings not found');
             return false;
         }
 
-        /**
-         * @var Settings $settings
-         */
-        $settings = $this->getSettingsRepository()->findByUid($this->getSamlId());
-        $username = $this->getUsername($samlResponse->getAttributes());
+        $assertion = $this->getValidatedAssertion();
+        if ($assertion === null) {
+            return false;
+        }
 
-        $user = $this->fetchUserRecord($username, '', [
-            'check_pid_clause' => '`pid` = \'' . $settings->getUsersPid() . '\''
-        ] + $this->db_user);
+        list($username, $attributes) = $assertion;
+        $dbUser = ['check_pid_clause' => $this->getStorageFolderCondition($settings)] + $this->db_user;
 
+        // Existence check without the enable fields, so that a disabled user is not created again
+        if (!is_array($this->fetchUserRecord($username, '', ['enable_clause' => ''] + $dbUser))) {
+            $this->insertUserRecord($username, $settings, $attributes);
+        }
+
+        // A user who exists but is disabled, not yet active or expired is not logged in
+        $user = $this->fetchUserRecord($username, '', $dbUser);
         if (!is_array($user)) {
-            $this->insertUserRecord($username, $settings, $samlResponse->getAttributes());
-            $user = $this->fetchUserRecord($username);
+            $this->logger->warning('Frontend user for the SAML response is disabled');
+            return false;
         }
 
         return $user;
+    }
+
+    /**
+     * Validates the SAML response of the current request.
+     *
+     * Returns the username and the attributes of a valid response, or null if
+     * the response is not valid or names no user.
+     *
+     * @return array|null [username, attributes]
+     */
+    private function getValidatedAssertion()
+    {
+        try {
+            $samlResponse = $this->getSamlService()->getResponse($this->getSamlResponse());
+            if (false === $samlResponse->isValid()) {
+                $this->logger->warning('SAMLResponse from SSO server is not valid', ['reason' => $samlResponse->getError()]);
+                return null;
+            }
+            $attributes = $samlResponse->getAttributes();
+        } catch (\Throwable $e) {
+            $this->logger->warning('SAMLResponse from SSO server is not valid', ['reason' => $e->getMessage()]);
+            return null;
+        }
+
+        $username = $this->getUsername($attributes);
+        if ($username === '') {
+            $this->logger->warning('SAMLResponse from SSO server has no username attribute');
+            return null;
+        }
+
+        return [$username, $attributes];
+    }
+
+    /**
+     * SQL condition for the storage folder of the settings record
+     *
+     * @param Settings $settings
+     * @return string
+     */
+    private function getStorageFolderCondition(Settings $settings): string
+    {
+        $expressionBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('fe_users')
+            ->expr();
+
+        return (string)$expressionBuilder->eq('pid', (int)$settings->getUsersPid());
     }
 
     /**
@@ -137,9 +177,13 @@ class AuthenticationService extends Typo3AuthService
      * @param $username
      * @return string
      */
-    private function getUsername($username)
+    private function getUsername(array $username): string
     {
-        return implode($username['username']);
+        if (!isset($username['username']) || !is_array($username['username'])) {
+            return '';
+        }
+
+        return implode('', $username['username']);
     }
 
     private function getValueFromAttribute(array $attributes, string $key): ?string
@@ -162,7 +206,7 @@ class AuthenticationService extends Typo3AuthService
      */
     private function isResponsible(): bool
     {
-        return $this->login['status'] === LoginType::LOGIN && $this->hasSamlResponse();
+        return ($this->login['status'] ?? '') === LoginType::LOGIN && $this->hasSamlResponse();
     }
 
     /**
@@ -170,9 +214,11 @@ class AuthenticationService extends Typo3AuthService
      *
      * @return mixed
      */
-    private function getSamlResponse()
+    private function getSamlResponse(): string
     {
-        return GeneralUtility::_POST('SAMLResponse');
+        $samlResponse = GeneralUtility::_POST('SAMLResponse');
+
+        return is_string($samlResponse) ? $samlResponse : '';
     }
 
     /**
@@ -182,7 +228,7 @@ class AuthenticationService extends Typo3AuthService
      */
     private function hasSamlResponse(): bool
     {
-        return false === empty(GeneralUtility::_POST('SAMLResponse'));
+        return false === empty($this->getSamlResponse());
     }
 
     /**
@@ -257,8 +303,7 @@ class AuthenticationService extends Typo3AuthService
     }
 
     /**
-     * Authenticate a user: Check submitted user credentials against stored hashed password,
-     * check domain lock if configured.
+     * Authenticate a user against the SAML response of the current request.
      *
      * Returns one of the following status codes:
      *  >= 200: User authenticated successfully. No more checking is needed by other auth services.
@@ -266,12 +311,46 @@ class AuthenticationService extends Typo3AuthService
      *  > 0:    User authenticated successfully. Other auth services will still be asked.
      *  <= 0:   Authentication failed, no more checking needed by other auth services.
      *
+     * A request without a SAML response is left to the other services (100).
+     * A request with a SAML response authenticates the user only if the
+     * response is valid and names exactly this frontend user in the storage
+     * folder of the settings record (200); otherwise authentication fails (0).
+     *
      * @param array $user User
      *
      * @return int Authentication status code, one of 0, 100, 200
      */
     public function authUser(array $user): int
     {
-        return 200;
+        if (false === $this->isResponsible()) {
+            return 100;
+        }
+
+        if (($this->db_user['table'] ?? '') !== 'fe_users') {
+            return 0;
+        }
+
+        $this->getSamlService()->setSettingsUid($this->getSamlId());
+        $settings = $this->getSettingsRepository()->findByUid($this->getSamlId());
+        if (!$settings instanceof Settings) {
+            return 0;
+        }
+
+        $assertion = $this->getValidatedAssertion();
+        if ($assertion === null) {
+            return 0;
+        }
+
+        // The user getUser() resolves for this response, found with the same
+        // lookup; compared by uid, as the database may match usernames
+        // without regard to letter case
+        $dbUser = ['check_pid_clause' => $this->getStorageFolderCondition($settings)] + $this->db_user;
+        $resolvedUser = $this->fetchUserRecord($assertion[0], '', $dbUser);
+
+        $isSameUser = is_array($resolvedUser)
+            && isset($user['uid'])
+            && (int)$resolvedUser['uid'] === (int)$user['uid'];
+
+        return $isSameUser ? 200 : 0;
     }
 }

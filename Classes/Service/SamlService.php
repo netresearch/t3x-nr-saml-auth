@@ -9,6 +9,7 @@ use OneLogin\Saml2\Response;
 use OneLogin\Saml2\Settings;
 use OneLogin\Saml2\Utils;
 use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class SamlService
@@ -33,7 +34,10 @@ class SamlService implements SingletonInterface
         'usergroup' => '',
         'debug' => true,
         'saml' => [
-            'strict' => false,
+            // Strict mode makes php-saml check the destination, audience, issuer,
+            // validity period and subject confirmation of a response, not only its
+            // signature.
+            'strict' => true,
             'debug' => false,
             'sp' => [
                 'entityId' => '',
@@ -91,9 +95,24 @@ class SamlService implements SingletonInterface
      */
     public function redirectUserToSSO()
     {
-        $settings = new Settings($this->getSettings()['saml']);
+        Utils::redirect($this->getSsoRedirectUrl());
+    }
+
+    /**
+     * Returns the URL of the IdP's SSO service with the AuthnRequest.
+     *
+     * The RelayState is the current URL without its query string, with scheme,
+     * host and port as TYPO3 sees them, the same view the deep-link middleware
+     * checks a RelayState against.
+     *
+     * @throws \OneLogin\Saml2\Error
+     */
+    public function getSsoRedirectUrl(): string
+    {
         $auth = new \OneLogin\Saml2\Auth($this->getSettings()['saml']);
-        $auth->login();
+        $this->useCurrentRequestAsSelfUrl();
+
+        return (string)$auth->login(null, [], false, false, true);
     }
 
     /**
@@ -128,8 +147,48 @@ class SamlService implements SingletonInterface
     public function getResponse(string $postSamlResponse) : Response
     {
         $settings = new Settings($this->getSettings()['saml']);
+        $this->useCurrentRequestAsSelfUrl();
 
         return new Response($settings, $postSamlResponse);
+    }
+
+    /**
+     * php-saml compares the response's Destination and Recipient with the URL
+     * the response was received at. Scheme, host and port of that URL are
+     * taken from TYPO3's view of the request, so TYPO3's reverse proxy
+     * settings apply to them.
+     */
+    private function useCurrentRequestAsSelfUrl(): void
+    {
+        $host = (string)GeneralUtility::getIndpEnv('TYPO3_HOST_ONLY');
+        if ($host === '') {
+            return;
+        }
+
+        $isHttps = (bool)GeneralUtility::getIndpEnv('TYPO3_SSL');
+        $port = (int)GeneralUtility::getIndpEnv('TYPO3_PORT');
+
+        if ($port <= 0) {
+            $port = $isHttps ? 443 : 80;
+        }
+
+        Utils::setSelfProtocol($isHttps ? 'https' : 'http');
+        Utils::setSelfHost($host);
+        Utils::setSelfPort($port);
+
+        // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
+        // reverse proxy prefix in front of it; php-saml adds it as base path.
+        // php-saml 3.8.2 and 4.3.2 keep the whole path below that base path;
+        // 4.2.0 keeps only its last segment.
+        $publicPath = (string)parse_url((string)GeneralUtility::getIndpEnv('REQUEST_URI'), PHP_URL_PATH);
+        $serverPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $prefix = '';
+        if ($serverPath !== '' && strlen($publicPath) > strlen($serverPath)
+            && substr($publicPath, -strlen($serverPath)) === $serverPath
+        ) {
+            $prefix = substr($publicPath, 0, -strlen($serverPath));
+        }
+        Utils::setBaseURLPath($prefix);
     }
 
     /**
