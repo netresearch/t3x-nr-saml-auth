@@ -22,3 +22,16 @@ CREATE TABLE tx_nrsamlauth_domain_model_settings (
 	users_pid int(11) unsigned DEFAULT '0' NOT NULL,
 	usergroup tinytext
 );
+
+#
+# Assertions that logged a user in, kept until the validity period of the
+# assertion ends. The primary key makes recording an assertion a second time
+# fail.
+#
+CREATE TABLE tx_nrsamlauth_assertion (
+	identifier char(64) DEFAULT '' NOT NULL,
+	expires int(11) unsigned DEFAULT '0' NOT NULL,
+
+	PRIMARY KEY (identifier),
+	KEY expires (expires)
+);

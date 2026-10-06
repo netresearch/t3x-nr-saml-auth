@@ -14,7 +14,6 @@ settings:
   # Extension settings (ext_conf_template.txt equivalents)
   nr_saml_auth:
     debugMode: false
-    strictMode: true
     validateXml: true
     lowercaseUrlEncoding: false
     sessionTimeout: 0

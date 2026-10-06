@@ -8,7 +8,7 @@
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](https://phpstan.org/)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
-> TYPO3 extension for SAML SSO authentication supporting frontend and backend users using the `onelogin/php-saml` library.
+> TYPO3 extension for SAML SSO authentication of frontend users using the `onelogin/php-saml` library.
 
 ## Requirements
 
@@ -91,8 +91,8 @@ Version 12.x includes breaking changes:
 - **onelogin/php-saml 4.0**: Library upgraded with security improvements
 - **PSR-14 Events**: Legacy hooks replaced with modern event system
 - **Dependency Injection**: Services now use TYPO3 DI container
-
-No database migrations required.
+- **Username prefix**: the username prefix of a settings record is applied to the username from the SAML response. Users created by 10.x carry no prefix; with a prefix configured, their next login creates a new, prefixed user.
+- **Database**: run the database compare after updating. The extension adds the table `tx_nrsamlauth_assertion`, which records the assertions that logged a user in.
 
 ## Development
 

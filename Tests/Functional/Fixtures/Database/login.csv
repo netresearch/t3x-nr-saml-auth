@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# SPDX-FileCopyrightText: Netresearch DTT GmbH
+# Passwords are set by the tests.
+"pages"
+,"uid","pid","title","doktype","slug"
+,1,0,"Root",1,"/"
+,10,1,"SAML users",254,"/saml-users"
+,20,1,"Other users",254,"/other-users"
+"fe_groups"
+,"uid","pid","title"
+,1,10,"SAML users"
+,2,20,"Other users"
+"fe_users"
+,"uid","pid","username","password","usergroup"
+,1,20,"jdoe","",2
+,2,10,"localuser","",1
+"be_users"
+,"uid","pid","username","password","admin"
+,1,0,"admin","",1

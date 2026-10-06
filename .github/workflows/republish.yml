@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Git tag to republish (e.g. "v1.2.3")'
+        description: 'Git tag to republish (e.g. "10.0.10")'
         required: true
         type: string
       target:

@@ -25,7 +25,6 @@ Extension Features
 The Netresearch SAML Auth extension provides:
 
 *  **Frontend Authentication**: SAML-based login for frontend users
-*  **Backend Authentication**: SAML-based login for backend users
 *  **Auto-Discovery**: Automatic SAML configuration detection based on domain
 *  **User Provisioning**: Automatic creation of TYPO3 users from SAML attributes
 *  **Deep Link Support**: Redirect users to their original destination after login

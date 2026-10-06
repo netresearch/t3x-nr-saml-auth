@@ -14,7 +14,6 @@ use Netresearch\NrSamlAuth\Service\SamlService;
 use OneLogin\Saml2\Error;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
-use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Context\Context;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
@@ -48,7 +47,7 @@ class AuthController extends ActionController
             $this->view->assign('feUser', $this->getFrontendUser());
         } else {
             $this->view->assign('isLoggedIn', 'false');
-            $this->samlService->redirectUserToSSO();
+            $this->samlService->redirectUserToSSO($this->request);
         }
 
         return $this->htmlResponse();
@@ -77,7 +76,8 @@ class AuthController extends ActionController
         $request = $this->request;
         $queryParams = $request->getQueryParams();
 
-        return ($queryParams['logintype'] ?? '') === LoginType::LOGOUT;
+        // LoginType::LOGOUT is a string constant on TYPO3 12.4 and a backed enum case on 13.4
+        return ($queryParams['logintype'] ?? '') === 'logout';
     }
 
     /**

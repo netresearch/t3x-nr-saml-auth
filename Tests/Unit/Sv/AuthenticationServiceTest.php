@@ -26,16 +26,17 @@ final class AuthenticationServiceTest extends UnitTestCase
     }
 
     #[Test]
-    public function authUserReturns200(): void
+    public function authUserLeavesALoginWithoutSamlResponseToOtherServices(): void
     {
-        $user = ['uid' => 1, 'username' => 'testuser'];
-        self::assertSame(200, $this->subject->authUser($user));
+        $this->subject->initAuth('authUserBE', ['status' => 'login', 'uname' => 'testuser', 'uident' => 'secret'], [], null);
+
+        self::assertSame(100, $this->subject->authUser(['uid' => 1, 'username' => 'testuser']));
     }
 
     #[Test]
-    public function authUserReturns200ForEmptyUser(): void
+    public function authUserLeavesARequestWithoutLoginToOtherServices(): void
     {
-        self::assertSame(200, $this->subject->authUser([]));
+        self::assertSame(100, $this->subject->authUser([]));
     }
 
     #[Test]

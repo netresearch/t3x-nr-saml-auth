@@ -30,5 +30,9 @@ jobs:
       # cells drop it. The Rector job is not TYPO3-matrixed and keeps it.
       remove-dev-deps: '[{"dep":"netresearch/typo3-ci-workflows","only-for":"^13.4|^14.3"}]'
       run-functional-tests: true
+      # MariaDB compares usernames without regard to case, SQLite does not;
+      # Tests/Functional/Authentication/SamlLoginTest.php covers that difference.
+      functional-test-db: 'mariadb'
+      db-image: 'mariadb:10.11'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

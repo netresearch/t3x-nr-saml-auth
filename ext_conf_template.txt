@@ -4,10 +4,7 @@
 # cat=basic/enable; type=boolean; label=Enable debug mode: Log detailed SAML communication for troubleshooting
 debugMode = 0
 
-# cat=basic/enable; type=boolean; label=Strict mode: Enable strict SAML validation (recommended for production)
-strictMode = 1
-
-# cat=security; type=boolean; label=Validate XML: Validate SAML XML documents against schema
+# cat=security; type=boolean; label=Validate XML: Validate SAML responses against the SAML 2.0 protocol schema
 validateXml = 1
 
 # cat=security; type=boolean; label=Lowercase URL encoding: Use lowercase URL encoding for SAML requests
