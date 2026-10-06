@@ -96,8 +96,9 @@ final class SamlService implements SingletonInterface
     /**
      * Returns the URL of the IdP's SSO service with the AuthnRequest.
      *
-     * The RelayState is the current URL as TYPO3 sees it, the same view the
-     * deep-link middleware checks a RelayState against.
+     * The RelayState is the current URL without its query string, with scheme,
+     * host and port as TYPO3 sees them, the same view the deep-link middleware
+     * checks a RelayState against.
      *
      * @throws Error
      */
