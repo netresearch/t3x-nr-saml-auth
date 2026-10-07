@@ -32,8 +32,8 @@ SAML Frontend Authentication
 
 ----
 
-TYPO3 extension for SAML SSO authentication supporting frontend and backend
-users using the `onelogin/php-saml` library.
+TYPO3 extension for SAML SSO authentication of frontend users using the
+`onelogin/php-saml` library.
 
 ----
 
