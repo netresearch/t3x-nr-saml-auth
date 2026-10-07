@@ -3,9 +3,9 @@
 
 ..  include:: /Includes.rst.txt
 
-======================
-Netresearch SAML Auth
-======================
+============================
+SAML Frontend Authentication
+============================
 
 :Extension key:
    nr_saml_auth

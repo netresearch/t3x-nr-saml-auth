@@ -9,7 +9,7 @@
     default-code-language="php"
     max-menu-depth="3"
 >
-    <project title="Netresearch SAML Auth"
+    <project title="SAML Frontend Authentication"
              version="12.0.0"
              copyright="since 2020 by Netresearch DTT GmbH"/>
 
