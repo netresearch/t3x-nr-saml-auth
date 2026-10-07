@@ -3,9 +3,9 @@
 
 ..  include:: /Includes.rst.txt
 
-======================
-Netresearch SAML Auth
-======================
+============================
+SAML Frontend Authentication
+============================
 
 :Extension key:
    nr_saml_auth
@@ -32,8 +32,8 @@ Netresearch SAML Auth
 
 ----
 
-TYPO3 extension for SAML SSO authentication supporting frontend and backend
-users using the `onelogin/php-saml` library.
+TYPO3 extension for SAML SSO authentication of frontend users using the
+`onelogin/php-saml` library.
 
 ----
 

@@ -6,8 +6,8 @@
  */
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'SAML Authentication for Frontend',
-    'description' => 'TYPO3 SAML Authentication for frontend users using single sign-on (SSO)',
+    'title' => 'SAML Frontend Authentication',
+    'description' => 'Single sign-on (SSO) for frontend users via SAML.',
     'category' => 'services',
     'author' => 'Torsten Fink, Tobias Hein, Christopher Rath',
     'author_email' => 'torsten.fink@netresearch.de',

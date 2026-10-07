@@ -1,6 +1,6 @@
 {
     "name": "netresearch/nr-saml-auth",
-    "description": "TYPO3 SAML Authentication for frontend",
+    "description": "SAML Frontend Authentication - Single sign-on (SSO) for frontend users via SAML.",
     "type": "typo3-cms-extension",
     "homepage": "https://netresearch.de",
     "license": "GPL-2.0-or-later",
