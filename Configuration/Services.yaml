@@ -39,6 +39,9 @@ services:
   Netresearch\NrSamlAuth\Middleware\DeepLinkSsoMiddleware:
     public: true
 
+  Netresearch\NrSamlAuth\Middleware\SingleLogoutSessionMiddleware:
+    public: true
+
   # Event Listeners registered via Services.yaml for TYPO3 12 compatibility
   # (TYPO3 13+ also supports #[AsEventListener] attributes in the classes)
   Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:
@@ -46,12 +49,6 @@ services:
       - name: event.listener
         identifier: 'nr-saml-auth/before-user-logout'
         event: TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent
-
-  Netresearch\NrSamlAuth\EventListener\AfterUserLoggedInEventListener:
-    tags:
-      - name: event.listener
-        identifier: 'nr-saml-auth/after-user-logged-in'
-        event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent
 
   Netresearch\NrSamlAuth\EventListener\AfterUserLoggedOutEventListener:
     tags:

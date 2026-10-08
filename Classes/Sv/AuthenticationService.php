@@ -67,16 +67,36 @@ class AuthenticationService extends Typo3AuthService
      * Assertion accepted by getUser() per request. getUser() and authUser()
      * run on separate instances of this service for the same request object.
      *
-     * @var WeakMap<ServerRequestInterface, string>|null
+     * @var WeakMap<object, string>|null
      */
     private static ?WeakMap $assertionAcceptedForRequest = null;
 
     /**
      * Uid of the frontend user getUser() resolved per request
      *
-     * @var WeakMap<ServerRequestInterface, int>|null
+     * @var WeakMap<object, int>|null
      */
     private static ?WeakMap $userResolvedForRequest = null;
+
+    /**
+     * Uid of the frontend user that getUser() resolved from the SAML response
+     * of the request, or null if getUser() accepted no response in it.
+     *
+     * The request of a later middleware is not the object getUser() saw: the
+     * authentication middleware derives it with withAttribute(). Both carry
+     * the same normalizedParams, which is what the lookup is keyed by.
+     */
+    public static function getUserResolvedForRequest(ServerRequestInterface $request): ?int
+    {
+        return self::$userResolvedForRequest[self::getRequestKey($request)] ?? null;
+    }
+
+    private static function getRequestKey(ServerRequestInterface $request): object
+    {
+        $normalizedParams = $request->getAttribute('normalizedParams');
+
+        return is_object($normalizedParams) ? $normalizedParams : $request;
+    }
 
     public function injectSettingsRepository(SettingsRepository $settingsRepository): void
     {
@@ -134,9 +154,9 @@ class AuthenticationService extends Typo3AuthService
 
         $request = $this->getRequest();
         if ($request instanceof ServerRequestInterface) {
-            /** @var WeakMap<ServerRequestInterface, int> $users */
+            /** @var WeakMap<object, int> $users */
             $users = self::$userResolvedForRequest ?? new WeakMap();
-            $users[$request] = (int)$user['uid'];
+            $users[self::getRequestKey($request)] = (int)$user['uid'];
             self::$userResolvedForRequest = $users;
         }
 
@@ -197,13 +217,13 @@ class AuthenticationService extends Typo3AuthService
             }
 
             if ($request instanceof ServerRequestInterface) {
-                /** @var WeakMap<ServerRequestInterface, string> $assertions */
+                /** @var WeakMap<object, string> $assertions */
                 $assertions = self::$assertionAcceptedForRequest ?? new WeakMap();
-                $assertions[$request] = $identifier;
+                $assertions[self::getRequestKey($request)] = $identifier;
                 self::$assertionAcceptedForRequest = $assertions;
             }
         } elseif (!$request instanceof ServerRequestInterface
-            || (self::$assertionAcceptedForRequest[$request] ?? null) !== $identifier
+            || (self::$assertionAcceptedForRequest[self::getRequestKey($request)] ?? null) !== $identifier
         ) {
             // authUser() for a response that getUser() did not accept in this request
             return null;
@@ -450,7 +470,7 @@ class AuthenticationService extends Typo3AuthService
         $isSameUser = ($this->db_user['table'] ?? '') === self::USER_TABLE
             && $request instanceof ServerRequestInterface
             && isset($user['uid'])
-            && (int)$user['uid'] === (self::$userResolvedForRequest[$request] ?? null)
+            && (int)$user['uid'] === (self::$userResolvedForRequest[self::getRequestKey($request)] ?? null)
             && (int)($user['pid'] ?? -1) === $settings->getUsersPid();
 
         return $isSameUser ? 200 : 0;

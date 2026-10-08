@@ -16,8 +16,10 @@ use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Session\UserSession;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 /**
@@ -386,6 +388,114 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertCount(1, $this->loggedInUserIds());
     }
 
+    #[Test]
+    public function loginStoresTheDataSingleLogoutNeedsInTheFrontendSession(): void
+    {
+        $samlResponse = $this->identityProvider->sign(
+            $this->validResponse()->withNameId('jdoe@idp.example.com')
+        );
+
+        $this->postSamlResponse($samlResponse);
+
+        self::assertCount(1, $this->loggedInUserIds());
+        self::assertSame(
+            [
+                'id' => 1,
+                'AssertionId' => $this->assertionIdOf($samlResponse),
+                'nameId' => 'jdoe@idp.example.com',
+            ],
+            $this->storedSingleLogoutData()
+        );
+    }
+
+    #[Test]
+    public function rejectedResponseStoresNoSingleLogoutData(): void
+    {
+        $otherIdentityProvider = new TestIdentityProvider();
+
+        $this->postSamlResponse($otherIdentityProvider->sign($this->validResponse()));
+
+        self::assertSame([], $this->loggedInUserIds());
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    #[Test]
+    public function responseOutsideALoginRequestStoresNoSingleLogoutData(): void
+    {
+
+        $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()->withDestination('https://sp.example.com/')),
+            [],
+            'https://sp.example.com/',
+            true,
+        );
+
+        self::assertCount(1, $this->loggedInUserIds());
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    #[Test]
+    public function responseThatIsNotValidStoresNoSingleLogoutDataInAnExistingSession(): void
+    {
+        $otherIdentityProvider = new TestIdentityProvider();
+
+        $this->postSamlResponse(
+            $otherIdentityProvider->sign($this->validResponse()),
+            [],
+            self::ACS_URL,
+            true,
+        );
+
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    /**
+     * A response whose assertion was used before is rejected. On TYPO3 12.4
+     * a user who is logged in stays logged in; the rejected response does
+     * not replace the data in that user's session.
+     */
+    #[Test]
+    public function assertionUsedBeforeStoresNoSingleLogoutDataInAnExistingSession(): void
+    {
+        $samlResponse = $this->identityProvider->sign($this->validResponse()->withNameId('jdoe@idp.example.com'));
+        $this->postSamlResponse($samlResponse);
+        self::assertNotNull($this->storedSingleLogoutData());
+        $this->getConnectionPool()->getConnectionForTable('fe_sessions')->truncate('fe_sessions');
+
+        $this->postSamlResponse($samlResponse, [], self::ACS_URL, true);
+
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    private function assertionIdOf(string $samlResponse): string
+    {
+        $xml = base64_decode($samlResponse, true);
+        self::assertIsString($xml);
+        self::assertSame(1, preg_match('/<saml:Assertion[^>]*\sID="([^"]+)"/', $xml, $matches));
+
+        return $matches[1];
+    }
+
+    /**
+     * The data of the session that is logged in, or null if the session
+     * holds none from this extension.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function storedSingleLogoutData(): ?array
+    {
+        $record = $this->getConnectionPool()->getConnectionForTable('fe_sessions')
+            ->select(['*'], 'fe_sessions', [])
+            ->fetchAssociative();
+        if (!is_array($record)) {
+            return null;
+        }
+
+        $data = UserSession::createFromRecord((string)$record['ses_id'], $record)->get('NrSamlAuth');
+
+        return is_array($data) ? $data : null;
+    }
+
     private function validResponse(): SamlResponseBuilder
     {
         return (new SamlResponseBuilder())
@@ -401,13 +511,20 @@ final class SamlLoginTest extends FunctionalTestCase
     /**
      * @param array<string, string> $additionalFields
      */
-    private function postSamlResponse(string $samlResponse, array $additionalFields = [], string $url = self::ACS_URL): ResponseInterface
-    {
+    private function postSamlResponse(
+        string $samlResponse,
+        array $additionalFields = [],
+        string $url = self::ACS_URL,
+        bool $asLocalUser = false,
+    ): ResponseInterface {
         $request = (new InternalRequest($url))
             ->withMethod('POST')
             ->withParsedBody(['SAMLResponse' => $samlResponse] + $additionalFields);
 
-        return $this->executeFrontendSubRequest($request);
+        return $this->executeFrontendSubRequest(
+            $request,
+            $asLocalUser ? (new InternalRequestContext())->withFrontendUserId(2) : null,
+        );
     }
 
     /**
