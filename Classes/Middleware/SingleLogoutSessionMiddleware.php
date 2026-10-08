@@ -11,6 +11,7 @@ namespace Netresearch\NrSamlAuth\Middleware;
 
 use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Session\SamlSession;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -18,7 +19,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 
 /**
@@ -47,6 +47,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
     public function __construct(
         private readonly SamlSession $samlSession,
         private readonly ConnectionPool $connectionPool,
+        private readonly ContainerInterface $container,
         private readonly LoggerInterface $logger,
     ) {}
 
@@ -72,11 +73,12 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
     ): void {
         try {
             $samlId = $this->getSamlId($request);
-            // Created here and not injected: SamlService needs the Extbase
+            // Fetched here and not injected: SamlService needs the Extbase
             // repository, which cannot be built for every frontend request
             // (cached pages have no TypoScript setup), and this middleware
             // is built for every frontend request.
-            $samlService = GeneralUtility::makeInstance(SamlService::class);
+            /** @var SamlService $samlService */
+            $samlService = $this->container->get(SamlService::class);
             $samlService->setSettingsUid($samlId);
 
             // The response is validated again: on TYPO3 12.4 a user who is

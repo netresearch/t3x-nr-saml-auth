@@ -10,9 +10,11 @@ declare(strict_types=1);
 namespace Netresearch\NrSamlAuth\Tests\Unit\Middleware;
 
 use Netresearch\NrSamlAuth\Middleware\SingleLogoutSessionMiddleware;
+use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Session\SamlSession;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -112,6 +114,11 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
     {
         $connectionPool = $this->createMock(ConnectionPool::class);
         $connectionPool->expects($this->never())->method('getQueryBuilderForTable');
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())
+            ->method('get')
+            ->with(SamlService::class)
+            ->willThrowException(new RuntimeException('no SamlService in a unit test'));
         $samlSession = $this->createMock(SamlSession::class);
         $samlSession->expects($this->never())->method('setSessionData');
 
@@ -122,9 +129,7 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
         );
         $handler = $this->createHandler($request);
 
-        // SamlService is created from the container; without one the attempt
-        // fails, is logged and does not stop the request.
-        $response = $this->createSubject($connectionPool, $samlSession, true)->process($request, $handler);
+        $response = $this->createSubject($connectionPool, $samlSession, $container, true)->process($request, $handler);
 
         self::assertInstanceOf(ResponseInterface::class, $response);
     }
@@ -132,6 +137,7 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
     private function createSubject(
         ConnectionPool $connectionPool,
         SamlSession $samlSession,
+        ?ContainerInterface $container = null,
         bool $expectFailureToBeLogged = false,
     ): SingleLogoutSessionMiddleware {
         $logger = $this->createMock(LoggerInterface::class);
@@ -139,7 +145,12 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
             $logger->expects($this->once())->method('error');
         }
 
-        return new SingleLogoutSessionMiddleware($samlSession, $connectionPool, $logger);
+        return new SingleLogoutSessionMiddleware(
+            $samlSession,
+            $connectionPool,
+            $container ?? $this->createMock(ContainerInterface::class),
+            $logger,
+        );
     }
 
     /**

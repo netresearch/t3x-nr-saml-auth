@@ -16,6 +16,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Session\UserSession;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
@@ -465,17 +466,16 @@ final class SamlLoginTest extends FunctionalTestCase
      */
     private function storedSingleLogoutData(): ?array
     {
-        $sessionData = $this->getConnectionPool()->getConnectionForTable('fe_sessions')
-            ->select(['ses_data'], 'fe_sessions', [])
-            ->fetchOne();
-        if (!is_string($sessionData) || $sessionData === '') {
+        $record = $this->getConnectionPool()->getConnectionForTable('fe_sessions')
+            ->select(['*'], 'fe_sessions', [])
+            ->fetchAssociative();
+        if (!is_array($record)) {
             return null;
         }
 
-        $data = unserialize($sessionData, ['allowed_classes' => false]);
-        self::assertIsArray($data);
+        $data = UserSession::createFromRecord((string)$record['ses_id'], $record)->get('NrSamlAuth');
 
-        return $data['NrSamlAuth'] ?? null;
+        return is_array($data) ? $data : null;
     }
 
     private function validResponse(): SamlResponseBuilder
