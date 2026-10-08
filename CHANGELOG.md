@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TYPO3 v12.4 and v13.4 LTS support
 - PHP 8.1, 8.2, 8.3, 8.4, and 8.5 support
 - PSR-14 event system for authentication hooks
-  - `AfterUserLoggedInEventListener` - replaces `postUserLookUp` hook
+  - `SingleLogoutSessionMiddleware` - stores the single logout data in the frontend session after a login
   - `BeforeUserLogoutEventListener` - replaces `logoff_pre_processing` hook
   - `AfterUserLoggedOutEventListener` - replaces `logoff_post_processing` hook
 - Modern dependency injection via `Configuration/Services.yaml`

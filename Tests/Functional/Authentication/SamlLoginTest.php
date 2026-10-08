@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
+use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequestContext;
 use TYPO3\TestingFramework\Core\Functional\FunctionalTestCase;
 
 /**
@@ -386,6 +387,97 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertCount(1, $this->loggedInUserIds());
     }
 
+    #[Test]
+    public function loginStoresTheDataSingleLogoutNeedsInTheFrontendSession(): void
+    {
+        $samlResponse = $this->identityProvider->sign(
+            $this->validResponse()->withNameId('jdoe@idp.example.com')
+        );
+
+        $this->postSamlResponse($samlResponse);
+
+        self::assertCount(1, $this->loggedInUserIds());
+        self::assertSame(
+            [
+                'id' => 1,
+                'AssertionId' => $this->assertionIdOf($samlResponse),
+                'nameId' => 'jdoe@idp.example.com',
+            ],
+            $this->storedSingleLogoutData()
+        );
+    }
+
+    #[Test]
+    public function rejectedResponseStoresNoSingleLogoutData(): void
+    {
+        $otherIdentityProvider = new TestIdentityProvider();
+
+        $this->postSamlResponse($otherIdentityProvider->sign($this->validResponse()));
+
+        self::assertSame([], $this->loggedInUserIds());
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    #[Test]
+    public function responseOutsideALoginRequestStoresNoSingleLogoutData(): void
+    {
+
+        $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()->withDestination('https://sp.example.com/')),
+            [],
+            'https://sp.example.com/',
+            true,
+        );
+
+        self::assertCount(1, $this->loggedInUserIds());
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    #[Test]
+    public function responseThatIsNotValidStoresNoSingleLogoutDataInAnExistingSession(): void
+    {
+        $otherIdentityProvider = new TestIdentityProvider();
+
+        $this->postSamlResponse(
+            $otherIdentityProvider->sign($this->validResponse()),
+            [],
+            self::ACS_URL,
+            true,
+        );
+
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
+    private function assertionIdOf(string $samlResponse): string
+    {
+        $xml = base64_decode($samlResponse, true);
+        self::assertIsString($xml);
+        self::assertSame(1, preg_match('/<saml:Assertion[^>]*\sID="([^"]+)"/', $xml, $matches));
+
+        return $matches[1];
+    }
+
+    /**
+     * The data of the session that is logged in, or null if the session
+     * holds none from this extension.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function storedSingleLogoutData(): ?array
+    {
+        $sessionData = $this->getConnectionPool()->getConnectionForTable('fe_sessions')
+            ->select(['ses_data'], 'fe_sessions', [])
+            ->fetchOne();
+        if (!is_string($sessionData) || $sessionData === '') {
+            return null;
+        }
+
+        $data = unserialize($sessionData, ['allowed_classes' => false]);
+        self::assertIsArray($data);
+
+        return $data['NrSamlAuth'] ?? null;
+    }
+
     private function validResponse(): SamlResponseBuilder
     {
         return (new SamlResponseBuilder())
@@ -401,13 +493,20 @@ final class SamlLoginTest extends FunctionalTestCase
     /**
      * @param array<string, string> $additionalFields
      */
-    private function postSamlResponse(string $samlResponse, array $additionalFields = [], string $url = self::ACS_URL): ResponseInterface
-    {
+    private function postSamlResponse(
+        string $samlResponse,
+        array $additionalFields = [],
+        string $url = self::ACS_URL,
+        bool $asLocalUser = false,
+    ): ResponseInterface {
         $request = (new InternalRequest($url))
             ->withMethod('POST')
             ->withParsedBody(['SAMLResponse' => $samlResponse] + $additionalFields);
 
-        return $this->executeFrontendSubRequest($request);
+        return $this->executeFrontendSubRequest(
+            $request,
+            $asLocalUser ? (new InternalRequestContext())->withFrontendUserId(2) : null,
+        );
     }
 
     /**

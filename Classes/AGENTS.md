@@ -102,11 +102,11 @@ public function getUsername($samlAttributes)
 
 ```yaml
 # ✅ Good: Listen to TYPO3 core events via Services.yaml (see existing listeners)
-Netresearch\NrSamlAuth\EventListener\AfterUserLoggedInEventListener:
+Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:
   tags:
     - name: event.listener
-      identifier: 'nr-saml-auth/after-user-logged-in'
-      event: TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedInEvent
+      identifier: 'nr-saml-auth/before-user-logout'
+      event: TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent
 ```
 
 ```php
