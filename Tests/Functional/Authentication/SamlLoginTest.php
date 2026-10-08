@@ -449,6 +449,24 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertNull($this->storedSingleLogoutData());
     }
 
+    /**
+     * A response whose assertion was used before is rejected. On TYPO3 12.4
+     * a user who is logged in stays logged in; the rejected response does
+     * not replace the data in that user's session.
+     */
+    #[Test]
+    public function assertionUsedBeforeStoresNoSingleLogoutDataInAnExistingSession(): void
+    {
+        $samlResponse = $this->identityProvider->sign($this->validResponse()->withNameId('jdoe@idp.example.com'));
+        $this->postSamlResponse($samlResponse);
+        self::assertNotNull($this->storedSingleLogoutData());
+        $this->getConnectionPool()->getConnectionForTable('fe_sessions')->truncate('fe_sessions');
+
+        $this->postSamlResponse($samlResponse, [], self::ACS_URL, true);
+
+        self::assertNull($this->storedSingleLogoutData());
+    }
+
     private function assertionIdOf(string $samlResponse): string
     {
         $xml = base64_decode($samlResponse, true);

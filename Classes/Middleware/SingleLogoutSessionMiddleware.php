@@ -11,6 +11,7 @@ namespace Netresearch\NrSamlAuth\Middleware;
 
 use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Session\SamlSession;
+use Netresearch\NrSamlAuth\Sv\AuthenticationService;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,10 +30,11 @@ use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
  * the NameID. AfterUserLoggedOutEventListener sends them to the identity
  * provider when the user logs out.
  *
- * Only a response that validates is used: AuthenticationService has accepted
- * the response of a login request that logged a user in, except on TYPO3 12.4
- * where a user who was logged in before stays logged in when the response is
- * rejected.
+ * The data are stored only for the user whom AuthenticationService resolved
+ * from the response of this request. On TYPO3 12.4 a user who is already
+ * logged in stays logged in when the response of a login request is
+ * rejected, for example because the assertion was used before; the data of
+ * such a response are not stored.
  *
  * This is a middleware and not a listener for AfterUserLoggedInEvent: TYPO3
  * 12.4 dispatches that event for backend logins only, and TYPO3 13.4 and
@@ -56,9 +58,9 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
         $frontendUser = $request->getAttribute('frontend.user');
         $samlResponse = $this->getSamlResponse($request);
 
-        if ($samlResponse !== '' && $this->isLoginRequest($request)
+        if ($samlResponse !== ''
             && $frontendUser instanceof FrontendUserAuthentication
-            && (int)($frontendUser->user['uid'] ?? 0) > 0
+            && (int)($frontendUser->user['uid'] ?? 0) === AuthenticationService::getUserResolvedForRequest($request)
         ) {
             $this->storeSingleLogoutData($request, $frontendUser, $samlResponse);
         }
@@ -81,14 +83,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
             $samlService = $this->container->get(SamlService::class);
             $samlService->setSettingsUid($samlId);
 
-            // The response is validated again: on TYPO3 12.4 a user who is
-            // already logged in stays logged in when the response of a
-            // login request is rejected, and a response that is not valid
-            // must not decide where the logout goes.
             $response = $samlService->getResponse($samlResponse, $request);
-            if (!$response->isValid()) {
-                return;
-            }
 
             $this->samlSession->setUser($frontendUser);
             $this->samlSession->setSessionData([
@@ -109,18 +104,6 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
         $samlResponse = is_array($parsedBody) ? ($parsedBody['SAMLResponse'] ?? '') : '';
 
         return is_string($samlResponse) ? $samlResponse : '';
-    }
-
-    /**
-     * The authentication service handles a SAML response only for a login
-     * request.
-     */
-    private function isLoginRequest(ServerRequestInterface $request): bool
-    {
-        $parsedBody = $request->getParsedBody();
-        $loginType = is_array($parsedBody) ? ($parsedBody['logintype'] ?? null) : null;
-
-        return ($loginType ?? $request->getQueryParams()['logintype'] ?? '') === 'login';
     }
 
     /**
