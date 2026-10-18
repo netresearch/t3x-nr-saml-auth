@@ -26,9 +26,10 @@ use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
  * Stores the data that single logout (SLO) needs in the frontend session
  * after a login with a SAML response.
  *
- * The data are the uid of the settings record, the ID of the assertion and
- * the NameID. AfterUserLoggedOutEventListener sends them to the identity
- * provider when the user logs out.
+ * The data are those of SamlService::getSingleLogoutData(): the uid of the
+ * settings record, the NameID and the SessionIndex of the login.
+ * AfterUserLoggedOutEventListener sends them to the identity provider when
+ * the user logs out.
  *
  * The data are stored only for the user whom AuthenticationService resolved
  * from the response of this request. On TYPO3 12.4 a user who is already
@@ -86,11 +87,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
             $response = $samlService->getResponse($samlResponse, $request);
 
             $this->samlSession->setUser($frontendUser);
-            $this->samlSession->setSessionData([
-                'id' => $samlId,
-                'AssertionId' => $response->getAssertionId(),
-                'nameId' => $response->getNameId(),
-            ]);
+            $this->samlSession->setSessionData($samlService->getSingleLogoutData($response));
         } catch (Throwable $exception) {
             $this->logger->error('Failed to store SAML session data', [
                 'exception' => $exception->getMessage(),

@@ -111,7 +111,64 @@ final class SamlService implements SingletonInterface
     }
 
     /**
+     * The data single logout needs from the login response: the uid of the
+     * settings record, the NameID with its Format and qualifiers, and the
+     * SessionIndex of the AuthnStatement.
+     *
+     * The SessionIndex is the one the identity provider gave the session, not
+     * the ID of the assertion (SAML 2.0 Core, sections 2.7.2 and 3.7.1). The
+     * NameID is sent back with the attributes it was issued with: the
+     * LogoutRequest names the principal by "the identifier and associated
+     * attributes" as both providers recognise it (section 3.7.1).
+     *
+     * A NameID without Format has the format unspecified (section 2.2.2).
+     * It is stored as such: for a missing format php-saml would put the
+     * NameID format of the service provider into the LogoutRequest, and it
+     * leaves the attribute out for unspecified.
+     *
+     * @return array{id: int, nameId: string|null, nameIdFormat: string, nameIdNameQualifier: string|null, nameIdSPNameQualifier: string|null, sessionIndex: string|null}
+     *
+     * @throws Error
+     * @throws ValidationError
+     */
+    public function getSingleLogoutData(Response $response): array
+    {
+        $nameIdData = $response->getNameIdData();
+
+        return [
+            'id' => $this->settingsUid,
+            'nameId' => $this->stringOrNull($nameIdData['Value'] ?? null),
+            'nameIdFormat' => $this->stringOrNull($nameIdData['Format'] ?? null) ?? Constants::NAMEID_UNSPECIFIED,
+            'nameIdNameQualifier' => $this->stringOrNull($nameIdData['NameQualifier'] ?? null),
+            'nameIdSPNameQualifier' => $this->stringOrNull($nameIdData['SPNameQualifier'] ?? null),
+            'sessionIndex' => $this->stringOrNull($response->getSessionIndex()),
+        ];
+    }
+
+    /**
+     * Redirects the user to the single logout service of the identity
+     * provider, with the data getSingleLogoutData() returned at login. Does
+     * nothing without such data.
+     *
+     * @param array<string, mixed> $singleLogoutData
+     *
+     * @throws Error
+     */
+    public function redirectToSingleLogout(array $singleLogoutData): void
+    {
+        $url = $this->getLogoutRedirectUrl($singleLogoutData);
+        if ($url !== null) {
+            Utils::redirect($url);
+        }
+    }
+
+    /**
      * Redirects user to SAML logout (SLO)
+     *
+     * $sessionIndex is the SessionIndex attribute of the AuthnStatement of
+     * the login, not the ID of the assertion; it is escaped for XML. The
+     * NameID is sent with the NameID format of the service provider;
+     * redirectToSingleLogout() sends it with the attributes of the login.
      *
      * @throws Error
      */
@@ -125,10 +182,57 @@ final class SamlService implements SingletonInterface
             null,
             [],
             $nameId,
-            $sessionIndex,
+            $this->escapeSessionIndex($sessionIndex),
             false,
             $settings->getSpData()['NameIDFormat']
         );
+    }
+
+    /**
+     * Returns the URL of the identity provider's single logout service with
+     * the LogoutRequest, or null without the data getSingleLogoutData()
+     * returned at login.
+     *
+     * @param array<string, mixed> $singleLogoutData
+     *
+     * @throws Error
+     */
+    public function getLogoutRedirectUrl(array $singleLogoutData): ?string
+    {
+        $settingsUid = $singleLogoutData['id'] ?? null;
+        if (!is_int($settingsUid) || $settingsUid <= 0) {
+            return null;
+        }
+
+        $this->setSettingsUid($settingsUid);
+        $auth = new Auth($this->getSettings()['saml']);
+
+        $sessionIndex = $this->escapeSessionIndex($this->stringOrNull($singleLogoutData['sessionIndex'] ?? null));
+
+        return (string)$auth->logout(
+            null,
+            [],
+            $this->stringOrNull($singleLogoutData['nameId'] ?? null),
+            $sessionIndex,
+            true,
+            $this->stringOrNull($singleLogoutData['nameIdFormat'] ?? null),
+            $this->stringOrNull($singleLogoutData['nameIdNameQualifier'] ?? null),
+            $this->stringOrNull($singleLogoutData['nameIdSPNameQualifier'] ?? null),
+        );
+    }
+
+    /**
+     * php-saml puts the SessionIndex into the XML of the LogoutRequest as it
+     * is. Unlike an assertion ID it may hold any string.
+     */
+    private function escapeSessionIndex(?string $sessionIndex): ?string
+    {
+        return $sessionIndex === null ? null : htmlspecialchars($sessionIndex, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
+    private function stringOrNull(mixed $value): ?string
+    {
+        return is_string($value) && $value !== '' ? $value : null;
     }
 
     /**

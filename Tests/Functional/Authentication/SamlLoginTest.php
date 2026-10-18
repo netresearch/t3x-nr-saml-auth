@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Tests\Functional\Authentication;
 
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
+use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\SamlResponseBuilder;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\TestIdentityProvider;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -34,6 +38,16 @@ final class SamlLoginTest extends FunctionalTestCase
     private const ACS_URL = 'https://sp.example.com/?logintype=login';
 
     private const IDP_ENTITY_ID = 'https://idp.example.com';
+
+    private const IDP_LOGOUT_URL = 'https://idp.example.com/slo';
+
+    private const NAMEID_EMAIL = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
+
+    private const NAME_ID = 'jdoe@idp.example.com';
+
+    private const XPATH_SESSION_INDEX = '/samlp:LogoutRequest/samlp:SessionIndex';
+
+    private const XPATH_NAME_ID = '/samlp:LogoutRequest/saml:NameID';
 
     private const SAML_USERS_PID = 10;
 
@@ -388,24 +402,146 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertCount(1, $this->loggedInUserIds());
     }
 
+    /**
+     * The SessionIndex is the one of the AuthnStatement, which the identity
+     * provider chooses and which need not be the ID of the assertion.
+     */
     #[Test]
     public function loginStoresTheDataSingleLogoutNeedsInTheFrontendSession(): void
     {
         $samlResponse = $this->identityProvider->sign(
-            $this->validResponse()->withNameId('jdoe@idp.example.com')
+            $this->validResponse()
+                ->withNameId(self::NAME_ID, self::NAMEID_EMAIL)
+                ->withSessionIndex('_idp_session_4711')
         );
 
         $this->postSamlResponse($samlResponse);
 
         self::assertCount(1, $this->loggedInUserIds());
+        self::assertNotSame('_idp_session_4711', $this->assertionIdOf($samlResponse));
         self::assertSame(
             [
                 'id' => 1,
-                'AssertionId' => $this->assertionIdOf($samlResponse),
-                'nameId' => 'jdoe@idp.example.com',
+                'nameId' => self::NAME_ID,
+                'nameIdFormat' => self::NAMEID_EMAIL,
+                'nameIdNameQualifier' => null,
+                'nameIdSPNameQualifier' => null,
+                'sessionIndex' => '_idp_session_4711',
             ],
             $this->storedSingleLogoutData()
         );
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function sessionIndexDataProvider(): array
+    {
+        return [
+            'identifier' => ['_idp_session_4711'],
+            'characters XML escapes' => ['session <1> & "2"'],
+        ];
+    }
+
+    /**
+     * The LogoutRequest names the session by the SessionIndex of the login
+     * and the principal by the NameID with the attributes it was issued with
+     * (SAML 2.0 Core, sections 3.7.1 and 2.7.2).
+     */
+    #[Test]
+    #[DataProvider('sessionIndexDataProvider')]
+    public function logoutRequestCarriesTheSessionIndexAndTheNameIdOfTheLogin(string $sessionIndex): void
+    {
+        $samlResponse = $this->identityProvider->sign(
+            $this->validResponse()
+                ->withNameId(self::NAME_ID, self::NAMEID_EMAIL)
+                ->withNameIdQualifiers(self::IDP_ENTITY_ID, self::SP_ENTITY_ID)
+                ->withSessionIndex($sessionIndex)
+        );
+        $this->postSamlResponse($samlResponse);
+
+        $logoutRequest = $this->logoutRequestFor($this->storedSingleLogoutData());
+
+        $sessionIndexes = $logoutRequest->query(self::XPATH_SESSION_INDEX);
+        self::assertNotFalse($sessionIndexes);
+        self::assertCount(1, $sessionIndexes);
+        self::assertSame($sessionIndex, $sessionIndexes->item(0)?->textContent);
+        self::assertNotSame($this->assertionIdOf($samlResponse), $sessionIndexes->item(0)?->textContent);
+
+        $nameId = $logoutRequest->query(self::XPATH_NAME_ID)?->item(0);
+        self::assertInstanceOf(DOMElement::class, $nameId);
+        self::assertSame(self::NAME_ID, $nameId->textContent);
+        self::assertSame(self::NAMEID_EMAIL, $nameId->getAttribute('Format'));
+        self::assertSame(self::IDP_ENTITY_ID, $nameId->getAttribute('NameQualifier'));
+        self::assertSame(self::SP_ENTITY_ID, $nameId->getAttribute('SPNameQualifier'));
+    }
+
+    /**
+     * A NameID issued without Format goes back without Format, also when the
+     * settings record configures another NameID format for the service
+     * provider.
+     */
+    #[Test]
+    public function logoutRequestNameIdHasNoFormatWhenTheLoginNameIdHadNone(): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
+            ->update('tx_nrsamlauth_domain_model_settings', ['sp_name_id_format' => 'NAMEID_EMAIL_ADDRESS'], ['uid' => 1]);
+        $this->postSamlResponse($this->identityProvider->sign(
+            $this->validResponse()->withNameId(self::NAME_ID)->withNameIdFormat(null)
+        ));
+
+        $nameId = $this->logoutRequestFor($this->storedSingleLogoutData())
+            ->query(self::XPATH_NAME_ID)?->item(0);
+
+        self::assertInstanceOf(DOMElement::class, $nameId);
+        self::assertSame(self::NAME_ID, $nameId->textContent);
+        self::assertFalse($nameId->hasAttribute('Format'));
+    }
+
+    /**
+     * @return array<string, array{0: string|null}>
+     */
+    public static function missingSessionIndexDataProvider(): array
+    {
+        return [
+            'no attribute' => [null],
+            'empty attribute' => [''],
+        ];
+    }
+
+    /**
+     * The SessionIndex is optional. Without one the LogoutRequest names only
+     * the principal, and the identity provider terminates the session that
+     * NameID specifies (SAML 2.0 Core, section 3.7.3.2).
+     */
+    #[Test]
+    #[DataProvider('missingSessionIndexDataProvider')]
+    public function logoutRequestWithoutSessionIndexOfTheLoginNamesOnlyThePrincipal(?string $sessionIndex): void
+    {
+        $this->postSamlResponse($this->identityProvider->sign(
+            $this->validResponse()->withNameId(self::NAME_ID)->withSessionIndex($sessionIndex)
+        ));
+
+        $singleLogoutData = $this->storedSingleLogoutData();
+        self::assertIsArray($singleLogoutData);
+        self::assertNull($singleLogoutData['sessionIndex']);
+
+        $logoutRequest = $this->logoutRequestFor($singleLogoutData);
+
+        self::assertSame(0, $logoutRequest->query(self::XPATH_SESSION_INDEX)?->length);
+        self::assertSame(
+            self::NAME_ID,
+            $logoutRequest->query(self::XPATH_NAME_ID)?->item(0)?->textContent
+        );
+    }
+
+    #[Test]
+    public function noLogoutRequestWithoutSingleLogoutData(): void
+    {
+        $samlService = $this->get(SamlService::class);
+
+        self::assertNull($samlService->getLogoutRedirectUrl([]));
+        self::assertNull($samlService->getLogoutRedirectUrl(['id' => 0, 'nameId' => self::NAME_ID]));
     }
 
     #[Test]
@@ -457,7 +593,7 @@ final class SamlLoginTest extends FunctionalTestCase
     #[Test]
     public function assertionUsedBeforeStoresNoSingleLogoutDataInAnExistingSession(): void
     {
-        $samlResponse = $this->identityProvider->sign($this->validResponse()->withNameId('jdoe@idp.example.com'));
+        $samlResponse = $this->identityProvider->sign($this->validResponse()->withNameId(self::NAME_ID));
         $this->postSamlResponse($samlResponse);
         self::assertNotNull($this->storedSingleLogoutData());
         $this->getConnectionPool()->getConnectionForTable('fe_sessions')->truncate('fe_sessions');
@@ -465,6 +601,34 @@ final class SamlLoginTest extends FunctionalTestCase
         $this->postSamlResponse($samlResponse, [], self::ACS_URL, true);
 
         self::assertNull($this->storedSingleLogoutData());
+    }
+
+    /**
+     * The LogoutRequest in the URL SamlService sends the user to on logout.
+     *
+     * @param array<string, mixed>|null $singleLogoutData
+     */
+    private function logoutRequestFor(?array $singleLogoutData): DOMXPath
+    {
+        self::assertIsArray($singleLogoutData);
+        $url = $this->get(SamlService::class)->getLogoutRedirectUrl($singleLogoutData);
+        self::assertIsString($url);
+        self::assertStringStartsWith(self::IDP_LOGOUT_URL . '?', $url);
+
+        parse_str((string)parse_url($url, PHP_URL_QUERY), $query);
+        self::assertIsString($query['SAMLRequest'] ?? null);
+        $decoded = base64_decode($query['SAMLRequest'], true);
+        self::assertIsString($decoded);
+        $xml = gzinflate($decoded);
+        self::assertIsString($xml);
+
+        $document = new DOMDocument();
+        self::assertTrue($document->loadXML($xml), 'The LogoutRequest is well-formed XML');
+        $xpath = new DOMXPath($document);
+        $xpath->registerNamespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+        $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+
+        return $xpath;
     }
 
     private function assertionIdOf(string $samlResponse): string
@@ -566,6 +730,7 @@ final class SamlLoginTest extends FunctionalTestCase
                 'idp_entity_id' => self::IDP_ENTITY_ID,
                 'idp_sso_url' => 'https://idp.example.com/sso',
                 'idp_sso_binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                'idp_logout_url' => self::IDP_LOGOUT_URL,
                 'idp_cert' => $idpCertificate,
                 'users_pid' => self::SAML_USERS_PID,
                 'usergroup' => '1',
