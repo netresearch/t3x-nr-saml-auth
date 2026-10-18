@@ -79,7 +79,7 @@ Users cannot expect:
 
 ## Verification
 
-The unit and functional tests run in CI on every pull request (`.github/workflows/ci.yml`); PHPStan runs at level 8, and Opengrep runs under the [organisation rule](https://github.com/netresearch/.github/blob/main/SECURITY.md#static-analysis-sast). The full list of pull-request checks is in [CONTRIBUTING.md](../CONTRIBUTING.md#governance-and-policies). Locally:
+The unit and functional tests run in CI on every pull request (`.github/workflows/ci.yml`); PHPStan runs at level 10 (level 8 on TYPO3 12.4), and Opengrep runs under the [organisation rule](https://github.com/netresearch/.github/blob/main/SECURITY.md#static-analysis-sast). The full list of pull-request checks is in [CONTRIBUTING.md](../CONTRIBUTING.md#governance-and-policies). Locally:
 
 ```bash
 composer ci:test:php:unit

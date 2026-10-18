@@ -40,7 +40,7 @@ class SamlSession implements SingletonInterface
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array<mixed>|null
      */
     public function getSessionData(): ?array
     {

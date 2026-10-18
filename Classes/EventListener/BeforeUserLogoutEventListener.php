@@ -26,7 +26,7 @@ final class BeforeUserLogoutEventListener
     /**
      * Static storage for session data between pre and post logout events.
      *
-     * @var array<string, mixed>
+     * @var array<mixed>
      */
     private static array $sessionData = [];
 
@@ -42,7 +42,7 @@ final class BeforeUserLogoutEventListener
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<mixed>
      */
     public static function getSessionData(): array
     {

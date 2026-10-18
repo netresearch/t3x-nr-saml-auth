@@ -30,11 +30,39 @@ use TYPO3\CMS\Core\SingletonInterface;
 /**
  * Service for handling SAML operations including SSO authentication
  * and single logout (SLO).
+ *
+ * @phpstan-type SamlSettingsArray array{
+ *     strict: bool,
+ *     debug: bool,
+ *     security: array{wantXMLValidation: bool},
+ *     sp: array{
+ *         entityId: string,
+ *         assertionConsumerService: array{url: string, binding: string},
+ *         NameIDFormat: string,
+ *         x509cert: string,
+ *         privateKey: string,
+ *     },
+ *     idp: array{
+ *         entityId: string,
+ *         singleSignOnService: array{url: string, binding: string},
+ *         singleLogoutService?: array{url: string},
+ *         x509cert: string,
+ *     },
+ * }
+ * @phpstan-type SettingsArray array{
+ *     username_prefix: string,
+ *     users_pid: int,
+ *     usergroup: string,
+ *     debug: bool,
+ *     saml: SamlSettingsArray,
+ * }
  */
 final class SamlService implements SingletonInterface
 {
     /**
      * Default settings array structure.
+     *
+     * @var SettingsArray
      */
     private array $settings = [
         'username_prefix' => '',
@@ -150,7 +178,7 @@ final class SamlService implements SingletonInterface
      * provider, with the data getSingleLogoutData() returned at login. Does
      * nothing without such data.
      *
-     * @param array<string, mixed> $singleLogoutData
+     * @param array<mixed> $singleLogoutData
      *
      * @throws Error
      */
@@ -184,7 +212,7 @@ final class SamlService implements SingletonInterface
             $nameId,
             $this->escapeSessionIndex($sessionIndex),
             false,
-            $settings->getSpData()['NameIDFormat'],
+            $this->stringOrNull($settings->getSPData()['NameIDFormat'] ?? null),
         );
     }
 
@@ -193,7 +221,7 @@ final class SamlService implements SingletonInterface
      * the LogoutRequest, or null without the data getSingleLogoutData()
      * returned at login.
      *
-     * @param array<string, mixed> $singleLogoutData
+     * @param array<mixed> $singleLogoutData
      *
      * @throws Error
      */
@@ -278,7 +306,8 @@ final class SamlService implements SingletonInterface
         // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
         // reverse proxy prefix in front of it; php-saml adds it as base path.
         $publicPath = (string) parse_url($normalizedParams->getRequestUri(), PHP_URL_PATH);
-        $serverPath = (string) parse_url((string) ($request->getServerParams()['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $serverUri  = $request->getServerParams()['REQUEST_URI'] ?? '';
+        $serverPath = (string) parse_url(is_string($serverUri) ? $serverUri : '', PHP_URL_PATH);
         $prefix     = '';
         if ($serverPath !== '' && strlen($publicPath) > strlen($serverPath) && str_ends_with($publicPath, $serverPath)) {
             $prefix = substr($publicPath, 0, -strlen($serverPath));
@@ -328,6 +357,8 @@ final class SamlService implements SingletonInterface
 
     /**
      * Returns the complete settings array.
+     *
+     * @return SettingsArray
      */
     public function getSettings(): array
     {
@@ -351,7 +382,8 @@ final class SamlService implements SingletonInterface
         $this->settings['saml']['sp']['entityId']                            = $settingsModel->getSpEntityId();
         $this->settings['saml']['sp']['assertionConsumerService']['url']     = $settingsModel->getSpCustomerServiceUrl();
         $this->settings['saml']['sp']['assertionConsumerService']['binding'] = $settingsModel->getSpCustomerServiceBinding();
-        $this->settings['saml']['sp']['NameIDFormat']                        = constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
+        $nameIdFormat                                                        = constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
+        $this->settings['saml']['sp']['NameIDFormat']                        = is_string($nameIdFormat) ? $nameIdFormat : '';
         $this->settings['saml']['sp']['x509cert']                            = $settingsModel->getSpCert();
         $this->settings['saml']['sp']['privateKey']                          = $settingsModel->getSpKey();
 

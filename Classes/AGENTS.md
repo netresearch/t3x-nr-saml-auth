@@ -39,7 +39,7 @@ composer ci:test:php:unit     # Unit tests
 - **Readonly properties** for immutable data
 - **Constructor property promotion** for DI
 - **Final classes** unless inheritance is required
-- **PHPStan level 8** compliance (`phpstan.neon`)
+- **PHPStan level 10** compliance (`phpstan.neon`, shared config of `netresearch/typo3-ci-workflows`)
 
 ### Naming conventions
 
