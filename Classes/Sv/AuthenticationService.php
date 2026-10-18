@@ -51,7 +51,7 @@ class AuthenticationService extends Typo3AuthService
 
     /**
      * Table that records the assertions which logged a user in, so that each
-     * assertion is accepted once (ext_tables.sql)
+     * assertion is accepted once (ext_tables.sql).
      */
     private const ASSERTION_TABLE = 'tx_nrsamlauth_assertion';
 
@@ -72,7 +72,7 @@ class AuthenticationService extends Typo3AuthService
     private static ?WeakMap $assertionAcceptedForRequest = null;
 
     /**
-     * Uid of the frontend user getUser() resolved per request
+     * Uid of the frontend user getUser() resolved per request.
      *
      * @var WeakMap<object, int>|null
      */
@@ -114,9 +114,10 @@ class AuthenticationService extends Typo3AuthService
     }
 
     /**
-     * Validates the login and returns the user record as array
+     * Validates the login and returns the user record as array.
      *
      * @return bool|array<string, mixed>
+     *
      * @throws Error
      */
     public function getUser(): bool|array
@@ -125,12 +126,14 @@ class AuthenticationService extends Typo3AuthService
 
         if (!$this->isResponsible()) {
             $this->samlService->redirectUserToSSO($this->getRequest());
+
             return false;
         }
 
         $settings = $this->settingsRepository->findByUid($this->getSamlId());
         if (!$settings instanceof Settings) {
             $this->logger?->error('SAML Settings not found', ['saml_id' => $this->getSamlId()]);
+
             return false;
         }
 
@@ -149,15 +152,16 @@ class AuthenticationService extends Typo3AuthService
         $user = $this->fetchUserInStorageFolder($username, $settings, true);
         if ($user === null) {
             $this->logger?->warning('Frontend user for the SAML response is disabled', ['saml_id' => $settings->getUid()]);
+
             return false;
         }
 
         $request = $this->getRequest();
         if ($request instanceof ServerRequestInterface) {
             /** @var WeakMap<object, int> $users */
-            $users = self::$userResolvedForRequest ?? new WeakMap();
-            $users[self::getRequestKey($request)] = (int)$user['uid'];
-            self::$userResolvedForRequest = $users;
+            $users                                = self::$userResolvedForRequest ?? new WeakMap();
+            $users[self::getRequestKey($request)] = (int) $user['uid'];
+            self::$userResolvedForRequest         = $users;
         }
 
         return $user;
@@ -186,41 +190,45 @@ class AuthenticationService extends Typo3AuthService
                 $this->logger?->warning('SAML Response from SSO server is not valid', [
                     'reason' => $samlResponse->getError(),
                 ]);
+
                 return null;
             }
 
-            $attributes = $samlResponse->getAttributes();
-            $assertionId = $samlResponse->getAssertionId();
+            $attributes   = $samlResponse->getAttributes();
+            $assertionId  = $samlResponse->getAssertionId();
             $notOnOrAfter = $samlResponse->getAssertionNotOnOrAfter();
         } catch (Throwable $e) {
             $this->logger?->warning('SAML Response from SSO server is not valid', [
                 'reason' => $e->getMessage(),
             ]);
+
             return null;
         }
 
         $username = $this->getUsername($attributes);
         if ($username === '') {
             $this->logger?->warning('SAML Response from SSO server has no username attribute');
+
             return null;
         }
 
         // Assertion IDs are unique per identity provider, so an assertion is
         // accepted once across all settings records that trust that provider
         $identifier = hash('sha256', $settings->getIdpEntityId() . '|' . $assertionId);
-        $request = $this->getRequest();
+        $request    = $this->getRequest();
 
         if ($consume) {
             if (!$this->recordAssertion($identifier, $notOnOrAfter)) {
                 $this->logger?->warning('SAML assertion was already used for a login');
+
                 return null;
             }
 
             if ($request instanceof ServerRequestInterface) {
                 /** @var WeakMap<object, string> $assertions */
-                $assertions = self::$assertionAcceptedForRequest ?? new WeakMap();
+                $assertions                                = self::$assertionAcceptedForRequest ?? new WeakMap();
                 $assertions[self::getRequestKey($request)] = $identifier;
-                self::$assertionAcceptedForRequest = $assertions;
+                self::$assertionAcceptedForRequest         = $assertions;
             }
         } elseif (!$request instanceof ServerRequestInterface
             || (self::$assertionAcceptedForRequest[self::getRequestKey($request)] ?? null) !== $identifier
@@ -296,7 +304,7 @@ class AuthenticationService extends Typo3AuthService
                 $queryBuilder->expr()->eq('username', $queryBuilder->createNamedParameter($username)),
                 $queryBuilder->expr()->eq(
                     'pid',
-                    $queryBuilder->createNamedParameter($settings->getUsersPid(), Connection::PARAM_INT)
+                    $queryBuilder->createNamedParameter($settings->getUsersPid(), Connection::PARAM_INT),
                 ),
             )
             ->setMaxResults(1)
@@ -307,7 +315,7 @@ class AuthenticationService extends Typo3AuthService
     }
 
     /**
-     * Insert a user into the fe_users table
+     * Insert a user into the fe_users table.
      *
      * @param array<string, mixed> $attributes
      */
@@ -318,21 +326,21 @@ class AuthenticationService extends Typo3AuthService
         $connection->insert(
             self::USER_TABLE,
             [
-                'username' => $username,
+                'username'  => $username,
                 'usergroup' => $settings->getUsergroup(),
-                'pid' => $settings->getUsersPid(),
-                'email' => $this->getValueFromAttribute($attributes, 'mail'),
-                'company' => $this->getValueFromAttribute($attributes, 'companyname'),
-                'name' => $this->getValueFromAttribute($attributes, 'fullname'),
-                'country' => $this->getValueFromAttribute($attributes, 'country'),
-                'crdate' => time(),
-                'tstamp' => time(),
-            ]
+                'pid'       => $settings->getUsersPid(),
+                'email'     => $this->getValueFromAttribute($attributes, 'mail'),
+                'company'   => $this->getValueFromAttribute($attributes, 'companyname'),
+                'name'      => $this->getValueFromAttribute($attributes, 'fullname'),
+                'country'   => $this->getValueFromAttribute($attributes, 'country'),
+                'crdate'    => time(),
+                'tstamp'    => time(),
+            ],
         );
     }
 
     /**
-     * Converts the username array to a string
+     * Converts the username array to a string.
      *
      * @param array<string, mixed> $usernameData
      */
@@ -351,14 +359,14 @@ class AuthenticationService extends Typo3AuthService
         }
 
         if (is_array($attributes[$key])) {
-            return (string)reset($attributes[$key]);
+            return (string) reset($attributes[$key]);
         }
 
-        return (string)$attributes[$key];
+        return (string) $attributes[$key];
     }
 
     /**
-     * Returns true if login service is responsible for the request
+     * Returns true if login service is responsible for the request.
      */
     private function isResponsible(): bool
     {
@@ -366,7 +374,7 @@ class AuthenticationService extends Typo3AuthService
     }
 
     /**
-     * Returns the SAML response from request
+     * Returns the SAML response from request.
      */
     private function getSamlResponse(): string
     {
@@ -376,11 +384,12 @@ class AuthenticationService extends Typo3AuthService
         }
 
         $parsedBody = $request->getParsedBody();
-        return (string)($parsedBody['SAMLResponse'] ?? '');
+
+        return (string) ($parsedBody['SAMLResponse'] ?? '');
     }
 
     /**
-     * Returns true if response has SAML data
+     * Returns true if response has SAML data.
      */
     private function hasSamlResponse(): bool
     {
@@ -388,7 +397,7 @@ class AuthenticationService extends Typo3AuthService
     }
 
     /**
-     * Returns the passed SAML ID or discovers it from request
+     * Returns the passed SAML ID or discovers it from request.
      */
     private function getSamlId(): int
     {
@@ -399,7 +408,7 @@ class AuthenticationService extends Typo3AuthService
 
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['saml_id'])) {
-            return (int)$queryParams['saml_id'];
+            return (int) $queryParams['saml_id'];
         }
 
         $uri = $request->getUri();
@@ -466,12 +475,12 @@ class AuthenticationService extends Typo3AuthService
             return 0;
         }
 
-        $request = $this->getRequest();
+        $request    = $this->getRequest();
         $isSameUser = ($this->db_user['table'] ?? '') === self::USER_TABLE
             && $request instanceof ServerRequestInterface
             && isset($user['uid'])
-            && (int)$user['uid'] === (self::$userResolvedForRequest[self::getRequestKey($request)] ?? null)
-            && (int)($user['pid'] ?? -1) === $settings->getUsersPid();
+            && (int) $user['uid'] === (self::$userResolvedForRequest[self::getRequestKey($request)] ?? null)
+            && (int) ($user['pid'] ?? -1) === $settings->getUsersPid();
 
         return $isSameUser ? 200 : 0;
     }

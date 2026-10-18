@@ -54,37 +54,40 @@ final class SamlResponseBuilder
 
     public function __construct()
     {
-        $this->responseId = '_' . bin2hex(random_bytes(16));
-        $this->assertionId = '_' . bin2hex(random_bytes(16));
+        $this->responseId   = '_' . bin2hex(random_bytes(16));
+        $this->assertionId  = '_' . bin2hex(random_bytes(16));
         $this->issueInstant = new DateTimeImmutable();
-        $this->notBefore = $this->issueInstant->modify('-5 minutes');
+        $this->notBefore    = $this->issueInstant->modify('-5 minutes');
         $this->notOnOrAfter = $this->issueInstant->modify('+5 minutes');
     }
 
     public function withIssuer(string $issuer): self
     {
-        $clone = clone $this;
+        $clone         = clone $this;
         $clone->issuer = $issuer;
+
         return $clone;
     }
 
     public function withDestination(string $destination): self
     {
-        $clone = clone $this;
+        $clone              = clone $this;
         $clone->destination = $destination;
+
         return $clone;
     }
 
     public function withAudience(string $audience): self
     {
-        $clone = clone $this;
+        $clone           = clone $this;
         $clone->audience = $audience;
+
         return $clone;
     }
 
     public function withNameId(string $nameId, ?string $format = null): self
     {
-        $clone = clone $this;
+        $clone         = clone $this;
         $clone->nameId = $nameId;
         if ($format !== null) {
             $clone->nameIdFormat = $format;
@@ -98,7 +101,7 @@ final class SamlResponseBuilder
      */
     public function withNameIdFormat(?string $format): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->nameIdFormat = $format;
 
         return $clone;
@@ -106,8 +109,8 @@ final class SamlResponseBuilder
 
     public function withNameIdQualifiers(?string $nameQualifier, ?string $spNameQualifier): self
     {
-        $clone = clone $this;
-        $clone->nameQualifier = $nameQualifier;
+        $clone                  = clone $this;
+        $clone->nameQualifier   = $nameQualifier;
         $clone->spNameQualifier = $spNameQualifier;
 
         return $clone;
@@ -115,11 +118,12 @@ final class SamlResponseBuilder
 
     public function withAttribute(string $name, string|array $value, ?string $nameFormat = null): self
     {
-        $clone = clone $this;
+        $clone                    = clone $this;
         $clone->attributes[$name] = [
-            'value' => is_array($value) ? $value : [$value],
+            'value'      => is_array($value) ? $value : [$value],
             'nameFormat' => $nameFormat ?? 'urn:oasis:names:tc:SAML:2.0:attrname-format:basic',
         ];
+
         return $clone;
     }
 
@@ -135,47 +139,53 @@ final class SamlResponseBuilder
 
     public function withIssueInstant(DateTimeImmutable $instant): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->issueInstant = $instant;
+
         return $clone;
     }
 
     public function withNotBefore(DateTimeImmutable $notBefore): self
     {
-        $clone = clone $this;
+        $clone            = clone $this;
         $clone->notBefore = $notBefore;
+
         return $clone;
     }
 
     public function withNotOnOrAfter(DateTimeImmutable $notOnOrAfter): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->notOnOrAfter = $notOnOrAfter;
+
         return $clone;
     }
 
     public function expired(): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->issueInstant = new DateTimeImmutable('-1 hour');
-        $clone->notBefore = $clone->issueInstant->modify('-5 minutes');
+        $clone->notBefore    = $clone->issueInstant->modify('-5 minutes');
         $clone->notOnOrAfter = $clone->issueInstant->modify('+5 minutes');
+
         return $clone;
     }
 
     public function notYetValid(): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->issueInstant = new DateTimeImmutable('+1 hour');
-        $clone->notBefore = $clone->issueInstant;
+        $clone->notBefore    = $clone->issueInstant;
         $clone->notOnOrAfter = $clone->issueInstant->modify('+5 minutes');
+
         return $clone;
     }
 
     public function withFailedStatus(string $statusCode = 'urn:oasis:names:tc:SAML:2.0:status:Responder'): self
     {
-        $clone = clone $this;
+        $clone             = clone $this;
         $clone->statusCode = $statusCode;
+
         return $clone;
     }
 
@@ -185,27 +195,29 @@ final class SamlResponseBuilder
      */
     public function withSessionIndex(?string $sessionIndex): self
     {
-        $clone = clone $this;
+        $clone               = clone $this;
         $clone->sessionIndex = $sessionIndex;
+
         return $clone;
     }
 
     public function signed(): self
     {
-        $clone = clone $this;
+        $clone                   = clone $this;
         $clone->includeSignature = true;
+
         return $clone;
     }
 
     public function build(): string
     {
         $issueInstant = $this->issueInstant->format('Y-m-d\TH:i:s\Z');
-        $notBefore = $this->notBefore->format('Y-m-d\TH:i:s\Z');
+        $notBefore    = $this->notBefore->format('Y-m-d\TH:i:s\Z');
         $notOnOrAfter = $this->notOnOrAfter->format('Y-m-d\TH:i:s\Z');
 
         $attributeStatements = $this->buildAttributeStatement();
-        $signature = $this->includeSignature ? $this->buildSignaturePlaceholder() : '';
-        $nameIdAttributes = '';
+        $signature           = $this->includeSignature ? $this->buildSignaturePlaceholder() : '';
+        $nameIdAttributes    = '';
         foreach (['Format' => $this->nameIdFormat, 'NameQualifier' => $this->nameQualifier, 'SPNameQualifier' => $this->spNameQualifier] as $name => $value) {
             if ($value !== null) {
                 $nameIdAttributes .= ' ' . $name . '="' . htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
@@ -217,45 +229,45 @@ final class SamlResponseBuilder
             : ' SessionIndex="' . htmlspecialchars($this->sessionIndex, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
 
         return <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
-                xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
-                ID="{$this->responseId}"
-                Version="2.0"
-                IssueInstant="{$issueInstant}"
-                Destination="{$this->destination}">
-    <saml:Issuer>{$this->issuer}</saml:Issuer>
-    <samlp:Status>
-        <samlp:StatusCode Value="{$this->statusCode}"/>
-    </samlp:Status>
-    <saml:Assertion xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                    ID="{$this->assertionId}"
-                    Version="2.0"
-                    IssueInstant="{$issueInstant}">
-        <saml:Issuer>{$this->issuer}</saml:Issuer>
-        {$signature}
-        <saml:Subject>
-            <saml:NameID{$nameIdAttributes}>{$this->nameId}</saml:NameID>
-            <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
-                <saml:SubjectConfirmationData NotOnOrAfter="{$notOnOrAfter}"
-                                               Recipient="{$this->destination}"/>
-            </saml:SubjectConfirmation>
-        </saml:Subject>
-        <saml:Conditions NotBefore="{$notBefore}" NotOnOrAfter="{$notOnOrAfter}">
-            <saml:AudienceRestriction>
-                <saml:Audience>{$this->audience}</saml:Audience>
-            </saml:AudienceRestriction>
-        </saml:Conditions>
-        <saml:AuthnStatement AuthnInstant="{$issueInstant}"{$sessionIndex}>
-            <saml:AuthnContext>
-                <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
-            </saml:AuthnContext>
-        </saml:AuthnStatement>
-        {$attributeStatements}
-    </saml:Assertion>
-</samlp:Response>
-XML;
+            <?xml version="1.0" encoding="UTF-8"?>
+            <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                            ID="{$this->responseId}"
+                            Version="2.0"
+                            IssueInstant="{$issueInstant}"
+                            Destination="{$this->destination}">
+                <saml:Issuer>{$this->issuer}</saml:Issuer>
+                <samlp:Status>
+                    <samlp:StatusCode Value="{$this->statusCode}"/>
+                </samlp:Status>
+                <saml:Assertion xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                                ID="{$this->assertionId}"
+                                Version="2.0"
+                                IssueInstant="{$issueInstant}">
+                    <saml:Issuer>{$this->issuer}</saml:Issuer>
+                    {$signature}
+                    <saml:Subject>
+                        <saml:NameID{$nameIdAttributes}>{$this->nameId}</saml:NameID>
+                        <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                            <saml:SubjectConfirmationData NotOnOrAfter="{$notOnOrAfter}"
+                                                           Recipient="{$this->destination}"/>
+                        </saml:SubjectConfirmation>
+                    </saml:Subject>
+                    <saml:Conditions NotBefore="{$notBefore}" NotOnOrAfter="{$notOnOrAfter}">
+                        <saml:AudienceRestriction>
+                            <saml:Audience>{$this->audience}</saml:Audience>
+                        </saml:AudienceRestriction>
+                    </saml:Conditions>
+                    <saml:AuthnStatement AuthnInstant="{$issueInstant}"{$sessionIndex}>
+                        <saml:AuthnContext>
+                            <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
+                        </saml:AuthnContext>
+                    </saml:AuthnStatement>
+                    {$attributeStatements}
+                </saml:Assertion>
+            </samlp:Response>
+            XML;
     }
 
     public function buildBase64Encoded(): string
@@ -272,18 +284,18 @@ XML;
         $statements = '<saml:AttributeStatement>';
         foreach ($this->attributes as $name => $config) {
             $nameFormat = $config['nameFormat'];
-            $values = $config['value'];
+            $values     = $config['value'];
 
             $statements .= sprintf(
                 '<saml:Attribute Name="%s" NameFormat="%s">',
                 htmlspecialchars($name, ENT_XML1),
-                htmlspecialchars($nameFormat, ENT_XML1)
+                htmlspecialchars($nameFormat, ENT_XML1),
             );
 
             foreach ($values as $value) {
                 $statements .= sprintf(
                     '<saml:AttributeValue xsi:type="xs:string">%s</saml:AttributeValue>',
-                    htmlspecialchars((string)$value, ENT_XML1)
+                    htmlspecialchars((string) $value, ENT_XML1),
                 );
             }
 
@@ -296,32 +308,32 @@ XML;
     private function buildSignaturePlaceholder(): string
     {
         return <<<XML
-<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-            <ds:SignedInfo>
-                <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
-                <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
-                <ds:Reference URI="#{$this->assertionId}">
-                    <ds:Transforms>
-                        <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
-                        <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
-                    </ds:Transforms>
-                    <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
-                    <ds:DigestValue>PLACEHOLDER_DIGEST</ds:DigestValue>
-                </ds:Reference>
-            </ds:SignedInfo>
-            <ds:SignatureValue>PLACEHOLDER_SIGNATURE</ds:SignatureValue>
-        </ds:Signature>
-XML;
+            <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                        <ds:SignedInfo>
+                            <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                            <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+                            <ds:Reference URI="#{$this->assertionId}">
+                                <ds:Transforms>
+                                    <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                                    <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                                </ds:Transforms>
+                                <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                                <ds:DigestValue>PLACEHOLDER_DIGEST</ds:DigestValue>
+                            </ds:Reference>
+                        </ds:SignedInfo>
+                        <ds:SignatureValue>PLACEHOLDER_SIGNATURE</ds:SignatureValue>
+                    </ds:Signature>
+            XML;
     }
 
     public static function validResponse(): self
     {
         return (new self())
             ->withAttributes([
-                'email' => 'user@example.com',
+                'email'     => 'user@example.com',
                 'firstName' => 'John',
-                'lastName' => 'Doe',
-                'groups' => ['users', 'admins'],
+                'lastName'  => 'Doe',
+                'groups'    => ['users', 'admins'],
             ]);
     }
 

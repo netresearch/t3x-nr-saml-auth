@@ -42,7 +42,7 @@ class SamlAuthController extends ActionController
 
             $this->view->assign(
                 'SamlMetaData',
-                htmlentities($metadataXml, ENT_QUOTES, 'UTF-8', false)
+                htmlentities($metadataXml, ENT_QUOTES, 'UTF-8', false),
             );
         }
 
@@ -52,7 +52,7 @@ class SamlAuthController extends ActionController
     private function getArgumentSamlSettings(): ?int
     {
         if ($this->request->hasArgument('samlUid')) {
-            return (int)$this->request->getArgument('samlUid');
+            return (int) $this->request->getArgument('samlUid');
         }
 
         return null;

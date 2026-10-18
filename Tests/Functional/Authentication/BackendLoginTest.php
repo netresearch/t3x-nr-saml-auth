@@ -60,7 +60,7 @@ final class BackendLoginTest extends FunctionalTestCase
     {
         $backendUser = $this->loginWithPassword('admin', 'correct-password');
 
-        self::assertSame(1, (int)($backendUser->user['uid'] ?? 0));
+        self::assertSame(1, (int) ($backendUser->user['uid'] ?? 0));
     }
 
     private function loginWithPassword(string $username, string $password): BackendUserAuthentication
@@ -68,11 +68,11 @@ final class BackendLoginTest extends FunctionalTestCase
         $request = (new ServerRequest('https://sp.example.com/typo3/login', 'POST'))
             ->withParsedBody([
                 'login_status' => 'login',
-                'username' => $username,
-                'userident' => $password,
+                'username'     => $username,
+                'userident'    => $password,
             ])
             ->withAttribute('applicationType', SystemEnvironmentBuilder::REQUESTTYPE_BE);
-        $request = $request->withAttribute('normalizedParams', NormalizedParams::createFromRequest($request));
+        $request                  = $request->withAttribute('normalizedParams', NormalizedParams::createFromRequest($request));
         $GLOBALS['TYPO3_REQUEST'] = $request;
 
         SecurityAspect::provideIn(GeneralUtility::makeInstance(Context::class))

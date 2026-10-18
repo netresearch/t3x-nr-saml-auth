@@ -9,18 +9,18 @@ declare(strict_types=1);
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 
-defined('TYPO3') || die();
+defined('TYPO3') || exit;
 
 (static function (): void {
     ExtensionManagementUtility::addStaticFile(
         'nr_saml_auth',
         'Configuration/TypoScript',
-        'Netresearch SAML Auth'
+        'Netresearch SAML Auth',
     );
 
     $GLOBALS['TCA']['tt_content']['types']['list']['subtypes_addlist']['nrsamlauth_authentication'] = 'pi_flexform';
     ExtensionManagementUtility::addPiFlexFormValue(
         'nrsamlauth_authentication',
-        'FILE:EXT:nr_saml_auth/Configuration/FlexForms/flexform_auth.xml'
+        'FILE:EXT:nr_saml_auth/Configuration/FlexForms/flexform_auth.xml',
     );
 })();

@@ -47,7 +47,7 @@ final class TestIdentityProvider
         }
 
         $this->certificate = $certificatePem;
-        $this->privateKey = $privateKeyPem;
+        $this->privateKey  = $privateKeyPem;
     }
 
     public function getCertificate(): string
@@ -56,7 +56,7 @@ final class TestIdentityProvider
     }
 
     /**
-     * Returns the response XML with an enveloped signature on the Response element, base64-encoded
+     * Returns the response XML with an enveloped signature on the Response element, base64-encoded.
      */
     public function sign(SamlResponseBuilder $builder): string
     {

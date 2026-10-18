@@ -34,36 +34,36 @@ use TYPO3\CMS\Core\SingletonInterface;
 final class SamlService implements SingletonInterface
 {
     /**
-     * Default settings array structure
+     * Default settings array structure.
      */
     private array $settings = [
         'username_prefix' => '',
-        'users_pid' => 0,
-        'usergroup' => '',
-        'debug' => true,
-        'saml' => [
+        'users_pid'       => 0,
+        'usergroup'       => '',
+        'debug'           => true,
+        'saml'            => [
             // Strict mode makes php-saml check the destination, audience, issuer,
             // validity period and subject confirmation of a response, not only its
             // signature. It is not configurable.
-            'strict' => true,
-            'debug' => false,
+            'strict'   => true,
+            'debug'    => false,
             'security' => [
                 'wantXMLValidation' => true,
             ],
             'sp' => [
-                'entityId' => '',
+                'entityId'                 => '',
                 'assertionConsumerService' => [
-                    'url' => '',
+                    'url'     => '',
                     'binding' => '',
                 ],
                 'NameIDFormat' => '',
-                'x509cert' => '',
-                'privateKey' => '',
+                'x509cert'     => '',
+                'privateKey'   => '',
             ],
             'idp' => [
-                'entityId' => '',
+                'entityId'            => '',
                 'singleSignOnService' => [
-                    'url' => '',
+                    'url'     => '',
                     'binding' => '',
                 ],
                 'x509cert' => '',
@@ -84,7 +84,7 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Redirects the user to SSO Service
+     * Redirects the user to SSO Service.
      *
      * @throws Error
      */
@@ -107,7 +107,7 @@ final class SamlService implements SingletonInterface
         $auth = new Auth($this->getSettings()['saml']);
         $this->useRequestAsCurrentUrl($request);
 
-        return (string)$auth->login(null, [], false, false, true);
+        return (string) $auth->login(null, [], false, false, true);
     }
 
     /**
@@ -136,12 +136,12 @@ final class SamlService implements SingletonInterface
         $nameIdData = $response->getNameIdData();
 
         return [
-            'id' => $this->settingsUid,
-            'nameId' => $this->stringOrNull($nameIdData['Value'] ?? null),
-            'nameIdFormat' => $this->stringOrNull($nameIdData['Format'] ?? null) ?? Constants::NAMEID_UNSPECIFIED,
-            'nameIdNameQualifier' => $this->stringOrNull($nameIdData['NameQualifier'] ?? null),
+            'id'                    => $this->settingsUid,
+            'nameId'                => $this->stringOrNull($nameIdData['Value'] ?? null),
+            'nameIdFormat'          => $this->stringOrNull($nameIdData['Format'] ?? null) ?? Constants::NAMEID_UNSPECIFIED,
+            'nameIdNameQualifier'   => $this->stringOrNull($nameIdData['NameQualifier'] ?? null),
             'nameIdSPNameQualifier' => $this->stringOrNull($nameIdData['SPNameQualifier'] ?? null),
-            'sessionIndex' => $this->stringOrNull($response->getSessionIndex()),
+            'sessionIndex'          => $this->stringOrNull($response->getSessionIndex()),
         ];
     }
 
@@ -163,7 +163,7 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Redirects user to SAML logout (SLO)
+     * Redirects user to SAML logout (SLO).
      *
      * $sessionIndex is the SessionIndex attribute of the AuthnStatement of
      * the login, not the ID of the assertion; it is escaped for XML. The
@@ -175,7 +175,7 @@ final class SamlService implements SingletonInterface
     public function redirectUserToLogout(?string $nameId, ?string $sessionIndex): void
     {
         $samlSettings = $this->getSettings()['saml'];
-        $settings = new SamlSettings($samlSettings);
+        $settings     = new SamlSettings($samlSettings);
 
         $auth = new Auth($samlSettings);
         $auth->logout(
@@ -184,7 +184,7 @@ final class SamlService implements SingletonInterface
             $nameId,
             $this->escapeSessionIndex($sessionIndex),
             false,
-            $settings->getSpData()['NameIDFormat']
+            $settings->getSpData()['NameIDFormat'],
         );
     }
 
@@ -209,7 +209,7 @@ final class SamlService implements SingletonInterface
 
         $sessionIndex = $this->escapeSessionIndex($this->stringOrNull($singleLogoutData['sessionIndex'] ?? null));
 
-        return (string)$auth->logout(
+        return (string) $auth->logout(
             null,
             [],
             $this->stringOrNull($singleLogoutData['nameId'] ?? null),
@@ -236,7 +236,7 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Returns the SAML Response from POST data
+     * Returns the SAML Response from POST data.
      *
      * php-saml compares the response's Destination and Recipient with the URL
      * the response was received at. That URL is taken from the request as
@@ -260,11 +260,12 @@ final class SamlService implements SingletonInterface
         $normalizedParams = $request?->getAttribute('normalizedParams');
         if (!$request instanceof ServerRequestInterface || !$normalizedParams instanceof NormalizedParams) {
             Utils::setBaseURL('');
+
             return;
         }
 
         $isHttps = $normalizedParams->isHttps();
-        $port = $normalizedParams->getRequestPort();
+        $port    = $normalizedParams->getRequestPort();
 
         Utils::setSelfProtocol($isHttps ? 'https' : 'http');
         Utils::setSelfHost($normalizedParams->getRequestHostOnly());
@@ -276,9 +277,9 @@ final class SamlService implements SingletonInterface
 
         // php-saml takes the path from the server's REQUEST_URI. TYPO3 puts the
         // reverse proxy prefix in front of it; php-saml adds it as base path.
-        $publicPath = (string)parse_url($normalizedParams->getRequestUri(), PHP_URL_PATH);
-        $serverPath = (string)parse_url((string)($request->getServerParams()['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-        $prefix = '';
+        $publicPath = (string) parse_url($normalizedParams->getRequestUri(), PHP_URL_PATH);
+        $serverPath = (string) parse_url((string) ($request->getServerParams()['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        $prefix     = '';
         if ($serverPath !== '' && strlen($publicPath) > strlen($serverPath) && str_ends_with($publicPath, $serverPath)) {
             $prefix = substr($publicPath, 0, -strlen($serverPath));
         }
@@ -287,13 +288,13 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Returns possible NameFormat values for TCA itemsProcFunc
+     * Returns possible NameFormat values for TCA itemsProcFunc.
      *
      * @throws ReflectionException
      */
     public function nameIdFormatItems(array &$parameters): void
     {
-        $items = [];
+        $items           = [];
         $reflectionClass = new ReflectionClass(Constants::class);
 
         foreach ($reflectionClass->getConstants() as $name => $value) {
@@ -308,25 +309,25 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Returns the SAML metadata as XML string
+     * Returns the SAML metadata as XML string.
      *
      * @throws Error
      */
     public function getMetadata(): string
     {
-        $settings = new SamlSettings($this->getSettings()['saml']);
+        $settings   = new SamlSettings($this->getSettings()['saml']);
         $validUntil = time() + 60 * 60 * 24 * 14;
 
         $metadata = Metadata::builder($settings->getSPData(), true, true, $validUntil);
 
         return Metadata::addX509KeyDescriptors(
             $metadata,
-            $this->getSettings()['saml']['sp']['x509cert']
+            $this->getSettings()['saml']['sp']['x509cert'],
         );
     }
 
     /**
-     * Returns the complete settings array
+     * Returns the complete settings array.
      */
     public function getSettings(): array
     {
@@ -336,7 +337,7 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Builds the SAML settings from database configuration
+     * Builds the SAML settings from database configuration.
      */
     private function buildSettings(): void
     {
@@ -347,26 +348,26 @@ final class SamlService implements SingletonInterface
             return;
         }
 
-        $this->settings['saml']['sp']['entityId'] = $settingsModel->getSpEntityId();
-        $this->settings['saml']['sp']['assertionConsumerService']['url'] = $settingsModel->getSpCustomerServiceUrl();
+        $this->settings['saml']['sp']['entityId']                            = $settingsModel->getSpEntityId();
+        $this->settings['saml']['sp']['assertionConsumerService']['url']     = $settingsModel->getSpCustomerServiceUrl();
         $this->settings['saml']['sp']['assertionConsumerService']['binding'] = $settingsModel->getSpCustomerServiceBinding();
-        $this->settings['saml']['sp']['NameIDFormat'] = constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
-        $this->settings['saml']['sp']['x509cert'] = $settingsModel->getSpCert();
-        $this->settings['saml']['sp']['privateKey'] = $settingsModel->getSpKey();
+        $this->settings['saml']['sp']['NameIDFormat']                        = constant(Constants::class . '::' . $settingsModel->getSpNameIdFormat());
+        $this->settings['saml']['sp']['x509cert']                            = $settingsModel->getSpCert();
+        $this->settings['saml']['sp']['privateKey']                          = $settingsModel->getSpKey();
 
-        $this->settings['saml']['idp']['entityId'] = $settingsModel->getIdpEntityId();
-        $this->settings['saml']['idp']['singleSignOnService']['url'] = $settingsModel->getIdpSsoUrl();
-        $this->settings['saml']['idp']['singleLogoutService']['url'] = $settingsModel->getIdpLogoutUrl();
+        $this->settings['saml']['idp']['entityId']                       = $settingsModel->getIdpEntityId();
+        $this->settings['saml']['idp']['singleSignOnService']['url']     = $settingsModel->getIdpSsoUrl();
+        $this->settings['saml']['idp']['singleLogoutService']['url']     = $settingsModel->getIdpLogoutUrl();
         $this->settings['saml']['idp']['singleSignOnService']['binding'] = $settingsModel->getIdpSsoBinding();
-        $this->settings['saml']['idp']['x509cert'] = $settingsModel->getIdpCert();
+        $this->settings['saml']['idp']['x509cert']                       = $settingsModel->getIdpCert();
 
         $this->settings['username_prefix'] = $settingsModel->getUsernamePrefix();
-        $this->settings['users_pid'] = $settingsModel->getUsersPid();
-        $this->settings['usergroup'] = $settingsModel->getUsergroup();
+        $this->settings['users_pid']       = $settingsModel->getUsersPid();
+        $this->settings['usergroup']       = $settingsModel->getUsergroup();
     }
 
     /**
-     * Schema validation of responses, extension setting `validateXml` (default on)
+     * Schema validation of responses, extension setting `validateXml` (default on).
      */
     private function isXmlValidationEnabled(): bool
     {
@@ -376,11 +377,11 @@ final class SamlService implements SingletonInterface
             return true;
         }
 
-        return $value === null || $value === '' || (bool)$value;
+        return $value === null || $value === '' || (bool) $value;
     }
 
     /**
-     * Fetches settings from repository
+     * Fetches settings from repository.
      */
     private function fetchSettings(): ?Settings
     {

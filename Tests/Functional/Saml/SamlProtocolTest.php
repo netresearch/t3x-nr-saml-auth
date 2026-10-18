@@ -41,7 +41,7 @@ final class SamlProtocolTest extends FunctionalTestCase
     {
         $xml = file_get_contents($this->fixturesPath . 'valid_response_user_attributes.xml');
 
-        $dom = new DOMDocument();
+        $dom    = new DOMDocument();
         $result = @$dom->loadXML($xml);
 
         self::assertTrue($result, 'Fixture XML should be well-formed');
@@ -77,7 +77,7 @@ final class SamlProtocolTest extends FunctionalTestCase
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
-        $attributes = $xpath->query('//saml:Attribute/@Name');
+        $attributes     = $xpath->query('//saml:Attribute/@Name');
         $attributeNames = [];
         foreach ($attributes as $attr) {
             $attributeNames[] = $attr->nodeValue;
@@ -99,13 +99,13 @@ final class SamlProtocolTest extends FunctionalTestCase
         $xpath = new DOMXPath($dom);
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
-        $conditions = $xpath->query('//saml:Conditions')->item(0);
+        $conditions   = $xpath->query('//saml:Conditions')->item(0);
         $notOnOrAfter = new DateTimeImmutable($conditions->getAttribute('NotOnOrAfter'));
 
         self::assertLessThan(
             new DateTimeImmutable(),
             $notOnOrAfter,
-            'Expired assertion should have NotOnOrAfter in the past'
+            'Expired assertion should have NotOnOrAfter in the past',
         );
     }
 
@@ -163,7 +163,7 @@ final class SamlProtocolTest extends FunctionalTestCase
 
         $xml = $builder->build();
 
-        $dom = new DOMDocument();
+        $dom    = new DOMDocument();
         $result = $dom->loadXML($xml);
 
         self::assertTrue($result);
@@ -183,7 +183,7 @@ final class SamlProtocolTest extends FunctionalTestCase
         $response = $idp->authenticate(
             'admin@example.com',
             'https://sp.example.com/acs',
-            'https://sp.example.com'
+            'https://sp.example.com',
         );
 
         self::assertArrayHasKey('SAMLResponse', $response);
@@ -203,7 +203,7 @@ final class SamlProtocolTest extends FunctionalTestCase
         $response = $idp->authenticate(
             'admin@example.com',
             'https://sp.example.com/acs',
-            'https://sp.example.com'
+            'https://sp.example.com',
         );
 
         $decoded = base64_decode($response['SAMLResponse'], true);
@@ -220,7 +220,7 @@ final class SamlProtocolTest extends FunctionalTestCase
         $response = $idp->authenticateFailure(
             'https://sp.example.com/acs',
             'https://sp.example.com',
-            'urn:oasis:names:tc:SAML:2.0:status:AuthnFailed'
+            'urn:oasis:names:tc:SAML:2.0:status:AuthnFailed',
         );
 
         $decoded = base64_decode($response['SAMLResponse'], true);
@@ -252,7 +252,7 @@ final class SamlProtocolTest extends FunctionalTestCase
             'john@example.com',
             'John',
             'Doe',
-            ['fe_users']
+            ['fe_users'],
         );
 
         $xml = $builder->build();
@@ -281,7 +281,7 @@ final class SamlProtocolTest extends FunctionalTestCase
             self::assertInstanceOf(
                 SamlResponseBuilder::class,
                 $builder,
-                "Batch item '$name' should be a SamlResponseBuilder"
+                "Batch item '$name' should be a SamlResponseBuilder",
             );
         }
     }
@@ -292,7 +292,7 @@ final class SamlProtocolTest extends FunctionalTestCase
     {
         $xml = file_get_contents($this->fixturesPath . $filename);
 
-        $dom = new DOMDocument();
+        $dom    = new DOMDocument();
         $result = @$dom->loadXML($xml);
 
         self::assertTrue($result, "Fixture '$filename' should be well-formed XML");
@@ -302,11 +302,11 @@ final class SamlProtocolTest extends FunctionalTestCase
     {
         return [
             'valid_response_user_attributes' => ['valid_response_user_attributes.xml'],
-            'valid_response_minimal' => ['valid_response_minimal.xml'],
-            'expired_assertion' => ['expired_assertion.xml'],
-            'wrong_audience' => ['wrong_audience.xml'],
-            'invalid_signature' => ['invalid_signature.xml'],
-            'failed_status' => ['failed_status.xml'],
+            'valid_response_minimal'         => ['valid_response_minimal.xml'],
+            'expired_assertion'              => ['expired_assertion.xml'],
+            'wrong_audience'                 => ['wrong_audience.xml'],
+            'invalid_signature'              => ['invalid_signature.xml'],
+            'failed_status'                  => ['failed_status.xml'],
         ];
     }
 }

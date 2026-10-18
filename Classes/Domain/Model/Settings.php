@@ -61,6 +61,7 @@ class Settings extends AbstractEntity
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -72,6 +73,7 @@ class Settings extends AbstractEntity
     public function setRedirectUrl(string $redirectUrl): self
     {
         $this->redirectUrl = $redirectUrl;
+
         return $this;
     }
 
@@ -83,6 +85,7 @@ class Settings extends AbstractEntity
     public function setSpEntityId(string $spEntityId): self
     {
         $this->spEntityId = $spEntityId;
+
         return $this;
     }
 
@@ -94,6 +97,7 @@ class Settings extends AbstractEntity
     public function setSpCustomerServiceUrl(string $spCustomerServiceUrl): self
     {
         $this->spCustomerServiceUrl = $spCustomerServiceUrl;
+
         return $this;
     }
 
@@ -105,6 +109,7 @@ class Settings extends AbstractEntity
     public function setSpCustomerServiceBinding(string $spCustomerServiceBinding): self
     {
         $this->spCustomerServiceBinding = $spCustomerServiceBinding;
+
         return $this;
     }
 
@@ -116,6 +121,7 @@ class Settings extends AbstractEntity
     public function setSpNameIdFormat(string $spNameIdFormat): self
     {
         $this->spNameIdFormat = $spNameIdFormat;
+
         return $this;
     }
 
@@ -127,6 +133,7 @@ class Settings extends AbstractEntity
     public function setSpCert(string $spCert): self
     {
         $this->spCert = $spCert;
+
         return $this;
     }
 
@@ -138,6 +145,7 @@ class Settings extends AbstractEntity
     public function setSpKey(string $spKey): self
     {
         $this->spKey = $spKey;
+
         return $this;
     }
 
@@ -149,6 +157,7 @@ class Settings extends AbstractEntity
     public function setIdpEntityId(string $idpEntityId): self
     {
         $this->idpEntityId = $idpEntityId;
+
         return $this;
     }
 
@@ -160,6 +169,7 @@ class Settings extends AbstractEntity
     public function setIdpSsoUrl(string $idpSsoUrl): self
     {
         $this->idpSsoUrl = $idpSsoUrl;
+
         return $this;
     }
 
@@ -171,6 +181,7 @@ class Settings extends AbstractEntity
     public function setIdpSsoBinding(string $idpSsoBinding): self
     {
         $this->idpSsoBinding = $idpSsoBinding;
+
         return $this;
     }
 
@@ -182,6 +193,7 @@ class Settings extends AbstractEntity
     public function setIdpLogoutUrl(string $idpLogoutUrl): self
     {
         $this->idpLogoutUrl = $idpLogoutUrl;
+
         return $this;
     }
 
@@ -193,6 +205,7 @@ class Settings extends AbstractEntity
     public function setIdpCert(string $idpCert): self
     {
         $this->idpCert = $idpCert;
+
         return $this;
     }
 
@@ -204,6 +217,7 @@ class Settings extends AbstractEntity
     public function setUsernamePrefix(string $usernamePrefix): self
     {
         $this->usernamePrefix = $usernamePrefix;
+
         return $this;
     }
 
@@ -215,6 +229,7 @@ class Settings extends AbstractEntity
     public function setUsersPid(int $usersPid): self
     {
         $this->usersPid = $usersPid;
+
         return $this;
     }
 
@@ -226,6 +241,7 @@ class Settings extends AbstractEntity
     public function setUsergroup(string $usergroup): self
     {
         $this->usergroup = $usergroup;
+
         return $this;
     }
 }

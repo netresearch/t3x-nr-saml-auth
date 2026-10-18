@@ -26,13 +26,13 @@ class SettingsRepository extends Repository
     }
 
     /**
-     * Find settings by SP entity ID (host URL)
+     * Find settings by SP entity ID (host URL).
      */
     public function findEntityIdByHost(string $host): ?Settings
     {
         $query = $this->createQuery();
         $query->matching(
-            $query->equals('sp_entity_id', $host)
+            $query->equals('sp_entity_id', $host),
         );
 
         $result = $query->execute()->getFirst();

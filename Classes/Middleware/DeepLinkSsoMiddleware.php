@@ -66,7 +66,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
         }
 
         $scheme = strtolower($parts['scheme'] ?? '');
-        $host = strtolower($parts['host'] ?? '');
+        $host   = strtolower($parts['host'] ?? '');
         if (!in_array($scheme, ['http', 'https'], true) || $host === '') {
             return false;
         }
@@ -86,7 +86,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
         $normalizedParams = $request->getAttribute('normalizedParams');
         if ($normalizedParams instanceof NormalizedParams) {
             $scheme = $normalizedParams->isHttps() ? 'https' : 'http';
-            $port = $normalizedParams->getRequestPort();
+            $port   = $normalizedParams->getRequestPort();
 
             return [
                 $scheme,
@@ -95,7 +95,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
             ];
         }
 
-        $uri = $request->getUri();
+        $uri    = $request->getUri();
         $scheme = strtolower($uri->getScheme());
 
         return [$scheme, strtolower($uri->getHost()), $uri->getPort() ?? $this->getDefaultPort($scheme)];
@@ -117,7 +117,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
 
     private function getRedirectTarget(ServerRequestInterface $request): ?string
     {
-        $parsedBody = $request->getParsedBody();
+        $parsedBody  = $request->getParsedBody();
         $queryParams = $request->getQueryParams();
 
         // Check POST body first (login), then query params (logout)
@@ -136,6 +136,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
         }
 
         $parsedBody = $request->getParsedBody();
+
         return isset($parsedBody['RelayState']);
     }
 

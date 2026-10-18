@@ -110,15 +110,15 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame(200, $response->getStatusCode());
         $user = $this->findUser('jdoe', self::SAML_USERS_PID);
         self::assertIsArray($user, 'A frontend user is created in the storage folder of the settings record');
-        self::assertSame('1', (string)$user['usergroup']);
-        self::assertSame([(int)$user['uid']], $this->loggedInUserIds());
+        self::assertSame('1', (string) $user['usergroup']);
+        self::assertSame([(int) $user['uid']], $this->loggedInUserIds());
     }
 
     #[Test]
     public function responseIsAcceptedOnce(): void
     {
         $samlResponse = $this->identityProvider->sign(
-            $this->validResponse()->withAttribute('username', 'localuser')
+            $this->validResponse()->withAttribute('username', 'localuser'),
         );
         $this->postSamlResponse($samlResponse);
         self::assertCount(1, $this->loggedInUserIds());
@@ -136,9 +136,9 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function inactiveUserDataProvider(): array
     {
         return [
-            'disabled' => [['disable' => 1]],
+            'disabled'                 => [['disable' => 1]],
             'start time in the future' => [['starttime' => time() + 3600]],
-            'end time passed' => [['endtime' => time() - 3600]],
+            'end time passed'          => [['endtime' => time() - 3600]],
         ];
     }
 
@@ -153,7 +153,7 @@ final class SamlLoginTest extends FunctionalTestCase
             ->update('fe_users', $fields, ['username' => 'localuser']);
 
         $this->postSamlResponse($this->identityProvider->sign(
-            $this->validResponse()->withAttribute('username', 'localuser')
+            $this->validResponse()->withAttribute('username', 'localuser'),
         ));
 
         self::assertSame([], $this->loggedInUserIds());
@@ -168,7 +168,7 @@ final class SamlLoginTest extends FunctionalTestCase
             )
             ->executeQuery()
             ->fetchOne();
-        self::assertSame(1, (int)$count, 'No second user with the same name is created');
+        self::assertSame(1, (int) $count, 'No second user with the same name is created');
     }
 
     /**
@@ -180,7 +180,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public function usernameInOtherLetterCaseLogsInTheUserTheDatabaseFinds(): void
     {
         $this->postSamlResponse($this->identityProvider->sign(
-            $this->validResponse()->withAttribute('username', 'LocalUser')
+            $this->validResponse()->withAttribute('username', 'LocalUser'),
         ));
 
         $loggedIn = $this->loggedInUserIds();
@@ -189,8 +189,8 @@ final class SamlLoginTest extends FunctionalTestCase
             ->select(['username', 'pid'], 'fe_users', ['uid' => $loggedIn[0]])
             ->fetchAssociative();
         self::assertIsArray($user);
-        self::assertSame('localuser', strtolower((string)$user['username']));
-        self::assertSame(self::SAML_USERS_PID, (int)$user['pid']);
+        self::assertSame('localuser', strtolower((string) $user['username']));
+        self::assertSame(self::SAML_USERS_PID, (int) $user['pid']);
     }
 
     #[Test]
@@ -213,12 +213,12 @@ final class SamlLoginTest extends FunctionalTestCase
     public function responseNotMeantForThisLoginIsRejected(string $variant): void
     {
         $builder = match ($variant) {
-            'other audience' => $this->validResponse()->withAudience('https://other-sp.example.org/'),
-            'other issuer' => $this->validResponse()->withIssuer('https://other-idp.example.org'),
+            'other audience'    => $this->validResponse()->withAudience('https://other-sp.example.org/'),
+            'other issuer'      => $this->validResponse()->withIssuer('https://other-idp.example.org'),
             'other destination' => $this->validResponse()->withDestination('https://other-sp.example.org/?logintype=login'),
-            'expired' => $this->validResponse()->expired(),
-            'not yet valid' => $this->validResponse()->notYetValid(),
-            default => self::fail('Unknown variant ' . $variant),
+            'expired'           => $this->validResponse()->expired(),
+            'not yet valid'     => $this->validResponse()->notYetValid(),
+            default             => self::fail('Unknown variant ' . $variant),
         };
 
         $this->postSamlResponse($this->identityProvider->sign($builder));
@@ -233,11 +233,11 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function responsesNotMeantForThisLoginDataProvider(): array
     {
         return [
-            'other audience' => ['other audience'],
-            'other issuer' => ['other issuer'],
+            'other audience'    => ['other audience'],
+            'other issuer'      => ['other issuer'],
             'other destination' => ['other destination'],
-            'expired' => ['expired'],
-            'not yet valid' => ['not yet valid'],
+            'expired'           => ['expired'],
+            'not yet valid'     => ['not yet valid'],
         ];
     }
 
@@ -257,7 +257,7 @@ final class SamlLoginTest extends FunctionalTestCase
     {
         return [
             'not base64' => ['!!!!'],
-            'blank' => [' '],
+            'blank'      => [' '],
         ];
     }
 
@@ -275,7 +275,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public function responseIsAcceptedOnceAcrossSettingsRecordsOfTheSameIdentityProvider(): void
     {
         $connection = $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings');
-        $record = $connection->select(['*'], 'tx_nrsamlauth_domain_model_settings', ['uid' => 1])->fetchAssociative();
+        $record     = $connection->select(['*'], 'tx_nrsamlauth_domain_model_settings', ['uid' => 1])->fetchAssociative();
         self::assertIsArray($record);
         $connection->insert('tx_nrsamlauth_domain_model_settings', ['uid' => 2] + $record);
 
@@ -327,7 +327,7 @@ final class SamlLoginTest extends FunctionalTestCase
 
         $samlUser = $this->findUser('jdoe', self::SAML_USERS_PID);
         self::assertIsArray($samlUser);
-        self::assertSame([(int)$samlUser['uid']], $this->loggedInUserIds());
+        self::assertSame([(int) $samlUser['uid']], $this->loggedInUserIds());
     }
 
     #[Test]
@@ -340,7 +340,7 @@ final class SamlLoginTest extends FunctionalTestCase
 
         $user = $this->findUser('sso-jdoe', self::SAML_USERS_PID);
         self::assertIsArray($user);
-        self::assertSame([(int)$user['uid']], $this->loggedInUserIds());
+        self::assertSame([(int) $user['uid']], $this->loggedInUserIds());
     }
 
     /**
@@ -349,7 +349,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function relayStatesOnThisHostDataProvider(): array
     {
         return [
-            'path' => ['/some/page?a=1', '/some/page?a=1'],
+            'path'                      => ['/some/page?a=1', '/some/page?a=1'],
             'absolute URL on this host' => ['https://sp.example.com/some/page', 'https://sp.example.com/some/page'],
             'host in other letter case' => ['https://SP.example.com/some/page', 'https://SP.example.com/some/page'],
         ];
@@ -376,15 +376,15 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function relayStatesOffThisHostDataProvider(): array
     {
         return [
-            'other host' => ['https://elsewhere.example.org/'],
+            'other host'                     => ['https://elsewhere.example.org/'],
             'host as prefix of another host' => ['https://sp.example.com.example.org/'],
-            'scheme-relative URL' => ['//elsewhere.example.org/'],
-            'backslash after slash' => ['/\\elsewhere.example.org/'],
-            'other scheme on this host' => ['http://sp.example.com/'],
-            'other port on this host' => ['https://sp.example.com:8443/'],
-            'credentials in URL' => ['https://user@sp.example.com/'],
-            'script URL' => ['javascript:alert(1)'],
-            'relative path without slash' => ['elsewhere.example.org/'],
+            'scheme-relative URL'            => ['//elsewhere.example.org/'],
+            'backslash after slash'          => ['/\\elsewhere.example.org/'],
+            'other scheme on this host'      => ['http://sp.example.com/'],
+            'other port on this host'        => ['https://sp.example.com:8443/'],
+            'credentials in URL'             => ['https://user@sp.example.com/'],
+            'script URL'                     => ['javascript:alert(1)'],
+            'relative path without slash'    => ['elsewhere.example.org/'],
         ];
     }
 
@@ -412,7 +412,7 @@ final class SamlLoginTest extends FunctionalTestCase
         $samlResponse = $this->identityProvider->sign(
             $this->validResponse()
                 ->withNameId(self::NAME_ID, self::NAMEID_EMAIL)
-                ->withSessionIndex('_idp_session_4711')
+                ->withSessionIndex('_idp_session_4711'),
         );
 
         $this->postSamlResponse($samlResponse);
@@ -421,14 +421,14 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertNotSame('_idp_session_4711', $this->assertionIdOf($samlResponse));
         self::assertSame(
             [
-                'id' => 1,
-                'nameId' => self::NAME_ID,
-                'nameIdFormat' => self::NAMEID_EMAIL,
-                'nameIdNameQualifier' => null,
+                'id'                    => 1,
+                'nameId'                => self::NAME_ID,
+                'nameIdFormat'          => self::NAMEID_EMAIL,
+                'nameIdNameQualifier'   => null,
                 'nameIdSPNameQualifier' => null,
-                'sessionIndex' => '_idp_session_4711',
+                'sessionIndex'          => '_idp_session_4711',
             ],
-            $this->storedSingleLogoutData()
+            $this->storedSingleLogoutData(),
         );
     }
 
@@ -438,7 +438,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function sessionIndexDataProvider(): array
     {
         return [
-            'identifier' => ['_idp_session_4711'],
+            'identifier'             => ['_idp_session_4711'],
             'characters XML escapes' => ['session <1> & "2"'],
         ];
     }
@@ -456,7 +456,7 @@ final class SamlLoginTest extends FunctionalTestCase
             $this->validResponse()
                 ->withNameId(self::NAME_ID, self::NAMEID_EMAIL)
                 ->withNameIdQualifiers(self::IDP_ENTITY_ID, self::SP_ENTITY_ID)
-                ->withSessionIndex($sessionIndex)
+                ->withSessionIndex($sessionIndex),
         );
         $this->postSamlResponse($samlResponse);
 
@@ -487,7 +487,7 @@ final class SamlLoginTest extends FunctionalTestCase
         $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
             ->update('tx_nrsamlauth_domain_model_settings', ['sp_name_id_format' => 'NAMEID_EMAIL_ADDRESS'], ['uid' => 1]);
         $this->postSamlResponse($this->identityProvider->sign(
-            $this->validResponse()->withNameId(self::NAME_ID)->withNameIdFormat(null)
+            $this->validResponse()->withNameId(self::NAME_ID)->withNameIdFormat(null),
         ));
 
         $nameId = $this->logoutRequestFor($this->storedSingleLogoutData())
@@ -504,7 +504,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public static function missingSessionIndexDataProvider(): array
     {
         return [
-            'no attribute' => [null],
+            'no attribute'    => [null],
             'empty attribute' => [''],
         ];
     }
@@ -519,7 +519,7 @@ final class SamlLoginTest extends FunctionalTestCase
     public function logoutRequestWithoutSessionIndexOfTheLoginNamesOnlyThePrincipal(?string $sessionIndex): void
     {
         $this->postSamlResponse($this->identityProvider->sign(
-            $this->validResponse()->withNameId(self::NAME_ID)->withSessionIndex($sessionIndex)
+            $this->validResponse()->withNameId(self::NAME_ID)->withSessionIndex($sessionIndex),
         ));
 
         $singleLogoutData = $this->storedSingleLogoutData();
@@ -531,7 +531,7 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame(0, $logoutRequest->query(self::XPATH_SESSION_INDEX)?->length);
         self::assertSame(
             self::NAME_ID,
-            $logoutRequest->query(self::XPATH_NAME_ID)?->item(0)?->textContent
+            $logoutRequest->query(self::XPATH_NAME_ID)?->item(0)?->textContent,
         );
     }
 
@@ -615,7 +615,7 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertIsString($url);
         self::assertStringStartsWith(self::IDP_LOGOUT_URL . '?', $url);
 
-        parse_str((string)parse_url($url, PHP_URL_QUERY), $query);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
         self::assertIsString($query['SAMLRequest'] ?? null);
         $decoded = base64_decode($query['SAMLRequest'], true);
         self::assertIsString($decoded);
@@ -655,7 +655,7 @@ final class SamlLoginTest extends FunctionalTestCase
             return null;
         }
 
-        $data = UserSession::createFromRecord((string)$record['ses_id'], $record)->get('NrSamlAuth');
+        $data = UserSession::createFromRecord((string) $record['ses_id'], $record)->get('NrSamlAuth');
 
         return is_array($data) ? $data : null;
     }
@@ -668,7 +668,7 @@ final class SamlLoginTest extends FunctionalTestCase
             ->withDestination(self::ACS_URL)
             ->withAttributes([
                 'username' => 'jdoe',
-                'mail' => 'jdoe@example.com',
+                'mail'     => 'jdoe@example.com',
             ]);
     }
 
@@ -712,7 +712,7 @@ final class SamlLoginTest extends FunctionalTestCase
             ->select(['ses_userid'], 'fe_sessions', [])
             ->fetchAllAssociative();
 
-        return array_values(array_filter(array_map(static fn(array $row): int => (int)$row['ses_userid'], $rows)));
+        return array_values(array_filter(array_map(static fn (array $row): int => (int) $row['ses_userid'], $rows)));
     }
 
     private function insertSettings(string $idpCertificate): void
@@ -720,21 +720,21 @@ final class SamlLoginTest extends FunctionalTestCase
         $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')->insert(
             'tx_nrsamlauth_domain_model_settings',
             [
-                'uid' => 1,
-                'pid' => 0,
-                'name' => 'Test identity provider',
-                'sp_entity_id' => self::SP_ENTITY_ID,
-                'sp_customer_service_url' => self::ACS_URL,
+                'uid'                         => 1,
+                'pid'                         => 0,
+                'name'                        => 'Test identity provider',
+                'sp_entity_id'                => self::SP_ENTITY_ID,
+                'sp_customer_service_url'     => self::ACS_URL,
                 'sp_customer_service_binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-                'sp_name_id_format' => 'NAMEID_UNSPECIFIED',
-                'idp_entity_id' => self::IDP_ENTITY_ID,
-                'idp_sso_url' => 'https://idp.example.com/sso',
-                'idp_sso_binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-                'idp_logout_url' => self::IDP_LOGOUT_URL,
-                'idp_cert' => $idpCertificate,
-                'users_pid' => self::SAML_USERS_PID,
-                'usergroup' => '1',
-            ]
+                'sp_name_id_format'           => 'NAMEID_UNSPECIFIED',
+                'idp_entity_id'               => self::IDP_ENTITY_ID,
+                'idp_sso_url'                 => 'https://idp.example.com/sso',
+                'idp_sso_binding'             => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                'idp_logout_url'              => self::IDP_LOGOUT_URL,
+                'idp_cert'                    => $idpCertificate,
+                'users_pid'                   => self::SAML_USERS_PID,
+                'usergroup'                   => '1',
+            ],
         );
     }
 

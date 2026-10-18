@@ -19,12 +19,12 @@ use TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent;
  */
 #[AsEventListener(
     identifier: 'nr-saml-auth/before-user-logout',
-    event: BeforeUserLogoutEvent::class
+    event: BeforeUserLogoutEvent::class,
 )]
 final class BeforeUserLogoutEventListener
 {
     /**
-     * Static storage for session data between pre and post logout events
+     * Static storage for session data between pre and post logout events.
      *
      * @var array<string, mixed>
      */

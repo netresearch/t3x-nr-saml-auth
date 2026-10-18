@@ -61,7 +61,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
 
         if ($samlResponse !== ''
             && $frontendUser instanceof FrontendUserAuthentication
-            && (int)($frontendUser->user['uid'] ?? 0) === AuthenticationService::getUserResolvedForRequest($request)
+            && (int) ($frontendUser->user['uid'] ?? 0) === AuthenticationService::getUserResolvedForRequest($request)
         ) {
             $this->storeSingleLogoutData($request, $frontendUser, $samlResponse);
         }
@@ -97,7 +97,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
 
     private function getSamlResponse(ServerRequestInterface $request): string
     {
-        $parsedBody = $request->getParsedBody();
+        $parsedBody   = $request->getParsedBody();
         $samlResponse = is_array($parsedBody) ? ($parsedBody['SAMLResponse'] ?? '') : '';
 
         return is_string($samlResponse) ? $samlResponse : '';
@@ -115,24 +115,24 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
     {
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['saml_id'])) {
-            return (int)$queryParams['saml_id'];
+            return (int) $queryParams['saml_id'];
         }
 
-        $uri = $request->getUri();
-        $table = 'tx_nrsamlauth_domain_model_settings';
+        $uri          = $request->getUri();
+        $table        = 'tx_nrsamlauth_domain_model_settings';
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable($table);
-        $uid = $queryBuilder
+        $uid          = $queryBuilder
             ->select('uid')
             ->from($table)
             ->where(
                 $queryBuilder->expr()->eq(
                     'sp_entity_id',
-                    $queryBuilder->createNamedParameter($uri->getScheme() . '://' . $uri->getHost() . '/')
-                )
+                    $queryBuilder->createNamedParameter($uri->getScheme() . '://' . $uri->getHost() . '/'),
+                ),
             )
             ->executeQuery()
             ->fetchOne();
 
-        return is_numeric($uid) ? (int)$uid : 1;
+        return is_numeric($uid) ? (int) $uid : 1;
     }
 }
