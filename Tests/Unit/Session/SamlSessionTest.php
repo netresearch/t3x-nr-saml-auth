@@ -79,7 +79,7 @@ final class SamlSessionTest extends UnitTestCase
     #[Test]
     public function getSessionDataReturnsSessionDataFromUser(): void
     {
-        $expectedData = ['id' => 1, 'AssertionId' => 'abc123', 'nameId' => 'user@example.com'];
+        $expectedData = ['id' => 1, 'nameId' => 'user@example.com', 'sessionIndex' => 'abc123'];
 
         $frontendUser = $this->createMock(FrontendUserAuthentication::class);
         $frontendUser->expects($this->once())
@@ -95,7 +95,7 @@ final class SamlSessionTest extends UnitTestCase
     #[Test]
     public function setSessionDataStoresDataInSession(): void
     {
-        $testData = ['id' => 1, 'AssertionId' => 'xyz789', 'nameId' => 'test@example.com'];
+        $testData = ['id' => 1, 'nameId' => 'test@example.com', 'sessionIndex' => 'xyz789'];
 
         $frontendUser = $this->createMock(FrontendUserAuthentication::class);
         $frontendUser->expects($this->once())

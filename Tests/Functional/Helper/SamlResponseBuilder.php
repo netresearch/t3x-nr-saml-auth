@@ -28,9 +28,13 @@ final class SamlResponseBuilder
 
     private string $nameId = 'user@example.com';
 
-    private string $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
+    private ?string $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress';
 
-    private string $sessionIndex = '_session_index_12345';
+    private ?string $nameQualifier = null;
+
+    private ?string $spNameQualifier = null;
+
+    private ?string $sessionIndex = '_session_index_12345';
 
     private array $attributes = [];
 
@@ -85,6 +89,26 @@ final class SamlResponseBuilder
         if ($format !== null) {
             $clone->nameIdFormat = $format;
         }
+
+        return $clone;
+    }
+
+    /**
+     * The Format of the NameID; null leaves the attribute out.
+     */
+    public function withNameIdFormat(?string $format): self
+    {
+        $clone = clone $this;
+        $clone->nameIdFormat = $format;
+
+        return $clone;
+    }
+
+    public function withNameIdQualifiers(?string $nameQualifier, ?string $spNameQualifier): self
+    {
+        $clone = clone $this;
+        $clone->nameQualifier = $nameQualifier;
+        $clone->spNameQualifier = $spNameQualifier;
 
         return $clone;
     }
@@ -155,7 +179,11 @@ final class SamlResponseBuilder
         return $clone;
     }
 
-    public function withSessionIndex(string $sessionIndex): self
+    /**
+     * The SessionIndex attribute of the AuthnStatement, escaped for XML;
+     * null leaves the attribute out.
+     */
+    public function withSessionIndex(?string $sessionIndex): self
     {
         $clone = clone $this;
         $clone->sessionIndex = $sessionIndex;
@@ -177,6 +205,16 @@ final class SamlResponseBuilder
 
         $attributeStatements = $this->buildAttributeStatement();
         $signature = $this->includeSignature ? $this->buildSignaturePlaceholder() : '';
+        $nameIdAttributes = '';
+        foreach (['Format' => $this->nameIdFormat, 'NameQualifier' => $this->nameQualifier, 'SPNameQualifier' => $this->spNameQualifier] as $name => $value) {
+            if ($value !== null) {
+                $nameIdAttributes .= ' ' . $name . '="' . htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
+            }
+        }
+
+        $sessionIndex = $this->sessionIndex === null
+            ? ''
+            : ' SessionIndex="' . htmlspecialchars($this->sessionIndex, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
 
         return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -198,7 +236,7 @@ final class SamlResponseBuilder
         <saml:Issuer>{$this->issuer}</saml:Issuer>
         {$signature}
         <saml:Subject>
-            <saml:NameID Format="{$this->nameIdFormat}">{$this->nameId}</saml:NameID>
+            <saml:NameID{$nameIdAttributes}>{$this->nameId}</saml:NameID>
             <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
                 <saml:SubjectConfirmationData NotOnOrAfter="{$notOnOrAfter}"
                                                Recipient="{$this->destination}"/>
@@ -209,7 +247,7 @@ final class SamlResponseBuilder
                 <saml:Audience>{$this->audience}</saml:Audience>
             </saml:AudienceRestriction>
         </saml:Conditions>
-        <saml:AuthnStatement AuthnInstant="{$issueInstant}" SessionIndex="{$this->sessionIndex}">
+        <saml:AuthnStatement AuthnInstant="{$issueInstant}"{$sessionIndex}>
             <saml:AuthnContext>
                 <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport</saml:AuthnContextClassRef>
             </saml:AuthnContext>

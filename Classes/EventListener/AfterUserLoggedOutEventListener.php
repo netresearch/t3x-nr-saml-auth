@@ -32,18 +32,7 @@ final class AfterUserLoggedOutEventListener
     public function __invoke(AfterUserLoggedOutEvent $event): void
     {
         try {
-            $sessionData = BeforeUserLogoutEventListener::getSessionData();
-
-            $samlId = $sessionData['id'] ?? null;
-            $assertionId = $sessionData['AssertionId'] ?? null;
-            $nameId = $sessionData['nameId'] ?? null;
-
-            if (empty($samlId) || empty($assertionId)) {
-                return;
-            }
-
-            $this->samlService->setSettingsUid((int)$samlId);
-            $this->samlService->redirectUserToLogout($nameId, $assertionId);
+            $this->samlService->redirectToSingleLogout(BeforeUserLogoutEventListener::getSessionData());
         } catch (Exception $exception) {
             $this->logger->error('SAML logout failed', [
                 'exception' => $exception->getMessage(),
