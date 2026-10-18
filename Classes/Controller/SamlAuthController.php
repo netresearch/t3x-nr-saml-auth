@@ -52,7 +52,9 @@ class SamlAuthController extends ActionController
     private function getArgumentSamlSettings(): ?int
     {
         if ($this->request->hasArgument('samlUid')) {
-            return (int) $this->request->getArgument('samlUid');
+            $uid = $this->request->getArgument('samlUid');
+
+            return is_int($uid) || (is_string($uid) && is_numeric($uid)) ? (int) $uid : 0;
         }
 
         return null;

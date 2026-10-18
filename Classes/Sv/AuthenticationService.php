@@ -116,11 +116,11 @@ class AuthenticationService extends Typo3AuthService
     /**
      * Validates the login and returns the user record as array.
      *
-     * @return bool|array<string, mixed>
+     * @return array<string, mixed>|false
      *
      * @throws Error
      */
-    public function getUser(): bool|array
+    public function getUser(): array|false
     {
         $this->samlService->setSettingsUid($this->getSamlId());
 
@@ -157,10 +157,11 @@ class AuthenticationService extends Typo3AuthService
         }
 
         $request = $this->getRequest();
-        if ($request instanceof ServerRequestInterface) {
+        $uid     = $this->intOrNull($user['uid'] ?? null);
+        if ($request instanceof ServerRequestInterface && $uid !== null) {
             /** @var WeakMap<object, int> $users */
             $users                                = self::$userResolvedForRequest ?? new WeakMap();
-            $users[self::getRequestKey($request)] = (int) $user['uid'];
+            $users[self::getRequestKey($request)] = $uid;
             self::$userResolvedForRequest         = $users;
         }
 
@@ -180,7 +181,7 @@ class AuthenticationService extends Typo3AuthService
      * consumes the assertion; authUser(), which runs later for the same
      * request, accepts it only for that request.
      *
-     * @return array{0: string, 1: array<string, mixed>}|null
+     * @return array{0: string, 1: array<mixed>}|null
      */
     private function getValidatedAssertion(Settings $settings, bool $consume = false): ?array
     {
@@ -317,7 +318,7 @@ class AuthenticationService extends Typo3AuthService
     /**
      * Insert a user into the fe_users table.
      *
-     * @param array<string, mixed> $attributes
+     * @param array<mixed> $attributes
      */
     private function insertUserRecord(string $username, Settings $settings, array $attributes): void
     {
@@ -342,15 +343,20 @@ class AuthenticationService extends Typo3AuthService
     /**
      * Converts the username array to a string.
      *
-     * @param array<string, mixed> $usernameData
+     * @param array<mixed> $usernameData
      */
     private function getUsername(array $usernameData): string
     {
-        return implode('', $usernameData['username'] ?? []);
+        $values = $usernameData['username'] ?? [];
+        if (!is_array($values)) {
+            return '';
+        }
+
+        return implode('', array_filter($values, is_scalar(...)));
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param array<mixed> $attributes
      */
     private function getValueFromAttribute(array $attributes, string $key): string
     {
@@ -358,11 +364,9 @@ class AuthenticationService extends Typo3AuthService
             return '';
         }
 
-        if (is_array($attributes[$key])) {
-            return (string) reset($attributes[$key]);
-        }
+        $value = is_array($attributes[$key]) ? reset($attributes[$key]) : $attributes[$key];
 
-        return (string) $attributes[$key];
+        return is_scalar($value) ? (string) $value : '';
     }
 
     /**
@@ -383,9 +387,10 @@ class AuthenticationService extends Typo3AuthService
             return '';
         }
 
-        $parsedBody = $request->getParsedBody();
+        $parsedBody   = $request->getParsedBody();
+        $samlResponse = is_array($parsedBody) ? ($parsedBody['SAMLResponse'] ?? '') : '';
 
-        return (string) ($parsedBody['SAMLResponse'] ?? '');
+        return is_string($samlResponse) ? $samlResponse : '';
     }
 
     /**
@@ -408,7 +413,7 @@ class AuthenticationService extends Typo3AuthService
 
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['saml_id'])) {
-            return (int) $queryParams['saml_id'];
+            return $this->intOrNull($queryParams['saml_id']) ?? 0;
         }
 
         $uri = $request->getUri();
@@ -476,12 +481,22 @@ class AuthenticationService extends Typo3AuthService
         }
 
         $request    = $this->getRequest();
+        $uid        = $this->intOrNull($user['uid'] ?? null);
         $isSameUser = ($this->db_user['table'] ?? '') === self::USER_TABLE
             && $request instanceof ServerRequestInterface
-            && isset($user['uid'])
-            && (int) $user['uid'] === (self::$userResolvedForRequest[self::getRequestKey($request)] ?? null)
-            && (int) ($user['pid'] ?? -1) === $settings->getUsersPid();
+            && $uid !== null
+            && $uid === (self::$userResolvedForRequest[self::getRequestKey($request)] ?? null)
+            && ($this->intOrNull($user['pid'] ?? null) ?? -1) === $settings->getUsersPid();
 
         return $isSameUser ? 200 : 0;
+    }
+
+    /**
+     * An integer, or a numeric string as the database driver or the request
+     * delivers it; null for anything else.
+     */
+    private function intOrNull(mixed $value): ?int
+    {
+        return is_int($value) || (is_string($value) && is_numeric($value)) ? (int) $value : null;
     }
 }

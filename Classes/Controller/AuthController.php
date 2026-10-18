@@ -84,7 +84,7 @@ class AuthController extends ActionController
     /**
      * Returns the current frontend user data from the request.
      *
-     * @return array<string, mixed>|null
+     * @return array<mixed>|null
      */
     private function getFrontendUser(): ?array
     {
@@ -99,7 +99,9 @@ class AuthController extends ActionController
     private function getSamlSettingsUid(): int
     {
         if (isset($this->settings['samlAuthSettings'])) {
-            return (int) $this->settings['samlAuthSettings'];
+            $uid = $this->settings['samlAuthSettings'];
+
+            return is_int($uid) || (is_string($uid) && is_numeric($uid)) ? (int) $uid : 0;
         }
 
         return 1;

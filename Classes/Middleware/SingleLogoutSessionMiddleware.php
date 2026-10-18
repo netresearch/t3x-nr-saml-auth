@@ -61,7 +61,7 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
 
         if ($samlResponse !== ''
             && $frontendUser instanceof FrontendUserAuthentication
-            && (int) ($frontendUser->user['uid'] ?? 0) === AuthenticationService::getUserResolvedForRequest($request)
+            && $this->getUid($frontendUser) === AuthenticationService::getUserResolvedForRequest($request)
         ) {
             $this->storeSingleLogoutData($request, $frontendUser, $samlResponse);
         }
@@ -95,6 +95,16 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
         }
     }
 
+    /**
+     * Uid of the logged-in frontend user, 0 without one.
+     */
+    private function getUid(FrontendUserAuthentication $frontendUser): int
+    {
+        $uid = $frontendUser->user['uid'] ?? 0;
+
+        return is_int($uid) || (is_string($uid) && is_numeric($uid)) ? (int) $uid : 0;
+    }
+
     private function getSamlResponse(ServerRequestInterface $request): string
     {
         $parsedBody   = $request->getParsedBody();
@@ -115,7 +125,9 @@ final class SingleLogoutSessionMiddleware implements MiddlewareInterface
     {
         $queryParams = $request->getQueryParams();
         if (isset($queryParams['saml_id'])) {
-            return (int) $queryParams['saml_id'];
+            $samlId = $queryParams['saml_id'];
+
+            return is_string($samlId) && is_numeric($samlId) ? (int) $samlId : 0;
         }
 
         $uri          = $request->getUri();
