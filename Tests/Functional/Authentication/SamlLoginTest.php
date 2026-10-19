@@ -558,7 +558,6 @@ final class SamlLoginTest extends FunctionalTestCase
     #[Test]
     public function responseOutsideALoginRequestStoresNoSingleLogoutData(): void
     {
-
         $this->postSamlResponse(
             $this->identityProvider->sign($this->validResponse()->withDestination('https://sp.example.com/')),
             [],
