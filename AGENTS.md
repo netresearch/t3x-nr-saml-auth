@@ -24,7 +24,7 @@ Minimal pre-commit checks (`composer ci` runs all five):
 
 ```bash
 composer ci:test:php:cgl         # PHP-CS-Fixer (dry-run; fix with composer ci:cgl)
-composer ci:test:php:phpstan     # PHPStan level 8
+composer ci:test:php:phpstan     # PHPStan level 10 (shared config; level 8 on TYPO3 12.4)
 composer ci:test:php:rector      # Rector (dry-run, shared org config via Build/rector.php)
 composer ci:test:php:unit        # Unit tests
 composer ci:test:php:functional  # Functional tests (requires typo3DatabaseDriver=pdo_sqlite)

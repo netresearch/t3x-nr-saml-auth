@@ -21,7 +21,7 @@ final class BeforeUserLogoutEventListenerTest extends UnitTestCase
     public function getSessionDataReturnsEmptyArrayByDefault(): void
     {
         $samlSession = $this->createMock(SamlSession::class);
-        $logger = new NullLogger();
+        $logger      = new NullLogger();
 
         $subject = new BeforeUserLogoutEventListener($samlSession, $logger);
 
@@ -32,7 +32,7 @@ final class BeforeUserLogoutEventListenerTest extends UnitTestCase
     public function constructorAcceptsDependencies(): void
     {
         $samlSession = $this->createMock(SamlSession::class);
-        $logger = new NullLogger();
+        $logger      = new NullLogger();
 
         $subject = new BeforeUserLogoutEventListener($samlSession, $logger);
 

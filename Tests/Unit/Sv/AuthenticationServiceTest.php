@@ -83,51 +83,51 @@ final class AuthenticationServiceTest extends UnitTestCase
         return [
             'string value' => [
                 'attributes' => ['name' => 'John Doe'],
-                'key' => 'name',
-                'expected' => 'John Doe',
+                'key'        => 'name',
+                'expected'   => 'John Doe',
             ],
             'array with single value' => [
                 'attributes' => ['mail' => ['john@example.com']],
-                'key' => 'mail',
-                'expected' => 'john@example.com',
+                'key'        => 'mail',
+                'expected'   => 'john@example.com',
             ],
             'array with multiple values returns first' => [
                 'attributes' => ['groups' => ['admin', 'user', 'editor']],
-                'key' => 'groups',
-                'expected' => 'admin',
+                'key'        => 'groups',
+                'expected'   => 'admin',
             ],
             'integer value' => [
                 'attributes' => ['count' => 123],
-                'key' => 'count',
-                'expected' => '123',
+                'key'        => 'count',
+                'expected'   => '123',
             ],
             'float value' => [
                 'attributes' => ['score' => 98.5],
-                'key' => 'score',
-                'expected' => '98.5',
+                'key'        => 'score',
+                'expected'   => '98.5',
             ],
             'missing key returns empty' => [
                 'attributes' => ['exists' => 'value'],
-                'key' => 'missing',
-                'expected' => '',
+                'key'        => 'missing',
+                'expected'   => '',
             ],
             'empty array returns empty' => [
                 'attributes' => ['empty' => []],
-                'key' => 'empty',
-                'expected' => '',
+                'key'        => 'empty',
+                'expected'   => '',
             ],
         ];
     }
 
     /**
-     * Invoke a private method on the subject
+     * Invoke a private method on the subject.
      *
      * @param array<int, mixed> $arguments
      */
     private function invokePrivateMethod(string $methodName, array $arguments = []): mixed
     {
         $reflection = new ReflectionClass($this->subject);
-        $method = $reflection->getMethod($methodName);
+        $method     = $reflection->getMethod($methodName);
 
         return $method->invokeArgs($this->subject, $arguments);
     }

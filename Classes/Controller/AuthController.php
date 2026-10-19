@@ -30,7 +30,7 @@ class AuthController extends ActionController
     ) {}
 
     /**
-     * Login action - initiates SAML SSO flow or displays logged-in state
+     * Login action - initiates SAML SSO flow or displays logged-in state.
      *
      * @throws Error
      */
@@ -54,7 +54,7 @@ class AuthController extends ActionController
     }
 
     /**
-     * Receives SAML response callback
+     * Receives SAML response callback.
      */
     public function receiveSamlResponseAction(): ResponseInterface
     {
@@ -64,16 +64,17 @@ class AuthController extends ActionController
     private function isLoggedIn(): bool
     {
         try {
-            return (bool)$this->context->getPropertyFromAspect('frontend.user', 'isLoggedIn');
+            return (bool) $this->context->getPropertyFromAspect('frontend.user', 'isLoggedIn');
         } catch (Exception $exception) {
             $this->logger->error('Error checking login state', ['exception' => $exception->getMessage()]);
+
             return false;
         }
     }
 
     private function isLogoutRequest(): bool
     {
-        $request = $this->request;
+        $request     = $this->request;
         $queryParams = $request->getQueryParams();
 
         // LoginType::LOGOUT is a string constant on TYPO3 12.4 and a backed enum case on 13.4
@@ -83,7 +84,7 @@ class AuthController extends ActionController
     /**
      * Returns the current frontend user data from the request.
      *
-     * @return array<string, mixed>|null
+     * @return array<mixed>|null
      */
     private function getFrontendUser(): ?array
     {
@@ -98,7 +99,9 @@ class AuthController extends ActionController
     private function getSamlSettingsUid(): int
     {
         if (isset($this->settings['samlAuthSettings'])) {
-            return (int)$this->settings['samlAuthSettings'];
+            $uid = $this->settings['samlAuthSettings'];
+
+            return is_int($uid) || (is_string($uid) && is_numeric($uid)) ? (int) $uid : 0;
         }
 
         return 1;

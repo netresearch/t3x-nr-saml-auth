@@ -35,7 +35,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getQueryParams')->willReturn([]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)
@@ -55,7 +55,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getQueryParams')->willReturn([]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)
@@ -75,7 +75,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getQueryParams')->willReturn([]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)
@@ -93,13 +93,13 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getMethod')->willReturn('GET');
         $request->method('getParsedBody')->willReturn(null);
         $request->method('getQueryParams')->willReturn([
-            'logintype' => 'logout',
-            'RelayState' => '',
+            'logintype'    => 'logout',
+            'RelayState'   => '',
             'SAMLResponse' => 'test',
         ]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)
@@ -117,12 +117,12 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getMethod')->willReturn('GET');
         $request->method('getParsedBody')->willReturn(null);
         $request->method('getQueryParams')->willReturn([
-            'logintype' => 'logout',
+            'logintype'  => 'logout',
             'RelayState' => 'https://example.com',
         ]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)
@@ -142,7 +142,7 @@ final class DeepLinkSsoMiddlewareTest extends UnitTestCase
         $request->method('getQueryParams')->willReturn([]);
 
         $expectedResponse = $this->createMock(ResponseInterface::class);
-        $handler = $this->createMock(RequestHandlerInterface::class);
+        $handler          = $this->createMock(RequestHandlerInterface::class);
         $handler->expects($this->once())
             ->method('handle')
             ->with($request)

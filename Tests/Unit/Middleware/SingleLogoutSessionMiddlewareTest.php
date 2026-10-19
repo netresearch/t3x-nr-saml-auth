@@ -52,13 +52,13 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
     public static function requestsThatStoreNothingDataProvider(): array
     {
         return [
-            'no SAML response' => [[], ['uid' => 5], 5],
-            'empty SAML response' => [['SAMLResponse' => ''], ['uid' => 5], 5],
-            'no parsed body' => [null, ['uid' => 5], 5],
+            'no SAML response'                   => [[], ['uid' => 5], 5],
+            'empty SAML response'                => [['SAMLResponse' => ''], ['uid' => 5], 5],
+            'no parsed body'                     => [null, ['uid' => 5], 5],
             'no user resolved from the response' => [self::SAML_RESPONSE, ['uid' => 5], null],
             'another user than the one resolved' => [self::SAML_RESPONSE, ['uid' => 5], 6],
-            'no frontend user logged in' => [self::SAML_RESPONSE, [], 5],
-            'no frontend user' => [self::SAML_RESPONSE, null, 5],
+            'no frontend user logged in'         => [self::SAML_RESPONSE, [], 5],
+            'no frontend user'                   => [self::SAML_RESPONSE, null, 5],
         ];
     }
 
@@ -146,7 +146,7 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
 
     /**
      * @param array<string, mixed>|null $body
-     * @param array<string, mixed> $query
+     * @param array<string, mixed>      $query
      * @param array<string, mixed>|null $user
      */
     private function createRequest(?array $body, array $query, ?array $user, ?int $resolvedUid): ServerRequestInterface
@@ -156,16 +156,16 @@ final class SingleLogoutSessionMiddlewareTest extends UnitTestCase
             ->withQueryParams($query);
 
         if ($user !== null) {
-            $frontendUser = new FrontendUserAuthentication();
+            $frontendUser       = new FrontendUserAuthentication();
             $frontendUser->user = $user;
-            $request = $request->withAttribute('frontend.user', $frontendUser);
+            $request            = $request->withAttribute('frontend.user', $frontendUser);
         }
 
         if ($resolvedUid !== null) {
             // What AuthenticationService::getUser() records for the request
             $property = new ReflectionProperty(AuthenticationService::class, 'userResolvedForRequest');
             /** @var WeakMap<object, int> $resolved */
-            $resolved = new WeakMap();
+            $resolved           = new WeakMap();
             $resolved[$request] = $resolvedUid;
             $property->setValue(null, $resolved);
         }

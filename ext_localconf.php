@@ -12,7 +12,7 @@ use Netresearch\NrSamlAuth\Sv\AuthenticationService;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 
-defined('TYPO3') || die();
+defined('TYPO3') || exit;
 
 (static function (): void {
     ExtensionUtility::configurePlugin(
@@ -23,7 +23,7 @@ defined('TYPO3') || die();
         ],
         [
             AuthController::class => 'login, receiveSamlResponse',
-        ]
+        ],
     );
 
     ExtensionManagementUtility::addService(
@@ -31,13 +31,13 @@ defined('TYPO3') || die();
         'auth',
         AuthenticationService::class,
         [
-            'title' => 'SAML Authentication service',
+            'title'       => 'SAML Authentication service',
             'description' => 'Authentication via SAML Service Provider for single sign-on (SSO)',
-            'subtype' => 'authUserFE,authUserBE,getUserFE',
-            'available' => true,
-            'priority' => 100,
-            'quality' => 100,
-            'className' => AuthenticationService::class,
-        ]
+            'subtype'     => 'authUserFE,authUserBE,getUserFE',
+            'available'   => true,
+            'priority'    => 100,
+            'quality'     => 100,
+            'className'   => AuthenticationService::class,
+        ],
     );
 })();

@@ -40,5 +40,5 @@ No enforced architecture test exists (no `Tests/Architecture/`). Observable conv
 ## Key decisions
 
 - CI matrix and shared jobs come from the reusable `netresearch/typo3-ci-workflows` (`.github/workflows/ci.yml` for the test matrix, `checks.yml` for security/quality gates) — matrix intent is commented inline in `ci.yml`.
-- Rector/CGL configs delegate to the shared org config (`Build/rector.php`, `.php-cs-fixer.php`); PHPStan runs at level 8 (`phpstan.neon`).
+- Rector/CGL configs delegate to the shared org config (`Build/rector.php`, `.php-cs-fixer.php`); PHPStan runs at level 10 with the shared org config, level 8 on the TYPO3 12.4 cells (`phpstan.neon`, `Build/phpstan-shared.php`).
 - No ADR directory exists; record future architecture decisions in PRs or introduce `docs/adr/` when needed.

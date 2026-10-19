@@ -5,14 +5,16 @@
  * SPDX-FileCopyrightText: Netresearch DTT GmbH
  */
 
+declare(strict_types=1);
+
 use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 
-defined('TYPO3') || die();
+defined('TYPO3') || exit;
 
 (static function (): void {
     ExtensionUtility::registerPlugin(
         'NrSamlAuth',
         'Authentication',
-        'Saml Authentication'
+        'Saml Authentication',
     );
 })();

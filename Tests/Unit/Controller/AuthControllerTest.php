@@ -32,8 +32,8 @@ final class AuthControllerTest extends UnitTestCase
     public static function loginTypeDataProvider(): array
     {
         return [
-            'logout' => [['logintype' => 'logout'], true],
-            'login' => [['logintype' => 'login'], false],
+            'logout'        => [['logintype' => 'logout'], true],
+            'login'         => [['logintype' => 'login'], false],
             'no login type' => [[], false],
         ];
     }

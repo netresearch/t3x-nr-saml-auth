@@ -34,9 +34,9 @@ final class SamlServiceTest extends UnitTestCase
     {
         parent::setUp();
 
-        $this->settingsRepository = self::createStub(SettingsRepository::class);
+        $this->settingsRepository     = self::createStub(SettingsRepository::class);
         $this->extensionConfiguration = self::createStub(ExtensionConfiguration::class);
-        $this->subject = new SamlService($this->settingsRepository, $this->extensionConfiguration);
+        $this->subject                = new SamlService($this->settingsRepository, $this->extensionConfiguration);
     }
 
     #[Test]
@@ -120,7 +120,7 @@ final class SamlServiceTest extends UnitTestCase
     {
         return [
             'no proxy prefix' => [[], 'https://sp.example.com/saml/acs'],
-            'proxy prefix' => [['reverseProxyPrefix' => '/site'], 'https://sp.example.com/site/saml/acs'],
+            'proxy prefix'    => [['reverseProxyPrefix' => '/site'], 'https://sp.example.com/site/saml/acs'],
         ];
     }
 
@@ -132,16 +132,16 @@ final class SamlServiceTest extends UnitTestCase
     public function theUrlPhpSamlComparesWithTheDestinationIsTheUrlTypo3Sees(array $proxyConfiguration, string $expectedUrl): void
     {
         $serverParams = [
-            'HTTP_HOST' => 'sp.example.com',
-            'HTTPS' => 'on',
-            'SERVER_PORT' => '443',
-            'REQUEST_URI' => '/saml/acs?logintype=login',
+            'HTTP_HOST'    => 'sp.example.com',
+            'HTTPS'        => 'on',
+            'SERVER_PORT'  => '443',
+            'REQUEST_URI'  => '/saml/acs?logintype=login',
             'QUERY_STRING' => 'logintype=login',
-            'SCRIPT_NAME' => '/index.php',
-            'REMOTE_ADDR' => '10.0.0.1',
+            'SCRIPT_NAME'  => '/index.php',
+            'REMOTE_ADDR'  => '10.0.0.1',
         ];
         $systemConfiguration = $proxyConfiguration === [] ? [] : $proxyConfiguration + [
-            'reverseProxyIP' => '10.0.0.1',
+            'reverseProxyIP'               => '10.0.0.1',
             'reverseProxyHeaderMultiValue' => 'none',
         ];
         $request = (new ServerRequest('https://sp.example.com/saml/acs?logintype=login', 'POST', null, [], $serverParams))
@@ -149,7 +149,7 @@ final class SamlServiceTest extends UnitTestCase
 
         // php-saml reads the path from the server variables
         $serverBackup = $_SERVER;
-        $_SERVER = array_replace($_SERVER, $serverParams);
+        $_SERVER      = array_replace($_SERVER, $serverParams);
         try {
             (new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl'))->invoke($this->subject, $request);
             $url = Utils::getSelfRoutedURLNoQuery();
@@ -165,13 +165,13 @@ final class SamlServiceTest extends UnitTestCase
     public function withoutNormalizedRequestPhpSamlUsesTheServerVariablesAgain(): void
     {
         $serverParams = ['HTTP_HOST' => 'first.example.com', 'HTTPS' => 'on', 'SERVER_PORT' => '443', 'SCRIPT_NAME' => '/index.php'];
-        $method = new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl');
+        $method       = new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl');
         $serverBackup = $_SERVER;
         try {
             $method->invoke(
                 $this->subject,
                 (new ServerRequest('https://first.example.com/', 'POST', null, [], $serverParams))
-                    ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, []))
+                    ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, [])),
             );
             $_SERVER = array_replace($_SERVER, ['HTTP_HOST' => 'second.example.com', 'HTTPS' => 'off', 'SERVER_PORT' => '80']);
             $method->invoke($this->subject, null);
@@ -201,22 +201,22 @@ final class SamlServiceTest extends UnitTestCase
 
         // The proxy terminates TLS: the web server sees plain HTTP on port 80
         $serverParams = [
-            'HTTP_HOST' => 'sp.example.com',
+            'HTTP_HOST'   => 'sp.example.com',
             'SERVER_PORT' => '80',
             'REQUEST_URI' => '/members/deep-page',
             'SCRIPT_NAME' => '/index.php',
             'REMOTE_ADDR' => '10.0.0.5',
         ];
         $systemConfiguration = [
-            'reverseProxyIP' => '10.0.0.5',
-            'reverseProxySSL' => '*',
+            'reverseProxyIP'               => '10.0.0.5',
+            'reverseProxySSL'              => '*',
             'reverseProxyHeaderMultiValue' => 'none',
         ];
         $request = (new ServerRequest('http://sp.example.com/members/deep-page', 'GET', null, [], $serverParams))
             ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, $systemConfiguration));
 
         $serverBackup = $_SERVER;
-        $_SERVER = array_replace($_SERVER, $serverParams);
+        $_SERVER      = array_replace($_SERVER, $serverParams);
         unset($_SERVER['HTTPS']);
         try {
             $url = $this->subject->getSsoRedirectUrl($request);
@@ -225,7 +225,7 @@ final class SamlServiceTest extends UnitTestCase
             Utils::setBaseURL('');
         }
 
-        parse_str((string)parse_url($url, PHP_URL_QUERY), $query);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
         self::assertStringStartsWith('https://idp.example.com/sso?', $url);
         self::assertSame('https://sp.example.com/members/deep-page', $query['RelayState'] ?? null);
     }

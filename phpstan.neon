@@ -1,18 +1,27 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Netresearch DTT GmbH
 
+# The shared config of netresearch/typo3-ci-workflows sets level 10,
+# treatPhpDocTypesAsCertain, the strictness flags and the excludePaths;
+# phpstan/extension-installer registers phpstan-phpunit, phpstan-typo3 and the
+# other PHPStan extensions. Build/phpstan-shared.php includes it only where the
+# package is installed, see the comment there.
 includes:
-    - .Build/vendor/phpstan/phpstan-phpunit/extension.neon
-    - .Build/vendor/saschaegerer/phpstan-typo3/extension.neon
+    - Build/phpstan-shared.php
 
 parameters:
-    level: 8
     paths:
         - Classes
         - Configuration
     excludePaths:
         - Resources/Private/Libs
-    treatPhpDocTypesAsCertain: false
+    # TYPO3 creates the authentication service through the DI container
+    # (public in Configuration/Services.yaml), which passes its dependencies
+    # to the inject*() methods instead of the constructor.
+    additionalConstructors:
+        - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectSettingsRepository
+        - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectSamlService
+        - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectConnectionPool
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # TYPO3 13+ attribute not available in TYPO3 12 - listeners registered via Services.yaml

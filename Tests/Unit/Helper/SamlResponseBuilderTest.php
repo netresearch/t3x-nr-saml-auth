@@ -24,9 +24,9 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function buildCreatesValidXml(): void
     {
         $builder = new SamlResponseBuilder();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
-        $dom = new DOMDocument();
+        $dom    = new DOMDocument();
         $result = $dom->loadXML($xml);
 
         self::assertTrue($result, 'Generated XML should be valid');
@@ -42,7 +42,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
 
         self::assertStringContainsString(
             '<saml:Issuer>https://custom-idp.example.com</saml:Issuer>',
-            $xml
+            $xml,
         );
     }
 
@@ -56,7 +56,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
 
         self::assertStringContainsString(
             'Destination="https://my-sp.example.com/acs"',
-            $xml
+            $xml,
         );
     }
 
@@ -70,7 +70,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
 
         self::assertStringContainsString(
             '<saml:Audience>https://my-audience.example.com</saml:Audience>',
-            $xml
+            $xml,
         );
     }
 
@@ -84,7 +84,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
 
         self::assertStringContainsString(
             '>testuser@example.com</saml:NameID>',
-            $xml
+            $xml,
         );
     }
 
@@ -120,7 +120,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function expiredSetsTimestampsInPast(): void
     {
         $builder = (new SamlResponseBuilder())->expired();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         // The NotOnOrAfter should be in the past
         preg_match('/NotOnOrAfter="([^"]+)"/', $xml, $matches);
@@ -134,7 +134,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function notYetValidSetsTimestampsInFuture(): void
     {
         $builder = (new SamlResponseBuilder())->notYetValid();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         preg_match('/NotBefore="([^"]+)"/', $xml, $matches);
         self::assertNotEmpty($matches[1]);
@@ -153,7 +153,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
 
         self::assertStringContainsString(
             'Value="urn:oasis:names:tc:SAML:2.0:status:AuthnFailed"',
-            $xml
+            $xml,
         );
     }
 
@@ -172,7 +172,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function validResponseFactoryMethodCreatesResponseWithAttributes(): void
     {
         $builder = SamlResponseBuilder::validResponse();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         self::assertStringContainsString('Name="email"', $xml);
         self::assertStringContainsString('Name="firstName"', $xml);
@@ -183,7 +183,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function minimalResponseFactoryMethodCreatesResponseWithoutAttributes(): void
     {
         $builder = SamlResponseBuilder::minimalResponse();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         self::assertStringNotContainsString('<saml:AttributeStatement>', $xml);
     }
@@ -192,11 +192,11 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function wrongAudienceResponseFactoryMethodSetsWrongAudience(): void
     {
         $builder = SamlResponseBuilder::wrongAudienceResponse();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         self::assertStringContainsString(
             '<saml:Audience>https://wrong-audience.example.com</saml:Audience>',
-            $xml
+            $xml,
         );
     }
 
@@ -204,7 +204,7 @@ final class SamlResponseBuilderTest extends UnitTestCase
     public function signedAddsSignaturePlaceholder(): void
     {
         $builder = (new SamlResponseBuilder())->signed();
-        $xml = $builder->build();
+        $xml     = $builder->build();
 
         self::assertStringContainsString('<ds:Signature', $xml);
         self::assertStringContainsString('PLACEHOLDER_SIGNATURE', $xml);

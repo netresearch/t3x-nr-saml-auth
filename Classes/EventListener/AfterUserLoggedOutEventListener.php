@@ -20,7 +20,7 @@ use TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedOutEvent;
  */
 #[AsEventListener(
     identifier: 'nr-saml-auth/after-user-logged-out',
-    event: AfterUserLoggedOutEvent::class
+    event: AfterUserLoggedOutEvent::class,
 )]
 final class AfterUserLoggedOutEventListener
 {

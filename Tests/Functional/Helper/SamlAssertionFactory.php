@@ -22,9 +22,9 @@ final class SamlAssertionFactory
     public static function createValidAssertion(array $attributes = []): SamlResponseBuilder
     {
         $defaultAttributes = [
-            'email' => 'testuser@example.com',
-            'firstName' => 'Test',
-            'lastName' => 'User',
+            'email'       => 'testuser@example.com',
+            'firstName'   => 'Test',
+            'lastName'    => 'User',
             'displayName' => 'Test User',
         ];
 
@@ -40,12 +40,12 @@ final class SamlAssertionFactory
         string $firstName,
         string $lastName,
         array $groups = [],
-        array $additionalAttributes = []
+        array $additionalAttributes = [],
     ): SamlResponseBuilder {
         $attributes = array_merge([
-            'email' => $email,
-            'firstName' => $firstName,
-            'lastName' => $lastName,
+            'email'       => $email,
+            'firstName'   => $firstName,
+            'lastName'    => $lastName,
             'displayName' => $firstName . ' ' . $lastName,
         ], $additionalAttributes);
 
@@ -86,7 +86,7 @@ final class SamlAssertionFactory
      * Creates an assertion with a failed status.
      */
     public static function createFailedAssertion(
-        string $statusCode = 'urn:oasis:names:tc:SAML:2.0:status:Responder'
+        string $statusCode = 'urn:oasis:names:tc:SAML:2.0:status:Responder',
     ): SamlResponseBuilder {
         return (new SamlResponseBuilder())->withFailedStatus($statusCode);
     }
@@ -110,14 +110,14 @@ final class SamlAssertionFactory
         string $firstName,
         string $lastName,
         array $usergroups = [],
-        array $additionalAttributes = []
+        array $additionalAttributes = [],
     ): SamlResponseBuilder {
         $attributes = array_merge([
-            'uid' => $username,
-            'mail' => $email,
+            'uid'       => $username,
+            'mail'      => $email,
             'givenName' => $firstName,
-            'sn' => $lastName,
-            'cn' => $firstName . ' ' . $lastName,
+            'sn'        => $lastName,
+            'cn'        => $firstName . ' ' . $lastName,
         ], $additionalAttributes);
 
         if ($usergroups !== []) {
@@ -137,13 +137,13 @@ final class SamlAssertionFactory
         string $email,
         string $realName,
         bool $isAdmin = false,
-        array $additionalAttributes = []
+        array $additionalAttributes = [],
     ): SamlResponseBuilder {
         $attributes = array_merge([
-            'uid' => $username,
-            'mail' => $email,
+            'uid'         => $username,
+            'mail'        => $email,
             'displayName' => $realName,
-            'admin' => $isAdmin ? 'true' : 'false',
+            'admin'       => $isAdmin ? 'true' : 'false',
         ], $additionalAttributes);
 
         return (new SamlResponseBuilder())
@@ -159,13 +159,13 @@ final class SamlAssertionFactory
     public static function createTestBatch(): array
     {
         return [
-            'valid_standard' => self::createValidAssertion(),
-            'valid_minimal' => self::createMinimalAssertion(),
-            'expired' => self::createExpiredAssertion(),
-            'future' => self::createFutureAssertion(),
-            'wrong_audience' => self::createWrongAudienceAssertion(),
+            'valid_standard'   => self::createValidAssertion(),
+            'valid_minimal'    => self::createMinimalAssertion(),
+            'expired'          => self::createExpiredAssertion(),
+            'future'           => self::createFutureAssertion(),
+            'wrong_audience'   => self::createWrongAudienceAssertion(),
             'failed_responder' => self::createFailedAssertion('urn:oasis:names:tc:SAML:2.0:status:Responder'),
-            'failed_authn' => self::createFailedAssertion('urn:oasis:names:tc:SAML:2.0:status:AuthnFailed'),
+            'failed_authn'     => self::createFailedAssertion('urn:oasis:names:tc:SAML:2.0:status:AuthnFailed'),
         ];
     }
 }
