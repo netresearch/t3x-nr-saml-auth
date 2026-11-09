@@ -161,6 +161,49 @@ final class SamlServiceTest extends UnitTestCase
         self::assertSame($expectedUrl, $url);
     }
 
+    /**
+     * @return array<string, array{0: array<string, string>, 1: string}>
+     */
+    public static function hostAndPortDataProvider(): array
+    {
+        return [
+            'https on the default port' => [['HTTP_HOST' => 'sp.example.com', 'HTTPS' => 'on', 'SERVER_PORT' => '443'], 'https://sp.example.com/saml/acs'],
+            'http on the default port'  => [['HTTP_HOST' => 'sp.example.com', 'SERVER_PORT' => '80'], 'http://sp.example.com/saml/acs'],
+            'https on another port'     => [['HTTP_HOST' => 'sp.example.com:8443', 'HTTPS' => 'on', 'SERVER_PORT' => '8443'], 'https://sp.example.com:8443/saml/acs'],
+            'http on another port'      => [['HTTP_HOST' => 'sp.example.com:8080', 'SERVER_PORT' => '8080'], 'http://sp.example.com:8080/saml/acs'],
+        ];
+    }
+
+    /**
+     * A default port is not part of the URL php-saml compares with the
+     * Destination, any other port is.
+     *
+     * @param array<string, string> $hostParams
+     */
+    #[Test]
+    #[DataProvider('hostAndPortDataProvider')]
+    public function theUrlPhpSamlComparesWithTheDestinationHasThePortOnlyWhenItIsNotTheDefault(array $hostParams, string $expectedUrl): void
+    {
+        $serverParams = $hostParams + [
+            'REQUEST_URI' => '/saml/acs',
+            'SCRIPT_NAME' => '/index.php',
+        ];
+        $request = (new ServerRequest($expectedUrl, 'POST', null, [], $serverParams))
+            ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, []));
+
+        $serverBackup = $_SERVER;
+        $_SERVER      = array_replace($_SERVER, $serverParams);
+        try {
+            (new ReflectionMethod($this->subject, 'useRequestAsCurrentUrl'))->invoke($this->subject, $request);
+            $url = Utils::getSelfRoutedURLNoQuery();
+        } finally {
+            $_SERVER = $serverBackup;
+            Utils::setBaseURL('');
+        }
+
+        self::assertSame($expectedUrl, $url);
+    }
+
     #[Test]
     public function withoutNormalizedRequestPhpSamlUsesTheServerVariablesAgain(): void
     {
