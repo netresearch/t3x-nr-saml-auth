@@ -187,7 +187,6 @@ final class SamlServiceTest extends UnitTestCase
         $serverParams = $hostParams + [
             'REQUEST_URI' => '/saml/acs',
             'SCRIPT_NAME' => '/index.php',
-            'REMOTE_ADDR' => '10.0.0.1',
         ];
         $request = (new ServerRequest($expectedUrl, 'POST', null, [], $serverParams))
             ->withAttribute('normalizedParams', NormalizedParams::createFromServerParams($serverParams, []));
