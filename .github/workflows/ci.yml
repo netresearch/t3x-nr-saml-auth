@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: read
     with:
-      php-versions: '["8.1","8.2","8.3","8.4","8.5"]'
+      php-versions: '["8.1","8.2","8.3","8.4","8.5","8.6"]'
       # The non-matrixed CGL and Rector jobs install the full require-dev, and
       # netresearch/typo3-ci-workflows requires php ^8.2 — pin both jobs to 8.2
       # so the 8.1 support floor can lead the matrix in natural order.
