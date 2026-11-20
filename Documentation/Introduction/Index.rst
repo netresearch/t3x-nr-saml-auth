@@ -38,7 +38,7 @@ Requirements
     ..  group-tab:: Version 13.x
 
         *  TYPO3 12.4 LTS or 13.4 LTS
-        *  PHP 8.1 - 8.6
+        *  PHP 8.1 - 8.6 (PHP 8.5 and 8.6 with TYPO3 13.4 only)
         *  onelogin/php-saml 4.0+
 
     ..  group-tab:: Version 10.x
