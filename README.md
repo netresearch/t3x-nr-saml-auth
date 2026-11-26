@@ -5,7 +5,7 @@
 [![CI](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml)
 [![TYPO3](https://img.shields.io/badge/TYPO3-13.4%20|%2014.3-orange.svg)](https://typo3.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%20--%208.6-blue.svg)](https://www.php.net/)
-[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](https://phpstan.org/)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%2010-brightgreen.svg)](https://phpstan.org/)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
 > TYPO3 extension for SAML SSO authentication of frontend users using the `onelogin/php-saml` library.
@@ -97,7 +97,7 @@ Version 12.x includes breaking changes:
 - **PHP 8.1+ required**: Upgrade your PHP version
 - **TYPO3 12.4+ required**: Upgrade your TYPO3 installation
 - **onelogin/php-saml 4.0**: Library upgraded with security improvements
-- **PSR-14 Events**: Legacy hooks replaced with modern event system
+- **PSR-14 Events**: the handlers for TYPO3 core hooks were replaced with listeners for core PSR-14 events; the extension dispatches no events of its own
 - **Dependency Injection**: Services now use TYPO3 DI container
 - **Username prefix**: the username prefix of a settings record is applied to the username from the SAML response. Users created by 10.x carry no prefix; with a prefix configured, their next login creates a new, prefixed user.
 - **Database**: run the database compare after updating. The extension adds the table `tx_nrsamlauth_assertion`, which records the assertions that logged a user in.

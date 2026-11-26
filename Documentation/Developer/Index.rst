@@ -89,28 +89,8 @@ your own classes:
         ) {}
     }
 
-Extending User Creation
-=======================
+Events
+======
 
-To customize user creation, listen to the PSR-14 events documented in the
-:ref:`Events <events>` section.
-
-Example: Adding custom user attributes from SAML response:
-
-..  code-block:: php
-
-    use Netresearch\NrSamlAuth\Event\BeforeUserCreationEvent;
-
-    class CustomUserAttributeListener
-    {
-        public function __invoke(BeforeUserCreationEvent $event): void
-        {
-            $attributes = $event->getSamlAttributes();
-            $userData = $event->getUserData();
-
-            // Add custom attribute mapping
-            $userData['custom_field'] = $attributes['customAttribute'][0] ?? '';
-
-            $event->setUserData($userData);
-        }
-    }
+The extension dispatches no PSR-14 events of its own. The TYPO3 core events
+it listens to are listed in :ref:`Events <events>`.

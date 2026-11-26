@@ -5,108 +5,32 @@
 
 ..  _events:
 
-===========
-PSR-14 Events
-===========
+=============
+PSR-14 events
+=============
 
-The extension provides PSR-14 events for customizing the authentication
-process.
+The extension dispatches no PSR-14 events of its own. It listens to two
+TYPO3 core events to perform the SAML single logout.
 
-Available Events
-================
+..  _events-before-user-logout:
 
-BeforeUserCreationEvent
------------------------
+BeforeUserLogoutEvent
+=====================
 
-Dispatched before a new user is created from SAML attributes.
+``TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent``
 
-..  code-block:: php
+The listener ``Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener``
+(identifier ``nr-saml-auth/before-user-logout``) reads the SAML session data
+of the user who logs out, before TYPO3 removes the session.
 
-    namespace Netresearch\NrSamlAuth\Event;
+..  _events-after-user-logged-out:
 
-    final class BeforeUserCreationEvent
-    {
-        public function getSamlAttributes(): array;
-        public function getUserData(): array;
-        public function setUserData(array $userData): void;
-        public function getSettings(): Settings;
-    }
+AfterUserLoggedOutEvent
+=======================
 
-AfterUserCreationEvent
-----------------------
+``TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedOutEvent``
 
-Dispatched after a new user has been created.
-
-..  code-block:: php
-
-    namespace Netresearch\NrSamlAuth\Event;
-
-    final class AfterUserCreationEvent
-    {
-        public function getUser(): array;
-        public function getSamlAttributes(): array;
-        public function getSettings(): Settings;
-    }
-
-BeforeAuthenticationEvent
--------------------------
-
-Dispatched before authentication is processed.
-
-..  code-block:: php
-
-    namespace Netresearch\NrSamlAuth\Event;
-
-    final class BeforeAuthenticationEvent
-    {
-        public function getSamlResponse(): Response;
-        public function getSettings(): Settings;
-        public function setSkipAuthentication(bool $skip): void;
-    }
-
-Registering Event Listeners
-===========================
-
-Register your event listeners in your extension's ``Services.yaml``:
-
-..  code-block:: yaml
-
-    # Configuration/Services.yaml
-    services:
-      Vendor\MyExtension\EventListener\CustomUserCreationListener:
-        tags:
-          - name: event.listener
-            identifier: 'myextension/custom-user-creation'
-            event: Netresearch\NrSamlAuth\Event\BeforeUserCreationEvent
-
-Example Implementation
-======================
-
-Custom attribute mapping:
-
-..  code-block:: php
-
-    namespace Vendor\MyExtension\EventListener;
-
-    use Netresearch\NrSamlAuth\Event\BeforeUserCreationEvent;
-
-    final class CustomUserCreationListener
-    {
-        public function __invoke(BeforeUserCreationEvent $event): void
-        {
-            $attributes = $event->getSamlAttributes();
-            $userData = $event->getUserData();
-
-            // Map department to custom field
-            if (isset($attributes['department'][0])) {
-                $userData['tx_myext_department'] = $attributes['department'][0];
-            }
-
-            // Map employee ID
-            if (isset($attributes['employeeId'][0])) {
-                $userData['tx_myext_employee_id'] = $attributes['employeeId'][0];
-            }
-
-            $event->setUserData($userData);
-        }
-    }
+The listener ``Netresearch\NrSamlAuth\EventListener\AfterUserLoggedOutEventListener``
+redirects the user to the single logout URL of the identity provider, using
+the session data stored by the listener above. A failure is logged and the
+logout continues without the redirect.

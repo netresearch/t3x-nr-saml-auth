@@ -95,7 +95,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 - **PHP**: PSR-12 + TYPO3 CGL (enforced by PHP-CS-Fixer)
 - **Static Analysis**: PHPStan level 10 with the shared config of `netresearch/typo3-ci-workflows`
-- **Testing**: PHPUnit 10+ with TYPO3 Testing Framework
+- **Testing**: PHPUnit 11.2.5+ (also 12 and 13) with TYPO3 Testing Framework 9
 - **Documentation**: reStructuredText (RST)
 
 ### Testing

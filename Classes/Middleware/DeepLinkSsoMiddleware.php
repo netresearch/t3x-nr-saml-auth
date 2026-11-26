@@ -13,6 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\RedirectResponse;
 
@@ -147,7 +148,7 @@ final class DeepLinkSsoMiddleware implements MiddlewareInterface
     {
         $queryParams = $request->getQueryParams();
 
-        return ($queryParams['logintype'] ?? '') === 'logout'
+        return ($queryParams['logintype'] ?? '') === LoginType::LOGOUT->value
             && isset($queryParams['RelayState'])
             && isset($queryParams['SAMLResponse']);
     }

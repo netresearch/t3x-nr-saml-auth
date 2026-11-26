@@ -1,76 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- SPDX-License-Identifier: GPL-2.0-or-later -->
 <!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
-<xliff version="1.0">
-	<file source-language="en" datatype="plaintext" original="messages" date="2018-12-04T17:12:00Z" product-name="nr_saml_auth">
-		<header/>
-		<body>
-			<trans-unit id="nr_saml_auth_domain_model_settings">
-				<source>SAML Auth Settings</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp">
-				<source>SAML service provider</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.name">
-				<source>Name</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.redirect_url">
-				<source>RedirectURL</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_entity_id">
-				<source>Entity ID</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_url">
-				<source>Customer service URL</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_binding">
-				<source>Customer service binding</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_name_id_format">
-				<source>Name ID format</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_cert">
-				<source>Certificate</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.sp_key">
-				<source>Private key</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp">
-				<source>SAML identity provider</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp_entity_id">
-				<source>Entity ID</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_url">
-				<source>SSO URL</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_binding">
-				<source>Binding</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp_logout_url">
-				<source>Logout Url</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.idp_cert">
-				<source>Certificate</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.other">
-				<source>Other</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.username_prefix">
-				<source>Username prefix</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.users_pid">
-				<source>User storage folder</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.usergroup">
-				<source>User groups</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated">
-				<source>Allow IdP-initiated login</source>
-			</trans-unit>
-			<trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated.description">
-				<source>Accept a SAML response that answers no login this browser started on this site. Leave off unless the identity provider starts logins itself (for example from an application portal): with it on, a third party who has an account at the identity provider can log a visitor into that account (login CSRF).</source>
-			</trans-unit>
-		</body>
-	</file>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="messages" date="2018-12-04T17:12:00Z" product-name="nr_saml_auth">
+    <header/>
+    <body>
+      <trans-unit id="nr_saml_auth_domain_model_settings">
+        <source>SAML Auth Settings</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp">
+        <source>SAML service provider</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.name">
+        <source>Name</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.redirect_url">
+        <source>RedirectURL</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_entity_id">
+        <source>Entity ID</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_url">
+        <source>Customer service URL</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_customer_service_binding">
+        <source>Customer service binding</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_name_id_format">
+        <source>Name ID format</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_cert">
+        <source>Certificate</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.sp_key">
+        <source>Private key</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp">
+        <source>SAML identity provider</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp_entity_id">
+        <source>Entity ID</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_url">
+        <source>SSO URL</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp_sso_binding">
+        <source>Binding</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp_logout_url">
+        <source>Logout Url</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.idp_cert">
+        <source>Certificate</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.other">
+        <source>Other</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.username_prefix">
+        <source>Username prefix</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.users_pid">
+        <source>User storage folder</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.usergroup">
+        <source>User groups</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated">
+        <source>Allow IdP-initiated login</source>
+      </trans-unit>
+      <trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated.description">
+        <source>Accept a SAML response that answers no login this browser started on this site. Leave off unless the identity provider starts logins itself (for example from an application portal): with it on, a third party who has an account at the identity provider can log a visitor into that account (login CSRF).</source>
+      </trans-unit>
+    </body>
+  </file>
 </xliff>

@@ -64,8 +64,9 @@ final class SamlLoginTest extends FunctionalTestCase
     /**
      * The identity provider posts its response without a TYPO3 request token.
      * TYPO3 fetches users for such a request only with this option
-     * (AbstractUserAuthentication::checkAuthentication()), the setup for a site that sends visitors without a session to
-     * the identity provider. The login rate limit is off because the tests
+     * (AbstractUserAuthentication::checkAuthentication()). A site that sends
+     * visitors without a session to the identity provider needs the same
+     * setup. The login rate limit is off because the tests
      * send many rejected logins from one address. `checkFeUserPid` is off so
      * that TYPO3's own username and password lookup finds users in any folder.
      */

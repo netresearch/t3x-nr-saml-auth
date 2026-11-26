@@ -28,7 +28,6 @@ The Netresearch SAML Auth extension provides:
 *  **Auto-Discovery**: Automatic SAML configuration detection based on domain
 *  **User Provisioning**: Automatic creation of TYPO3 users from SAML attributes
 *  **Deep Link Support**: Redirect users to their original destination after login
-*  **PSR-14 Events**: Modern event system for customization
 
 Requirements
 ============

@@ -60,8 +60,8 @@ TYPO3 extension for SAML SSO authentication of frontend users using the
 
     ..  card:: :ref:`Developer Guide <developer>`
 
-        Information for developers on PSR-14 events and extending the
-        extension.
+        Information for developers on the architecture, dependency injection
+        and the TYPO3 core events the extension listens to.
 
 ----
 
