@@ -188,6 +188,15 @@ return [
                 'maxitems'            => 50,
             ],
         ],
+        'allow_idp_initiated' => [
+            'label'       => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.allow_idp_initiated',
+            'description' => 'LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.allow_idp_initiated.description',
+            'config'      => [
+                'type'       => 'check',
+                'renderType' => 'checkboxToggle',
+                'default'    => 0,
+            ],
+        ],
     ],
     'types' => [
         '1' => [
@@ -195,7 +204,7 @@ return [
                 --div--;LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.sp,
                 name,redirect_url,sp_entity_id,sp_customer_service_url,sp_customer_service_binding,sp_name_id_format,sp_cert,sp_key,idp_entity_id,
                 --div--;LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.idp,
-                ,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,
+                ,idp_sso_url,idp_sso_binding,idp_logout_url,idp_cert,allow_idp_initiated,
                 --div--;LLL:EXT:nr_saml_auth/Resources/Private/Language/locallang_tca.xlf:nr_saml_auth_domain_model_settings.other,
                 username_prefix,users_pid,usergroup',
         ],

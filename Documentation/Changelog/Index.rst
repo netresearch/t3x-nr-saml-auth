@@ -16,6 +16,30 @@ Version 13.0.0
 
 Released: (not yet released)
 
+Security
+--------
+
+*  SAML responses that do not answer an AuthnRequest this browser started
+   are rejected (login CSRF). The ID of each AuthnRequest is remembered in
+   the cookie ``nr_saml_auth_request`` (``SameSite=None; Secure; HttpOnly``,
+   HMAC-protected, 10 minutes, up to five pending logins), and the
+   response's ``InResponseTo`` must match it.
+*  IdP-initiated login (a response without ``InResponseTo``) is rejected
+   unless the new field ``allow_idp_initiated`` of the settings record
+   is on. It is off by default.
+
+Upgrade
+-------
+
+*  Run the database schema update. Existing settings records get
+   ``allow_idp_initiated`` switched off. If your Identity Provider
+   starts logins itself, switch it on, or those logins are rejected.
+*  SP-initiated login needs the Assertion Consumer Service on HTTPS.
+*  A response is accepted only for the settings record that started the
+   login. The record the plugin selects must be the one the Assertion
+   Consumer Service URL resolves to (``saml_id``, else the record whose SP
+   entity ID matches the host, else uid 1).
+
 Added
 -----
 
@@ -46,6 +70,43 @@ Removed
 
 *  **Breaking:** TYPO3 12.4 LTS support (version 12.x stays available)
 *  **Breaking:** PHP 8.1 support
+
+Version 12.0.1
+==============
+
+Released: 2026-11-26
+
+Security
+--------
+
+*  SAML responses that do not answer an AuthnRequest this browser started
+   are rejected (login CSRF). The ID of each AuthnRequest is remembered in
+   the cookie ``nr_saml_auth_request`` (``SameSite=None; Secure; HttpOnly``,
+   HMAC-protected, 10 minutes, up to five pending logins), and the
+   response's ``InResponseTo`` must match it.
+*  IdP-initiated login (a response without ``InResponseTo``) is rejected
+   unless the new field ``allow_idp_initiated`` of the settings record
+   is on. It is off by default.
+
+Upgrade
+-------
+
+*  Run the database schema update. Existing settings records get
+   ``allow_idp_initiated`` switched off. If your Identity Provider
+   starts logins itself, switch it on, or those logins are rejected.
+*  SP-initiated login needs the Assertion Consumer Service on HTTPS.
+*  A response is accepted only for the settings record that started the
+   login. The record the plugin selects must be the one the Assertion
+   Consumer Service URL resolves to (``saml_id``, else the record whose SP
+   entity ID matches the host, else uid 1).
+
+Fixed
+-----
+
+*  The plugin's FlexForm field that selects the settings record had no label
+   and no configuration on TYPO3 13.4 (``<TCEforms>`` wrapper removed).
+*  The backend module failed to render on TYPO3 12.4 and 13.4
+   (``<be:moduleLayout>``); it now uses the ModuleTemplate API.
 
 Version 12.0.0
 ==============

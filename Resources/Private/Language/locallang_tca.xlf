@@ -65,6 +65,12 @@
 			<trans-unit id="nr_saml_auth_domain_model_settings.usergroup">
 				<source>User groups</source>
 			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated">
+				<source>Allow IdP-initiated login</source>
+			</trans-unit>
+			<trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated.description">
+				<source>Accept a SAML response that answers no login this browser started on this site. Leave off unless the identity provider starts logins itself (for example from an application portal): with it on, a third party who has an account at the identity provider can log a visitor into that account (login CSRF).</source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>

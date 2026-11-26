@@ -106,6 +106,27 @@ SAML Settings Record Fields
 
         Comma-separated list of user group UIDs assigned to new users.
 
+    ..  confval:: allow_idp_initiated
+        :type: bool
+        :default: false
+        :required: false
+
+        Accept a SAML response that answers no login this browser started on
+        this site (IdP-initiated login, for example from an application
+        portal of the Identity Provider). Off by default: a response is then
+        accepted only if it answers the AuthnRequest this browser was sent to
+        the Identity Provider with. Switching it on allows login CSRF for
+        this settings record: anyone with an account at the Identity
+        Provider can log a visitor into that account. Switch it on only if
+        your Identity Provider starts logins itself.
+
+        SP-initiated login remembers the AuthnRequest in the cookie
+        ``nr_saml_auth_request`` (``SameSite=None; Secure; HttpOnly``, valid
+        for 10 minutes, up to five logins started at the same time). The
+        Assertion Consumer Service must be served over HTTPS: browsers do
+        not send this cookie with the Identity Provider's cross-site POST
+        over plain HTTP, and the login is then rejected.
+
 Example Configuration
 =====================
 

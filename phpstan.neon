@@ -21,6 +21,7 @@ parameters:
         - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectSettingsRepository
         - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectSamlService
         - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectConnectionPool
+        - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectAuthnRequestCookie
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # TYPO3 specific patterns

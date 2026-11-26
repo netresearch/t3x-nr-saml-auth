@@ -11,6 +11,7 @@ namespace Netresearch\NrSamlAuth\Tests\Unit\Service;
 
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
+use Netresearch\NrSamlAuth\Service\AuthnRequestCookie;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use OneLogin\Saml2\Utils;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -36,7 +37,7 @@ final class SamlServiceTest extends UnitTestCase
 
         $this->settingsRepository     = self::createStub(SettingsRepository::class);
         $this->extensionConfiguration = self::createStub(ExtensionConfiguration::class);
-        $this->subject                = new SamlService($this->settingsRepository, $this->extensionConfiguration);
+        $this->subject                = new SamlService($this->settingsRepository, $this->extensionConfiguration, new AuthnRequestCookie());
     }
 
     #[Test]
@@ -107,7 +108,7 @@ final class SamlServiceTest extends UnitTestCase
             ->method('get')
             ->with('nr_saml_auth', 'validateXml')
             ->willReturnOnConsecutiveCalls('1', '0');
-        $subject = new SamlService($this->settingsRepository, $extensionConfiguration);
+        $subject = new SamlService($this->settingsRepository, $extensionConfiguration, new AuthnRequestCookie());
 
         self::assertTrue($subject->getSettings()['saml']['security']['wantXMLValidation']);
         self::assertFalse($subject->getSettings()['saml']['security']['wantXMLValidation']);
