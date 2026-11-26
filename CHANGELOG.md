@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The SessionIndex of a LogoutRequest is escaped once. php-saml 4.6 escapes it itself, so the extension's own escaping made a SessionIndex with `<`, `&` or `"` reach the identity provider escaped twice; php-saml is now required at `^4.6`.
 - Repository initialization using proper query settings factory
 - Middleware properly uses PSR-7 request body parsing
 
