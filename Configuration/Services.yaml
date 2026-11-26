@@ -41,3 +41,6 @@ services:
 
   Netresearch\NrSamlAuth\Middleware\SingleLogoutSessionMiddleware:
     public: true
+
+  Netresearch\NrSamlAuth\Middleware\AuthnRequestCookieMiddleware:
+    public: true

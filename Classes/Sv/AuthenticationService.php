@@ -12,6 +12,7 @@ namespace Netresearch\NrSamlAuth\Sv;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
+use Netresearch\NrSamlAuth\Service\AuthnRequestCookie;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Error;
@@ -62,6 +63,8 @@ class AuthenticationService extends Typo3AuthService
 
     private ConnectionPool $connectionPool;
 
+    private AuthnRequestCookie $authnRequestCookie;
+
     /**
      * Assertion accepted by getUser() per request. getUser() and authUser()
      * run on separate instances of this service for the same request object.
@@ -78,6 +81,14 @@ class AuthenticationService extends Typo3AuthService
     private static ?WeakMap $userResolvedForRequest = null;
 
     /**
+     * Settings uid and ID of the AuthnRequest that the response answered,
+     * for the requests in which getUser() resolved a user.
+     *
+     * @var WeakMap<object, array{0: int, 1: string}>|null
+     */
+    private static ?WeakMap $authnRequestAnsweredInRequest = null;
+
+    /**
      * Uid of the frontend user that getUser() resolved from the SAML response
      * of the request, or null if getUser() accepted no response in it.
      *
@@ -88,6 +99,18 @@ class AuthenticationService extends Typo3AuthService
     public static function getUserResolvedForRequest(ServerRequestInterface $request): ?int
     {
         return self::$userResolvedForRequest[self::getRequestKey($request)] ?? null;
+    }
+
+    /**
+     * Settings uid and ID of the AuthnRequest that the SAML response of the
+     * request answered, if getUser() resolved a user from it; null for an
+     * IdP-initiated login or without a login.
+     *
+     * @return array{0: int, 1: string}|null
+     */
+    public static function getAuthnRequestAnsweredInRequest(ServerRequestInterface $request): ?array
+    {
+        return self::$authnRequestAnsweredInRequest[self::getRequestKey($request)] ?? null;
     }
 
     private static function getRequestKey(ServerRequestInterface $request): object
@@ -110,6 +133,11 @@ class AuthenticationService extends Typo3AuthService
     public function injectConnectionPool(ConnectionPool $connectionPool): void
     {
         $this->connectionPool = $connectionPool;
+    }
+
+    public function injectAuthnRequestCookie(AuthnRequestCookie $authnRequestCookie): void
+    {
+        $this->authnRequestCookie = $authnRequestCookie;
     }
 
     /**
@@ -141,7 +169,7 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
-        [$username, $attributes] = $assertion;
+        [$username, $attributes, $requestId] = $assertion;
 
         if ($this->fetchUserInStorageFolder($username, $settings, false) === null) {
             $this->insertUserRecord($username, $settings, $attributes);
@@ -162,6 +190,13 @@ class AuthenticationService extends Typo3AuthService
             $users                                = self::$userResolvedForRequest ?? new WeakMap();
             $users[self::getRequestKey($request)] = $uid;
             self::$userResolvedForRequest         = $users;
+
+            if ($requestId !== null && $settings->getUid() !== null) {
+                /** @var WeakMap<object, array{0: int, 1: string}> $answered */
+                $answered                                = self::$authnRequestAnsweredInRequest ?? new WeakMap();
+                $answered[self::getRequestKey($request)] = [$settings->getUid(), $requestId];
+                self::$authnRequestAnsweredInRequest     = $answered;
+            }
         }
 
         return $user;
@@ -170,23 +205,32 @@ class AuthenticationService extends Typo3AuthService
     /**
      * Validates the SAML response of the current request.
      *
-     * Returns the username (with the prefix of the settings record) and the
-     * attributes of a valid response, or null if the request carries no
-     * response, the response is not valid, it names no user, or its
-     * assertion was accepted before.
+     * Returns the username (with the prefix of the settings record), the
+     * attributes and the ID of the AuthnRequest the response answers (null
+     * for an IdP-initiated login) of a valid response, or null if the
+     * request carries no response, the response answers no AuthnRequest this
+     * browser started for the settings record (see getExpectedRequestId()),
+     * it is not valid, it names no user, or its assertion was accepted
+     * before.
      *
      * With $consume, the assertion is recorded as used until its validity
      * period ends; recording it fails if it was recorded before. getUser()
      * consumes the assertion; authUser(), which runs later for the same
      * request, accepts it only for that request.
      *
-     * @return array{0: string, 1: array<mixed>}|null
+     * @return array{0: string, 1: array<mixed>, 2: string|null}|null
      */
     private function getValidatedAssertion(Settings $settings, bool $consume = false): ?array
     {
         try {
             $samlResponse = $this->samlService->getResponse($this->getSamlResponse(), $this->getRequest());
-            if (!$samlResponse->isValid()) {
+            $requestId    = $this->getExpectedRequestId($samlResponse, $settings);
+            if ($requestId === false) {
+                return null;
+            }
+
+            // php-saml rejects a response whose InResponseTo is not $requestId
+            if (!$samlResponse->isValid($requestId)) {
                 $this->logger?->warning('SAML Response from SSO server is not valid', [
                     'reason' => $samlResponse->getError(),
                 ]);
@@ -237,7 +281,48 @@ class AuthenticationService extends Typo3AuthService
             return null;
         }
 
-        return [$settings->getUsernamePrefix() . $username, $attributes];
+        return [$settings->getUsernamePrefix() . $username, $attributes, $requestId];
+    }
+
+    /**
+     * The ID of the AuthnRequest the response must answer: its InResponseTo,
+     * if this browser started a login with that AuthnRequest for the
+     * settings record (AuthnRequestCookie). Null for a response without
+     * InResponseTo (IdP-initiated login) if the settings record allows that.
+     * False, and the response is rejected, otherwise: anybody can post a
+     * response the identity provider issued to them from a victim's browser
+     * (login CSRF).
+     */
+    private function getExpectedRequestId(Response $samlResponse, Settings $settings): string|false|null
+    {
+        $root         = $samlResponse->getXMLDocument()->documentElement;
+        $inResponseTo = $root?->hasAttribute('InResponseTo') === true ? $root->getAttribute('InResponseTo') : null;
+
+        if ($inResponseTo === null) {
+            if ($settings->getAllowIdpInitiated()) {
+                return null;
+            }
+
+            $this->logger?->warning('SAML response answers no authentication request and IdP-initiated login is off', [
+                'saml_id' => $settings->getUid(),
+            ]);
+
+            return false;
+        }
+
+        $request    = $this->getRequest();
+        $pendingIds = $request instanceof ServerRequestInterface && $settings->getUid() !== null
+            ? $this->authnRequestCookie->getPendingRequestIds($request, $settings->getUid())
+            : [];
+        if (!in_array($inResponseTo, $pendingIds, true)) {
+            $this->logger?->warning('SAML response answers no authentication request this browser started', [
+                'saml_id' => $settings->getUid(),
+            ]);
+
+            return false;
+        }
+
+        return $inResponseTo;
     }
 
     /**

@@ -22,6 +22,7 @@ use OneLogin\Saml2\ValidationError;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionClass;
 use ReflectionException;
+use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\NormalizedParams;
@@ -34,7 +35,7 @@ use TYPO3\CMS\Core\SingletonInterface;
  * @phpstan-type SamlSettingsArray array{
  *     strict: bool,
  *     debug: bool,
- *     security: array{wantXMLValidation: bool},
+ *     security: array{wantXMLValidation: bool, rejectUnsolicitedResponsesWithInResponseTo: bool},
  *     sp: array{
  *         entityId: string,
  *         assertionConsumerService: array{url: string, binding: string},
@@ -77,6 +78,10 @@ final class SamlService implements SingletonInterface
             'debug'    => false,
             'security' => [
                 'wantXMLValidation' => true,
+                // A response that answers an AuthnRequest is validated against
+                // the ID of that request (AuthenticationService); without one
+                // php-saml rejects it.
+                'rejectUnsolicitedResponsesWithInResponseTo' => true,
             ],
             'sp' => [
                 'entityId'                 => '',
@@ -104,6 +109,7 @@ final class SamlService implements SingletonInterface
     public function __construct(
         private readonly SettingsRepository $settingsRepository,
         private readonly ExtensionConfiguration $extensionConfiguration,
+        private readonly AuthnRequestCookie $authnRequestCookie,
     ) {}
 
     public function setSettingsUid(int $uid): void
@@ -112,30 +118,65 @@ final class SamlService implements SingletonInterface
     }
 
     /**
-     * Redirects the user to SSO Service.
+     * Redirects the user to SSO Service and remembers the AuthnRequest in
+     * the browser (AuthnRequestCookie), so that the response to it is
+     * accepted.
+     *
+     * php-saml sends the redirect itself and exits, so the cookie is sent as
+     * a header of PHP's own, not with a PSR-7 response.
      *
      * @throws Error
      */
     public function redirectUserToSSO(?ServerRequestInterface $request = null): void
     {
-        Utils::redirect($this->getSsoRedirectUrl($request));
+        $redirect = $this->createSsoRedirect($request);
+        if ($redirect['cookie'] instanceof Cookie) {
+            header('Set-Cookie: ' . $redirect['cookie'], false);
+        }
+
+        Utils::redirect($redirect['url']);
     }
 
     /**
      * Returns the URL of the IdP's SSO service with the AuthnRequest.
      *
-     * The RelayState is the current URL without its query string, with scheme,
-     * host and port as TYPO3 sees them, the same view the deep-link middleware
-     * checks a RelayState against.
+     * The ID of the AuthnRequest is not remembered, so a response to it is
+     * rejected; redirectUserToSSO() remembers it.
      *
      * @throws Error
      */
     public function getSsoRedirectUrl(?ServerRequestInterface $request = null): string
     {
+        return $this->createSsoRedirect($request)['url'];
+    }
+
+    /**
+     * Returns the URL of the IdP's SSO service with a new AuthnRequest, and
+     * the cookie that remembers the ID of that request for the current
+     * settings record in the browser of $request (null without a request).
+     *
+     * The RelayState is the current URL without its query string, with scheme,
+     * host and port as TYPO3 sees them, the same view the deep-link middleware
+     * checks a RelayState against.
+     *
+     * @return array{url: string, cookie: Cookie|null}
+     *
+     * @throws Error
+     */
+    public function createSsoRedirect(?ServerRequestInterface $request = null): array
+    {
         $auth = new Auth($this->getSettings()['saml']);
         $this->useRequestAsCurrentUrl($request);
 
-        return (string) $auth->login(null, [], false, false, true);
+        $url       = (string) $auth->login(null, [], false, false, true);
+        $requestId = $auth->getLastRequestID();
+
+        return [
+            'url'    => $url,
+            'cookie' => $request instanceof ServerRequestInterface && is_string($requestId) && $requestId !== ''
+                ? $this->authnRequestCookie->withRequest($request, $this->settingsUid, $requestId)
+                : null,
+        ];
     }
 
     /**
