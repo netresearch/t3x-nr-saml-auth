@@ -14,6 +14,7 @@ Core PHP classes for SAML 2.0 SSO authentication in TYPO3. Uses `onelogin/php-sa
 - `EventListener/` — PSR-14 event listeners for login/logout
 - `Middleware/DeepLinkSsoMiddleware.php` — Deep link SSO handling
 - `Domain/` — Extbase models and repositories
+- `Upgrades/` — upgrade wizard that moves the plugin from `list_type` to its own CType
 
 ## Setup & environment
 
@@ -21,7 +22,7 @@ Core PHP classes for SAML 2.0 SSO authentication in TYPO3. Uses `onelogin/php-sa
 composer install
 ```
 
-**Requirements:** PHP 8.1+, TYPO3 12.4+ or 13.4+
+**Requirements:** PHP 8.2+, TYPO3 13.4 or 14.3
 
 ## Build & tests
 
@@ -100,13 +101,13 @@ public function getUsername($samlAttributes)
 
 ### PSR-14 Events
 
-```yaml
-# ✅ Good: Listen to TYPO3 core events via Services.yaml (see existing listeners)
-Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:
-  tags:
-    - name: event.listener
-      identifier: 'nr-saml-auth/before-user-logout'
-      event: TYPO3\CMS\Core\Authentication\Event\BeforeUserLogoutEvent
+```php
+// ✅ Good: Listen to TYPO3 core events with the #[AsEventListener] attribute (see existing listeners)
+#[AsEventListener(
+    identifier: 'nr-saml-auth/before-user-logout',
+    event: BeforeUserLogoutEvent::class,
+)]
+final class BeforeUserLogoutEventListener
 ```
 
 ```php
@@ -125,5 +126,5 @@ Note: the extension currently only *listens* to TYPO3 core events (`Classes/Even
 ## House Rules
 
 - All new classes must have corresponding unit tests
-- EventListeners must be registered in `Configuration/Services.yaml`
+- EventListeners are registered with the `#[AsEventListener]` attribute, with an explicit `identifier` and `event`
 - Inject `Psr\Log\LoggerInterface` via the constructor for logging (the pattern used across `Controller/` and `EventListener/`), not direct Logger instantiation

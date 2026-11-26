@@ -20,11 +20,11 @@ use RuntimeException;
  * have different keys: a response signed by one does not validate against the
  * certificate of the other.
  */
-final class TestIdentityProvider
+final readonly class TestIdentityProvider
 {
-    private readonly string $privateKey;
+    private string $privateKey;
 
-    private readonly string $certificate;
+    private string $certificate;
 
     public function __construct()
     {

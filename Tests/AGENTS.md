@@ -6,7 +6,7 @@
 
 ## Overview
 
-PHPUnit 10+ test suite with unit and functional tests for SAML authentication.
+PHPUnit 11+ test suite with unit and functional tests for SAML authentication.
 
 **Structure:**
 - `Unit/` — Fast, isolated tests (no database, no TYPO3 bootstrap)
@@ -37,7 +37,7 @@ typo3DatabaseDriver=pdo_sqlite composer ci
 
 ## Code style & conventions
 
-- **PHPUnit 10+ attributes** (not annotations)
+- **PHPUnit 11+ attributes** (not annotations)
 - **#[Test]** attribute on test methods
 - **#[DataProvider]** for parameterized tests
 - **self::assert*()** not `$this->assert*()`
@@ -70,7 +70,7 @@ typo3DatabaseDriver=pdo_sqlite composer ci
 ### Test structure
 
 ```php
-// ✅ Good: PHPUnit 10 attributes
+// ✅ Good: PHPUnit attributes
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -130,7 +130,7 @@ $response = file_get_contents('https://real-idp.com/sso');
 ## When stuck
 
 - **TYPO3 Testing Framework:** https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/Testing/
-- **PHPUnit 10 docs:** https://docs.phpunit.de/en/10.5/
+- **PHPUnit docs:** https://docs.phpunit.de/en/11.5/
 - **Test helpers:** `Tests/Functional/Helper/` classes
 
 ## House Rules

@@ -10,7 +10,7 @@
     max-menu-depth="3"
 >
     <project title="SAML Frontend Authentication"
-             version="12.0.0"
+             version="13.0.0"
              copyright="since 2020 by Netresearch DTT GmbH"/>
 
     <extension class="\T3Docs\Typo3DocsTheme\DependencyInjection\Typo3DocsThemeExtension"

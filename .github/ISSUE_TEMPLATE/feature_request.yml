@@ -39,8 +39,8 @@ body:
       description: Which TYPO3 version(s) should this feature support?
       multiple: true
       options:
-        - "12.4"
         - "13.4"
+        - "14.3"
         - "Both"
 
   - type: textarea

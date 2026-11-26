@@ -19,6 +19,7 @@ use OneLogin\Saml2\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use TYPO3\CMS\Core\Authentication\AuthenticationService as Typo3AuthService;
+use TYPO3\CMS\Core\Authentication\LoginType;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -37,11 +38,9 @@ use WeakMap;
 class AuthenticationService extends Typo3AuthService
 {
     /**
-     * Value of the login status for a login request. LoginType::LOGIN is a
-     * string constant on TYPO3 12.4 and a backed enum case on TYPO3 13.4,
-     * so the value is compared directly.
+     * Value of the login status for a login request.
      */
-    private const LOGIN_STATUS = 'login';
+    private const LOGIN_STATUS = LoginType::LOGIN->value;
 
     /**
      * Users are looked up and created in this table; the service is

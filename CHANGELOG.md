@@ -7,6 +7,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] - Unreleased
+
+### Added
+
+- Upgrade wizard `nrSamlAuth_pluginListTypeToCType` that migrates content elements of the "Insert Plugin" type with the plugin `nrsamlauth_authentication`, and the backend user group permissions for them, to the new content element type
+
+### Changed
+
+- **BREAKING**: TYPO3 12.4 and PHP 8.1 no longer supported; TYPO3 14.3 supported. Version 12.x stays available for TYPO3 12.4
+- **BREAKING**: The plugin is a content element type of its own (`CType` `nrsamlauth_authentication`) instead of a `list_type` subtype of the "Insert Plugin" content element; run the upgrade wizard after updating. TypoScript referring to `tt_content.list.20.nrsamlauth_authentication` has to refer to `tt_content.nrsamlauth_authentication`
+- The static TypoScript template is registered in `Configuration/TCA/Overrides/sys_template.php`; `ext_tables.php` is removed
+- The event listeners are registered by their `#[AsEventListener]` attribute only
+
+### Fixed
+
+- The FlexForm of the plugin shows the field for the SAML settings record again: the `<TCEforms>` wrapper, which TYPO3 13 no longer reads, is removed
+- The backend module "Admin Tools > SAML Auth" renders again: it uses the backend `ModuleTemplate` instead of the `<be:moduleLayout>` ViewHelper, which TYPO3 12 removed
+
+### Known deprecations
+
+- Deprecated on TYPO3 14.3 and kept while TYPO3 13.4 is supported: the array form of `#[Validate]` in `Settings`, the EXT:install names of the upgrade wizard API, `ExtensionManagementUtility::addPiFlexFormValue()` (called on TYPO3 13.4 only), and `ext_emconf.php` without `version`/`providesPackages` in `composer.json` (#108345)
+
 ## [12.0.0] - 2026-11-26
 
 ### Added

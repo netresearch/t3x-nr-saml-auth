@@ -20,6 +20,13 @@ Install the extension using Composer:
 
     composer require netresearch/nr-saml-auth
 
+Version 13.x requires TYPO3 13.4 LTS or 14.3 LTS and PHP 8.2 or later. For
+TYPO3 12.4, install version 12.x:
+
+..  code-block:: bash
+
+    composer require netresearch/nr-saml-auth:^12.0
+
 After installation, activate the extension in the Extension Manager or via CLI:
 
 ..  code-block:: bash

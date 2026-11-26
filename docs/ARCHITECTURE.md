@@ -19,7 +19,7 @@ Agent-facing component map for `nr_saml_auth`. For prose documentation see `Docu
 | `Classes/Session/SamlSession.php` | Singleton session-state helper (`@internal`, not public API). |
 | `Classes/Middleware/DeepLinkSsoMiddleware.php` | PSR-15 frontend middleware (`nrumauth/sso/redirect`, after `typo3/cms-frontend/authentication`, see `Configuration/RequestMiddlewares.php`): deep-link SSO handling. |
 | `Classes/Middleware/SingleLogoutSessionMiddleware.php` | PSR-15 frontend middleware (`nrumauth/sso/single-logout-session`, after `typo3/cms-frontend/authentication` and before `nrumauth/sso/redirect`): stores the settings uid, the NameID with its Format and qualifiers, and the AuthnStatement SessionIndex of a SAML login in the frontend session for single logout (`SamlService::getSingleLogoutData()`). |
-| `Classes/EventListener/` | Listeners for TYPO3 core auth events `BeforeUserLogoutEvent` and `AfterUserLoggedOutEvent` (registered in `Configuration/Services.yaml`). The extension dispatches no events of its own. |
+| `Classes/EventListener/` | Listeners for TYPO3 core auth events `BeforeUserLogoutEvent` and `AfterUserLoggedOutEvent` (registered with the `#[AsEventListener]` attribute). The extension dispatches no events of its own. |
 | `Classes/Domain/Model/Settings.php`, `Classes/Domain/Repository/SettingsRepository.php` | Extbase model/repository for the IdP/SP settings record (`tx_nrsamlauth_domain_model_settings`, TCA in `Configuration/TCA/`). |
 | `Configuration/` | `Services.yaml` (DI), `RequestMiddlewares.php`, TCA, FlexForms (plugin settings selection), Sets, TypoScript, backend module/icon registration. |
 | `ext_localconf.php` | Registers the `NrSamlAuth`/`Authentication` plugin and the auth service. |
@@ -40,5 +40,5 @@ No enforced architecture test exists (no `Tests/Architecture/`). Observable conv
 ## Key decisions
 
 - CI matrix and shared jobs come from the reusable `netresearch/typo3-ci-workflows` (`.github/workflows/ci.yml` for the test matrix, `checks.yml` for security/quality gates) — matrix intent is commented inline in `ci.yml`.
-- Rector/CGL configs delegate to the shared org config (`Build/rector.php`, `.php-cs-fixer.php`); PHPStan runs at level 10 with the shared org config, level 8 on the TYPO3 12.4 cells (`phpstan.neon`, `Build/phpstan-shared.php`).
+- Rector/CGL configs delegate to the shared org config (`Build/rector.php`, `.php-cs-fixer.php`); PHPStan runs at level 10 with the shared org config (`phpstan.neon`).
 - No ADR directory exists; record future architecture decisions in PRs or introduce `docs/adr/` when needed.

@@ -11,6 +11,42 @@ Changelog
 
 All notable changes to this project are documented here.
 
+Version 13.0.0
+==============
+
+Released: (not yet released)
+
+Added
+-----
+
+*  TYPO3 14.3 LTS support
+*  Upgrade wizard ``nrSamlAuth_pluginListTypeToCType`` that migrates existing
+   plugin content elements and backend user group permissions to the new
+   content element type
+
+Changed
+-------
+
+*  **Breaking:** the plugin is a content element type of its own (``CType``
+   ``nrsamlauth_authentication``) instead of a subtype of the "Insert Plugin"
+   content element, see :ref:`migration`
+*  Event listeners are registered by their ``#[AsEventListener]`` attribute
+
+Fixed
+-----
+
+*  The FlexForm of the plugin shows the field for the SAML settings record
+   again; TYPO3 13 no longer reads the ``<TCEforms>`` wrapper
+*  The backend module :guilabel:`Admin Tools > SAML Auth` renders again; it
+   uses the backend ModuleTemplate instead of the ``<be:moduleLayout>``
+   ViewHelper, which TYPO3 12 removed
+
+Removed
+-------
+
+*  **Breaking:** TYPO3 12.4 LTS support (version 12.x stays available)
+*  **Breaking:** PHP 8.1 support
+
 Version 12.0.0
 ==============
 

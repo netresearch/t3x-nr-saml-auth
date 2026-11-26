@@ -7,20 +7,7 @@ services:
       - EXTENSION_KEY=nr_saml_auth
       - PACKAGE_NAME=netresearch/nr-saml-auth
 
-      # TYPO3 v12 config
-      - TYPO3_INSTALL_DB_DRIVER=mysqli
-      - TYPO3_INSTALL_DB_USER=root
-      - TYPO3_INSTALL_DB_PASSWORD=root
-      - TYPO3_INSTALL_DB_HOST=db
-      - TYPO3_INSTALL_DB_UNIX_SOCKET=
-      - TYPO3_INSTALL_DB_USE_EXISTING=0
-      - TYPO3_INSTALL_ADMIN_USER=admin
-      - TYPO3_INSTALL_ADMIN_PASSWORD=Joh316!
-      - TYPO3_INSTALL_SITE_NAME=EXT:nr_saml_auth Dev Environment
-      - TYPO3_INSTALL_SITE_SETUP_TYPE=site
-      - TYPO3_INSTALL_WEB_SERVER_CONFIG=apache
-
-      # TYPO3 v13 config
+      # TYPO3 setup (vendor/bin/typo3 setup, TYPO3 13.4 and 14.3)
       - TYPO3_DB_DRIVER=mysqli
       - TYPO3_DB_USERNAME=root
       - TYPO3_DB_PASSWORD=root
@@ -35,10 +22,10 @@ services:
         source: ../
         target: /var/www/nr_saml_auth
         consistency: cached
-      - v12-data:/var/www/html/v12
       - v13-data:/var/www/html/v13
+      - v14-data:/var/www/html/v14
 volumes:
-  v12-data:
-    name: "${DDEV_SITENAME}-v12-data"
   v13-data:
     name: "${DDEV_SITENAME}-v13-data"
+  v14-data:
+    name: "${DDEV_SITENAME}-v14-data"

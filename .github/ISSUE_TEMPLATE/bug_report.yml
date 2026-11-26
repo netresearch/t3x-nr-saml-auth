@@ -13,8 +13,9 @@ body:
       label: TYPO3 Version
       description: Which TYPO3 version are you using?
       options:
-        - "12.4"
         - "13.4"
+        - "14.3"
+        - "12.4 (extension version 12.x)"
     validations:
       required: true
 
@@ -24,10 +25,12 @@ body:
       label: PHP Version
       description: Which PHP version are you using?
       options:
-        - "8.1"
         - "8.2"
         - "8.3"
         - "8.4"
+        - "8.5"
+        - "8.6"
+        - "8.1 (extension version 12.x)"
     validations:
       required: true
 
@@ -36,7 +39,7 @@ body:
     attributes:
       label: Extension Version
       description: Which version of nr_saml_auth are you using?
-      placeholder: "12.0.0"
+      placeholder: "13.0.0"
     validations:
       required: true
 

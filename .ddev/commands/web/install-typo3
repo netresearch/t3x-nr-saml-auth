@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # SPDX-FileCopyrightText: Netresearch DTT GmbH
 
-## Description: Installs a specific TYPO3 version (12 or 13) in .build/ directory and links the extension
-## Usage: install-typo3 [12|13|all]
-## Example: "ddev install-typo3 12" or "ddev install-typo3 all"
+## Description: Installs a specific TYPO3 version (13 or 14) in .build/ directory and links the extension
+## Usage: install-typo3 [13|14|all]
+## Example: "ddev install-typo3 14" or "ddev install-typo3 all"
 
 set -e
 
@@ -15,12 +15,12 @@ install_version() {
 
     # Define TYPO3 Composer constraint
     local COMPOSER_REQ
-    if [ "$VERSION" == "12" ]; then
-        COMPOSER_REQ="^12.4"
-    elif [ "$VERSION" == "13" ]; then
+    if [ "$VERSION" == "13" ]; then
         COMPOSER_REQ="^13.4"
+    elif [ "$VERSION" == "14" ]; then
+        COMPOSER_REQ="^14.3"
     else
-        echo "Error: Only versions 12 and 13 are supported."
+        echo "Error: Only versions 13 and 14 are supported."
         return 1
     fi
 
@@ -86,24 +86,24 @@ install_version() {
 VERSION=$1
 
 if [ -z "$VERSION" ]; then
-    echo "Usage: ddev install-typo3 [12|13|all]"
+    echo "Usage: ddev install-typo3 [13|14|all]"
     echo ""
     echo "Examples:"
-    echo "  ddev install-typo3 12    - Install TYPO3 12.4 LTS"
     echo "  ddev install-typo3 13    - Install TYPO3 13.4 LTS"
+    echo "  ddev install-typo3 14    - Install TYPO3 14.3 LTS"
     echo "  ddev install-typo3 all   - Install both versions"
     exit 1
 fi
 
 if [ "$VERSION" == "all" ]; then
-    install_version 12
     install_version 13
+    install_version 14
     echo "======================================"
     echo "All TYPO3 versions installed!"
     echo "======================================"
     echo ""
-    echo "v12: https://v12.nr-saml-auth.ddev.site/typo3"
     echo "v13: https://v13.nr-saml-auth.ddev.site/typo3"
+    echo "v14: https://v14.nr-saml-auth.ddev.site/typo3"
 else
     install_version "$VERSION"
 fi

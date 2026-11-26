@@ -4,10 +4,9 @@
 # The shared config of netresearch/typo3-ci-workflows sets level 10,
 # treatPhpDocTypesAsCertain, the strictness flags and the excludePaths;
 # phpstan/extension-installer registers phpstan-phpunit, phpstan-typo3 and the
-# other PHPStan extensions. Build/phpstan-shared.php includes it only where the
-# package is installed, see the comment there.
+# other PHPStan extensions.
 includes:
-    - Build/phpstan-shared.php
+    - .Build/vendor/netresearch/typo3-ci-workflows/config/phpstan/phpstan.neon
 
 parameters:
     paths:
@@ -24,8 +23,6 @@ parameters:
         - Netresearch\NrSamlAuth\Sv\AuthenticationService::injectConnectionPool
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
-        # TYPO3 13+ attribute not available in TYPO3 12 - listeners registered via Services.yaml
-        - '#Attribute class TYPO3\\CMS\\Core\\Attribute\\AsEventListener does not exist#'
         # TYPO3 specific patterns
         - '#Access to an undefined property TYPO3\\CMS\\Core\\Authentication\\AbstractUserAuthentication::\$#'
         # onelogin/php-saml library patterns
@@ -40,4 +37,21 @@ parameters:
         - '#is never read, only written#'
         # Array value types - relaxed for legacy compatibility
         - '#no value type specified in iterable type array#'
+        # $GLOBALS['TCA'] has no type; TYPO3 14 needs the data structure of
+        # the plugin written into it (no API call takes it on 13.4 and 14.3).
+        -
+            identifier: offsetAccess.nonOffsetAccessible
+            path: Configuration/TCA/Overrides/tt_content.php
+        # TYPO3 13.4 has no replacement for these, TYPO3 14.3 deprecates them
+        # for removal in 15: addPiFlexFormValue() (called on 13.4 only) and
+        # the EXT:install names of the upgrade wizard API, which 13.4 provides
+        # through EXT:install and 14.3 through EXT:core.
+        -
+            identifier: staticMethod.deprecated
+            path: Configuration/TCA/Overrides/tt_content.php
+        -
+            identifiers:
+                - attribute.deprecated
+                - class.extendsDeprecatedClass
+            path: Classes/Upgrades/PluginListTypeToCTypeUpdate.php
     tmpDir: .Build/cache/phpstan
