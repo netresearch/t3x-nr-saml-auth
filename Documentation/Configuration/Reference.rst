@@ -121,11 +121,18 @@ SAML Settings Record Fields
         your Identity Provider starts logins itself.
 
         SP-initiated login remembers the AuthnRequest in the cookie
-        ``nr_saml_auth_request`` (``SameSite=None; Secure; HttpOnly``, valid
-        for 10 minutes, up to five logins started at the same time). The
-        Assertion Consumer Service must be served over HTTPS: browsers do
-        not send this cookie with the Identity Provider's cross-site POST
-        over plain HTTP, and the login is then rejected.
+        ``__Host-nr_saml_auth_request`` (``SameSite=None; Secure; HttpOnly``,
+        valid for 10 minutes, up to five logins started at the same time).
+        The Assertion Consumer Service must be served over HTTPS: over plain
+        HTTP the cookie is ``nr_saml_auth_request`` with ``SameSite=Lax``,
+        browsers do not send it with the cross-site POST of an Identity
+        Provider on another site, and the login is then rejected.
+
+        The cookie is host-only. The page with the plugin that starts the
+        login and the Assertion Consumer Service URL
+        (``sp_customer_service_url``)
+        must be on the same host, or the browser does not send the cookie
+        with the response.
 
 Example Configuration
 =====================

@@ -7,6 +7,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.2] - Unreleased
+
+### Security
+
+- Over HTTPS the cookie that remembers the AuthnRequests is named `__Host-nr_saml_auth_request`, and only that name is read. Its value is signed but not bound to the browser, so an attacker who could set cookies for the site's host — from a sibling subdomain with `Domain=`, or with a plain-HTTP response where the host has no HSTS — could plant a cookie the site minted for the attacker's own login and then post the matching response (login CSRF). Browsers accept a `__Host-` cookie only from a secure origin, with `Secure`, `Path=/` and without `Domain`, which closes both routes. Over plain HTTP the cookie keeps the name `nr_saml_auth_request`.
+- A response whose Response element has no `InResponseTo` while a `SubjectConfirmationData` of its assertion has one is no longer taken for an IdP-initiated login. Where the identity provider signs only the assertion, anybody could remove `InResponseTo` from the Response element of a response to their own login; with "Allow IdP-initiated login" on, the response then logged a visitor into that account, because php-saml compares the assertion's `InResponseTo` only with the one of the Response element. Such a response is now rejected.
+
+### Fixed
+
+- Added the missing dependency on `typo3/cms-backend`: since 12.0.1 the backend module controller injects `ModuleTemplateFactory`.
+
+### Upgrade
+
+- Logins started before the update and finished after it fail once over HTTPS, because the cookie name changes; the user starts the login again.
+- As since 12.0.1, the cookie is host-only: the page with the plugin that starts the login and the Assertion Consumer Service URL must be on the same host. Otherwise the browser does not send the cookie with the response and the login is rejected.
+
 ## [12.0.1] - 2026-11-26
 
 ### Security

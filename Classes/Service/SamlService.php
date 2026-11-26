@@ -140,8 +140,9 @@ final class SamlService implements SingletonInterface
     /**
      * Returns the URL of the IdP's SSO service with the AuthnRequest.
      *
-     * The ID of the AuthnRequest is not remembered, so a response to it is
-     * rejected; redirectUserToSSO() remembers it.
+     * The ID of the AuthnRequest is not remembered, so the response to it is
+     * rejected since 12.0.1. Use createSsoRedirect() and send its cookie with
+     * the redirect to the URL.
      *
      * @throws Error
      */
