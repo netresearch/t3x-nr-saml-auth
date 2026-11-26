@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace Netresearch\NrSamlAuth\Tests\Functional\Helper;
 
+use DOMDocument;
+use DOMElement;
+use OneLogin\Saml2\Constants;
 use OneLogin\Saml2\Utils;
 use RuntimeException;
 
@@ -61,5 +64,48 @@ final class TestIdentityProvider
     public function sign(SamlResponseBuilder $builder): string
     {
         return base64_encode(Utils::addSign($builder->build(), $this->privateKey, $this->certificate));
+    }
+
+    /**
+     * Returns the response XML with an enveloped signature on the Assertion
+     * element only, base64-encoded. The Response element around it is not
+     * signed, so its attributes can be changed without breaking the
+     * signature, as many identity providers issue responses.
+     */
+    public function signAssertion(SamlResponseBuilder $builder): string
+    {
+        $response = new DOMDocument();
+        if (!$response->loadXML($builder->build())) {
+            throw new RuntimeException('The response to sign is not well-formed XML', 1764190001);
+        }
+
+        $assertion = $response->getElementsByTagNameNS(Constants::NS_SAML, 'Assertion')->item(0);
+        if (!$assertion instanceof DOMElement) {
+            throw new RuntimeException('The response to sign has no assertion', 1764190002);
+        }
+
+        // Utils::addSign() signs the document element, so the assertion is
+        // signed on its own document
+        $signed = new DOMDocument();
+        $signed->appendChild($signed->importNode($assertion, true));
+        $signed = Utils::addSign($signed, $this->privateKey, $this->certificate);
+
+        $signedAssertion = new DOMDocument();
+        if (!$signedAssertion->loadXML($signed) || !$signedAssertion->documentElement instanceof DOMElement) {
+            throw new RuntimeException('Cannot sign the assertion', 1764190003);
+        }
+
+        // addSign() puts the signature first, the schema wants it after the
+        // Issuer; the enveloped signature does not cover its own position
+        $signature = $signedAssertion->getElementsByTagNameNS(Constants::NS_DS, 'Signature')->item(0);
+        $issuer    = $signedAssertion->getElementsByTagNameNS(Constants::NS_SAML, 'Issuer')->item(0);
+        if ($signature === null || $issuer === null) {
+            throw new RuntimeException('The signed assertion has no signature or no issuer', 1764190004);
+        }
+        $signedAssertion->documentElement->insertBefore($signature, $issuer->nextSibling);
+
+        $assertion->parentNode?->replaceChild($response->importNode($signedAssertion->documentElement, true), $assertion);
+
+        return base64_encode((string) $response->saveXML());
     }
 }

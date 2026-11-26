@@ -51,6 +51,27 @@ final class SamlServiceTest extends UnitTestCase
     }
 
     #[Test]
+    public function getSsoRedirectUrlReturnsTheSsoUrl(): void
+    {
+        $settingsModel = self::createStub(Settings::class);
+        $settingsModel->method('getSpEntityId')->willReturn('https://sp.example.com/');
+        $settingsModel->method('getSpCustomerServiceUrl')->willReturn('https://sp.example.com/?logintype=login');
+        $settingsModel->method('getSpCustomerServiceBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
+        $settingsModel->method('getSpNameIdFormat')->willReturn('NAMEID_UNSPECIFIED');
+        $settingsModel->method('getIdpEntityId')->willReturn('https://idp.example.com');
+        $settingsModel->method('getIdpSsoUrl')->willReturn('https://idp.example.com/sso');
+        $settingsModel->method('getIdpSsoBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+        $settingsModel->method('getIdpCert')->willReturn('MIIBtest');
+        $this->settingsRepository->method('findByUid')->willReturn($settingsModel);
+        $this->subject->setSettingsUid(1);
+
+        $url = $this->subject->getSsoRedirectUrl();
+
+        self::assertStringStartsWith('https://idp.example.com/sso?', $url);
+        self::assertStringContainsString('SAMLRequest=', $url);
+    }
+
+    #[Test]
     public function getSettingsReturnsDefaultStructure(): void
     {
         $settings = $this->subject->getSettings();
@@ -263,7 +284,7 @@ final class SamlServiceTest extends UnitTestCase
         $_SERVER      = array_replace($_SERVER, $serverParams);
         unset($_SERVER['HTTPS']);
         try {
-            $url = $this->subject->getSsoRedirectUrl($request);
+            $url = $this->subject->createSsoRedirect($request)['url'];
         } finally {
             $_SERVER = $serverBackup;
             Utils::setBaseURL('');

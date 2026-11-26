@@ -11,6 +11,41 @@ Changelog
 
 All notable changes to this project are documented here.
 
+Version 12.0.2
+==============
+
+Released: (not yet released)
+
+Security
+--------
+
+*  Over HTTPS the cookie that remembers the AuthnRequests is named
+   ``__Host-nr_saml_auth_request``, and only that name is read. Browsers
+   accept such a cookie only from a secure origin, with ``Secure``,
+   ``Path=/`` and without ``Domain``, so neither a sibling subdomain nor a
+   plain-HTTP response can plant a cookie the site minted for another
+   login (login CSRF). Over plain HTTP the name stays
+   ``nr_saml_auth_request``.
+*  A response whose Response element has no ``InResponseTo`` while the
+   ``SubjectConfirmationData`` of its assertion has one is rejected, also
+   with ``allow_idp_initiated`` on. Where the Identity Provider signs only
+   the assertion, anybody could remove the attribute from the Response
+   element and have the response taken for an IdP-initiated login.
+
+Fixed
+-----
+
+*  Added the missing dependency on ``typo3/cms-backend``: since 12.0.1 the
+   backend module controller injects ``ModuleTemplateFactory``.
+
+Upgrade
+-------
+
+*  Logins started before the update and finished after it fail once over
+   HTTPS, because the cookie name changes.
+*  As since 12.0.1, the page with the plugin and the Assertion Consumer
+   Service URL must be on the same host: the cookie is host-only.
+
 Version 12.0.1
 ==============
 

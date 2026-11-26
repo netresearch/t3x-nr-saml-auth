@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace Netresearch\NrSamlAuth\Sv;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use DOMXPath;
 use Netresearch\NrSamlAuth\Domain\Model\Settings;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\AuthnRequestCookie;
@@ -293,13 +294,20 @@ class AuthenticationService extends Typo3AuthService
      * False, and the response is rejected, otherwise: anybody can post a
      * response the identity provider issued to them from a victim's browser
      * (login CSRF).
+     *
+     * Without InResponseTo on the Response element, an InResponseTo of a
+     * SubjectConfirmationData in the assertion counts as well: where only the
+     * assertion is signed, anybody can remove the attribute from the Response
+     * element, and php-saml then skips the comparison of the assertion's
+     * InResponseTo. php-saml requires the Response element to carry the
+     * request ID it validates against, so such a response is rejected even
+     * if it answers a request of this browser.
      */
     private function getExpectedRequestId(Response $samlResponse, Settings $settings): string|false|null
     {
-        $root         = $samlResponse->getXMLDocument()->documentElement;
-        $inResponseTo = $root?->hasAttribute('InResponseTo') === true ? $root->getAttribute('InResponseTo') : null;
+        $inResponseTos = $this->getInResponseTos($samlResponse);
 
-        if ($inResponseTo === null) {
+        if ($inResponseTos === []) {
             if ($settings->getAllowIdpInitiated()) {
                 return null;
             }
@@ -311,11 +319,22 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
+        // The request IDs came from the assertion: the Response element lost
+        // its InResponseTo. php-saml rejects such a response anyway; the own
+        // warning tells this tampering apart from a missing or expired cookie.
+        if ($samlResponse->getXMLDocument()->documentElement?->hasAttribute('InResponseTo') !== true) {
+            $this->logger?->warning('SAML response names its authentication request only in the assertion', [
+                'saml_id' => $settings->getUid(),
+            ]);
+
+            return false;
+        }
+
         $request    = $this->getRequest();
         $pendingIds = $request instanceof ServerRequestInterface && $settings->getUid() !== null
             ? $this->authnRequestCookie->getPendingRequestIds($request, $settings->getUid())
             : [];
-        if (!in_array($inResponseTo, $pendingIds, true)) {
+        if (array_diff($inResponseTos, $pendingIds) !== []) {
             $this->logger?->warning('SAML response answers no authentication request this browser started', [
                 'saml_id' => $settings->getUid(),
             ]);
@@ -323,7 +342,35 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
-        return $inResponseTo;
+        return $inResponseTos[0];
+    }
+
+    /**
+     * The InResponseTo of the Response element, or without one the
+     * InResponseTo values of the SubjectConfirmationData elements, read from
+     * the decrypted document if the assertion was encrypted.
+     *
+     * @return list<string>
+     */
+    private function getInResponseTos(Response $samlResponse): array
+    {
+        $document = $samlResponse->getXMLDocument();
+        $root     = $document->documentElement;
+        if ($root?->hasAttribute('InResponseTo') === true) {
+            return [$root->getAttribute('InResponseTo')];
+        }
+
+        $xpath = new DOMXPath($document);
+        $xpath->registerNamespace('saml', Constants::NS_SAML);
+
+        $nodes = $xpath->query('//saml:SubjectConfirmationData/@InResponseTo');
+
+        $inResponseTos = [];
+        foreach ($nodes === false ? [] : $nodes as $node) {
+            $inResponseTos[] = (string) $node->nodeValue;
+        }
+
+        return $inResponseTos;
     }
 
     /**
