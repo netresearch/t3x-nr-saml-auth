@@ -7,6 +7,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.1] - Unreleased
+
+### Security
+
+- Reject SAML responses that do not answer an AuthnRequest this browser started (login CSRF). Before, any valid signed response posted to the Assertion Consumer Service logged the browser in, so somebody with an account at the identity provider could log a visitor into that account. The extension now remembers the ID of each AuthnRequest in the cookie `nr_saml_auth_request` (`SameSite=None; Secure; HttpOnly`, HMAC-protected, 10 minutes, up to five pending logins) and has php-saml check the response's `InResponseTo` against it.
+- IdP-initiated login (a response without `InResponseTo`) is rejected unless the new settings record field "Allow IdP-initiated login" (`allow_idp_initiated`) is on. It is off by default.
+
+### Upgrade
+
+- Run the database schema update: it adds the column `allow_idp_initiated` to `tx_nrsamlauth_domain_model_settings` with the value 0 for every existing record. If your identity provider starts logins itself (for example from an application portal), switch "Allow IdP-initiated login" on in the settings record; otherwise those logins are rejected after the update.
+- SP-initiated login needs the Assertion Consumer Service URL on HTTPS; over plain HTTP the browser does not send the cookie back with the identity provider's cross-site POST.
+- A response is accepted only for the settings record that started the login. The record the plugin selects must be the one the Assertion Consumer Service URL resolves to (its `saml_id` parameter, else the record whose SP entity ID matches the host, else uid 1); otherwise the login is now rejected.
+
+### Fixed
+
+- The plugin's FlexForm field that selects the SAML settings record had no label and no configuration on TYPO3 13.4: the FlexForm still wrapped it in `<TCEforms>`, which TYPO3 13 no longer reads.
+- The backend module Admin Tools > SAML Auth failed to render on TYPO3 12.4 and 13.4: its layout used `<be:moduleLayout>`, which TYPO3 12 removed. The module now renders through the backend's ModuleTemplate API.
+
 ## [12.0.0] - 2026-11-26
 
 ### Added

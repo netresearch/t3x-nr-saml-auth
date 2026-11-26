@@ -42,6 +42,9 @@ services:
   Netresearch\NrSamlAuth\Middleware\SingleLogoutSessionMiddleware:
     public: true
 
+  Netresearch\NrSamlAuth\Middleware\AuthnRequestCookieMiddleware:
+    public: true
+
   # Event Listeners registered via Services.yaml for TYPO3 12 compatibility
   # (TYPO3 13+ also supports #[AsEventListener] attributes in the classes)
   Netresearch\NrSamlAuth\EventListener\BeforeUserLogoutEventListener:

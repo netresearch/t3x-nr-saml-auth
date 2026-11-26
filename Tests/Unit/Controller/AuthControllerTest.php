@@ -11,6 +11,7 @@ namespace Netresearch\NrSamlAuth\Tests\Unit\Controller;
 
 use Netresearch\NrSamlAuth\Controller\AuthController;
 use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
+use Netresearch\NrSamlAuth\Service\AuthnRequestCookie;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -48,6 +49,7 @@ final class AuthControllerTest extends UnitTestCase
         $samlService = new SamlService(
             self::createStub(SettingsRepository::class),
             self::createStub(ExtensionConfiguration::class),
+            new AuthnRequestCookie(),
         );
         $subject = new AuthController($samlService, new Context(), new NullLogger());
 
