@@ -14,7 +14,7 @@ All notable changes to this project are documented here.
 Version 13.1.0
 ==============
 
-Released: (not yet released)
+Released: 2026-11-26
 
 Security
 --------

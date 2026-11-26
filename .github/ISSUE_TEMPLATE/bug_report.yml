@@ -39,7 +39,7 @@ body:
     attributes:
       label: Extension Version
       description: Which version of nr_saml_auth are you using?
-      placeholder: "13.0.0"
+      placeholder: "13.1.0"
     validations:
       required: true
 
