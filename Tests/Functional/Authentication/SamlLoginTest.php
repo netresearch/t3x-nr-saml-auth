@@ -12,14 +12,20 @@ namespace Netresearch\NrSamlAuth\Tests\Functional\Authentication;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
+use Netresearch\NrSamlAuth\Service\AuthnRequestCookie;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\SamlResponseBuilder;
 use Netresearch\NrSamlAuth\Tests\Functional\Helper\TestIdentityProvider;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\Cookie;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Crypto\PasswordHashing\PasswordHashFactory;
 use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Http\NormalizedParams;
+use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\Session\UserSession;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
@@ -50,6 +56,8 @@ final class SamlLoginTest extends FunctionalTestCase
     private const XPATH_NAME_ID = '/samlp:LogoutRequest/saml:NameID';
 
     private const SAML_USERS_PID = 10;
+
+    private const REQUEST_COOKIE = 'nr_saml_auth_request';
 
     protected array $testExtensionsToLoad = ['netresearch/nr-saml-auth'];
 
@@ -84,6 +92,15 @@ final class SamlLoginTest extends FunctionalTestCase
 
     private TestIdentityProvider $identityProvider;
 
+    /**
+     * ID of the AuthnRequest of the login setUp() starts, and the cookie
+     * that remembers it. validResponse() answers this request and
+     * postSamlResponse() sends this cookie unless a test says otherwise.
+     */
+    private string $requestId;
+
+    private string $requestCookie;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -100,6 +117,8 @@ final class SamlLoginTest extends FunctionalTestCase
 
         $this->identityProvider = new TestIdentityProvider();
         $this->insertSettings($this->identityProvider->getCertificate());
+
+        [$this->requestId, $this->requestCookie] = $this->startLogin();
     }
 
     #[Test]
@@ -112,6 +131,171 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertIsArray($user, 'A frontend user is created in the storage folder of the settings record');
         self::assertSame('1', (string) $user['usergroup']);
         self::assertSame([(int) $user['uid']], $this->loggedInUserIds());
+    }
+
+    /**
+     * A response that answers no AuthnRequest (IdP-initiated login) could be
+     * posted from any browser, for example by an attacker who logs a victim
+     * into the attacker's account (login CSRF). It is rejected unless the
+     * settings record allows IdP-initiated login.
+     */
+    #[Test]
+    public function unsolicitedResponseIsRejectedByDefault(): void
+    {
+        $this->postSamlResponse($this->identityProvider->sign($this->validResponse()->withInResponseTo(null)));
+
+        self::assertSame([], $this->loggedInUserIds());
+        self::assertNull($this->findUser('jdoe', self::SAML_USERS_PID));
+    }
+
+    #[Test]
+    public function unsolicitedResponseIsAcceptedWhenTheSettingsRecordAllowsIdpInitiatedLogin(): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
+            ->update('tx_nrsamlauth_domain_model_settings', ['allow_idp_initiated' => 1], ['uid' => 1]);
+
+        $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()->withInResponseTo(null)),
+            [],
+            self::ACS_URL,
+            false,
+            [],
+        );
+
+        $user = $this->findUser('jdoe', self::SAML_USERS_PID);
+        self::assertIsArray($user);
+        self::assertSame([(int) $user['uid']], $this->loggedInUserIds());
+    }
+
+    /**
+     * Allowing IdP-initiated login does not let a response through that
+     * answers an AuthnRequest this browser did not start.
+     */
+    #[Test]
+    public function responseToAnotherAuthnRequestIsRejectedAlsoWhenIdpInitiatedLoginIsAllowed(): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
+            ->update('tx_nrsamlauth_domain_model_settings', ['allow_idp_initiated' => 1], ['uid' => 1]);
+
+        $this->postSamlResponse($this->identityProvider->sign(
+            $this->validResponse()->withInResponseTo('_attacker_request'),
+        ));
+
+        self::assertSame([], $this->loggedInUserIds());
+    }
+
+    /**
+     * The browser starts two logins, for example in two tabs, and the
+     * response to the first arrives: the user is logged in, and the cookie
+     * the response sets forgets the answered request and keeps the other.
+     */
+    #[Test]
+    public function responseToAnAuthnRequestOfThisBrowserLogsInAndTheRequestIsForgotten(): void
+    {
+        [$secondRequestId, $cookie] = $this->startLogin(1, [self::REQUEST_COOKIE => $this->requestCookie]);
+        self::assertNotSame($this->requestId, $secondRequestId);
+
+        $response = $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()),
+            ['RelayState' => '/some/page'],
+            self::ACS_URL,
+            false,
+            [self::REQUEST_COOKIE => $cookie],
+        );
+
+        self::assertSame(303, $response->getStatusCode());
+        self::assertCount(1, $this->loggedInUserIds());
+
+        $setCookie = null;
+        foreach ($response->getHeader('Set-Cookie') as $header) {
+            if (str_starts_with($header, self::REQUEST_COOKIE . '=')) {
+                $setCookie = Cookie::fromString($header);
+            }
+        }
+        self::assertInstanceOf(Cookie::class, $setCookie, 'The response updates the cookie');
+        self::assertSame(
+            [$secondRequestId],
+            (new AuthnRequestCookie())->getPendingRequestIds(
+                (new ServerRequest())->withCookieParams([self::REQUEST_COOKIE => (string) $setCookie->getValue()]),
+                1,
+            ),
+        );
+    }
+
+    #[Test]
+    public function startingALoginRemembersTheAuthnRequestInACookieThatTheCrossSitePostCarries(): void
+    {
+        $samlService = $this->get(SamlService::class);
+        $samlService->setSettingsUid(1);
+
+        $redirect = $samlService->createSsoRedirect($this->loginPageRequest([]));
+        $cookie   = $redirect['cookie'];
+
+        self::assertInstanceOf(Cookie::class, $cookie);
+        self::assertSame(self::REQUEST_COOKIE, $cookie->getName());
+        self::assertSame(Cookie::SAMESITE_NONE, $cookie->getSameSite());
+        self::assertTrue($cookie->isSecure());
+        self::assertTrue($cookie->isHttpOnly());
+        self::assertSame('/', $cookie->getPath());
+        self::assertLessThanOrEqual(AuthnRequestCookie::LIFETIME, $cookie->getMaxAge());
+        self::assertGreaterThan(AuthnRequestCookie::LIFETIME - 60, $cookie->getMaxAge());
+        self::assertSame(
+            [$this->authnRequestIdOf($redirect['url'])],
+            (new AuthnRequestCookie())->getPendingRequestIds(
+                (new ServerRequest())->withCookieParams([self::REQUEST_COOKIE => (string) $cookie->getValue()]),
+                1,
+            ),
+        );
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function cookiesWithoutTheAnsweredRequestDataProvider(): array
+    {
+        return [
+            'no cookie'                         => ['no cookie'],
+            'cookie that is not signed'         => ['not signed'],
+            'cookie of another request'         => ['other request'],
+            'cookie with changed request'       => ['tampered'],
+            'cookie that expired'               => ['expired'],
+            'cookie of another settings record' => ['other settings record'],
+        ];
+    }
+
+    /**
+     * A response that answers an AuthnRequest this browser did not start
+     * for this settings record within the lifetime of the cookie is rejected.
+     */
+    #[Test]
+    #[DataProvider('cookiesWithoutTheAnsweredRequestDataProvider')]
+    public function responseToAnAuthnRequestThisBrowserDidNotStartIsRejected(string $variant): void
+    {
+        $requestId = '_attacker_request';
+        $cookies   = match ($variant) {
+            'no cookie'             => [],
+            'not signed'            => [self::REQUEST_COOKIE => $requestId],
+            'other request'         => [self::REQUEST_COOKIE => $this->requestCookie],
+            'tampered'              => [self::REQUEST_COOKIE => $this->withPayloadOf($this->requestCookie, [[1, $requestId, time() + 600]])],
+            'expired'               => [self::REQUEST_COOKIE => $this->startLogin(1, [], time() - AuthnRequestCookie::LIFETIME - 1)[1]],
+            'other settings record' => [self::REQUEST_COOKIE => $this->startLogin($this->copySettingsRecord())[1]],
+            default                 => self::fail('Unknown variant ' . $variant),
+        };
+        if (in_array($variant, ['expired', 'other settings record'], true)) {
+            // The response answers the request of that cookie
+            $requestId = $this->pendingRequestIdIn($cookies[self::REQUEST_COOKIE], $variant === 'expired');
+        }
+
+        $this->postSamlResponse(
+            $this->identityProvider->sign($this->validResponse()->withInResponseTo($requestId)),
+            [],
+            self::ACS_URL . '&saml_id=1',
+            false,
+            $cookies,
+        );
+
+        self::assertSame([], $this->loggedInUserIds());
+        self::assertNull($this->findUser('jdoe', self::SAML_USERS_PID));
     }
 
     #[Test]
@@ -271,15 +455,18 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame([], $this->loggedInUserIds());
     }
 
+    /**
+     * Both settings records allow IdP-initiated login, so that only the
+     * replay protection can reject the second post.
+     */
     #[Test]
     public function responseIsAcceptedOnceAcrossSettingsRecordsOfTheSameIdentityProvider(): void
     {
         $connection = $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings');
-        $record     = $connection->select(['*'], 'tx_nrsamlauth_domain_model_settings', ['uid' => 1])->fetchAssociative();
-        self::assertIsArray($record);
-        $connection->insert('tx_nrsamlauth_domain_model_settings', ['uid' => 2] + $record);
+        $connection->update('tx_nrsamlauth_domain_model_settings', ['allow_idp_initiated' => 1], ['uid' => 1]);
+        $this->copySettingsRecord();
 
-        $samlResponse = $this->identityProvider->sign($this->validResponse());
+        $samlResponse = $this->identityProvider->sign($this->validResponse()->withInResponseTo(null));
         $this->postSamlResponse($samlResponse, [], self::ACS_URL . '&saml_id=1');
         self::assertCount(1, $this->loggedInUserIds());
         $this->getConnectionPool()->getConnectionForTable('fe_sessions')->truncate('fe_sessions');
@@ -659,9 +846,13 @@ final class SamlLoginTest extends FunctionalTestCase
         return is_array($data) ? $data : null;
     }
 
+    /**
+     * A response to the AuthnRequest of the login setUp() started.
+     */
     private function validResponse(): SamlResponseBuilder
     {
         return (new SamlResponseBuilder())
+            ->withInResponseTo($this->requestId)
             ->withIssuer(self::IDP_ENTITY_ID)
             ->withAudience(self::SP_ENTITY_ID)
             ->withDestination(self::ACS_URL)
@@ -672,22 +863,129 @@ final class SamlLoginTest extends FunctionalTestCase
     }
 
     /**
-     * @param array<string, string> $additionalFields
+     * @param array<string, string>      $additionalFields
+     * @param array<string, string>|null $cookies          null: the cookie of the login setUp() started
      */
     private function postSamlResponse(
         string $samlResponse,
         array $additionalFields = [],
         string $url = self::ACS_URL,
         bool $asLocalUser = false,
+        ?array $cookies = null,
     ): ResponseInterface {
         $request = (new InternalRequest($url))
             ->withMethod('POST')
-            ->withParsedBody(['SAMLResponse' => $samlResponse] + $additionalFields);
+            ->withParsedBody(['SAMLResponse' => $samlResponse] + $additionalFields)
+            ->withCookieParams($cookies ?? [self::REQUEST_COOKIE => $this->requestCookie]);
 
         return $this->executeFrontendSubRequest(
             $request,
             $asLocalUser ? (new InternalRequestContext())->withFrontendUserId(2) : null,
         );
+    }
+
+    /**
+     * Starts an SP-initiated login for the settings record the way the
+     * extension redirects a visitor to the identity provider. Returns the ID
+     * of the AuthnRequest in the redirect URL and the value of the cookie
+     * that remembers it; $now mints the cookie at another time.
+     *
+     * @param array<string, string> $cookies Cookies the browser already has
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function startLogin(int $settingsUid = 1, array $cookies = [], ?int $now = null): array
+    {
+        $samlService = $now === null
+            ? $this->get(SamlService::class)
+            : new SamlService(
+                $this->get(SettingsRepository::class),
+                GeneralUtility::makeInstance(ExtensionConfiguration::class),
+                new AuthnRequestCookie($now),
+            );
+        $samlService->setSettingsUid($settingsUid);
+
+        $redirect = $samlService->createSsoRedirect($this->loginPageRequest($cookies));
+        self::assertInstanceOf(Cookie::class, $redirect['cookie']);
+
+        return [$this->authnRequestIdOf($redirect['url']), (string) $redirect['cookie']->getValue()];
+    }
+
+    /**
+     * @param array<string, string> $cookies
+     */
+    private function loginPageRequest(array $cookies): ServerRequest
+    {
+        $request = (new ServerRequest('https://sp.example.com/login', 'GET', null, [], [
+            'HTTPS'       => 'on',
+            'HTTP_HOST'   => 'sp.example.com',
+            'SERVER_PORT' => '443',
+            'REQUEST_URI' => '/login',
+            'SCRIPT_NAME' => '/index.php',
+        ]))->withCookieParams($cookies);
+
+        return $request->withAttribute('normalizedParams', NormalizedParams::createFromRequest($request));
+    }
+
+    /**
+     * The ID of the AuthnRequest in the URL of the identity provider's SSO
+     * service.
+     */
+    private function authnRequestIdOf(string $url): string
+    {
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+        self::assertIsString($query['SAMLRequest'] ?? null);
+        $decoded = base64_decode($query['SAMLRequest'], true);
+        self::assertIsString($decoded);
+        $xml = gzinflate($decoded);
+        self::assertIsString($xml);
+        self::assertSame(1, preg_match('/<samlp:AuthnRequest[^>]*\sID="([^"]+)"/', $xml, $matches));
+
+        return $matches[1];
+    }
+
+    /**
+     * The request ID in a cookie value, read without checking its HMAC or,
+     * with $ignoreExpiry, its expiry time.
+     */
+    private function pendingRequestIdIn(string $cookieValue, bool $ignoreExpiry): string
+    {
+        [$payload] = explode('.', $cookieValue);
+        $entries   = json_decode((string) base64_decode(strtr($payload, '-_', '+/'), true), true);
+        self::assertIsArray($entries);
+        self::assertCount(1, $entries);
+        self::assertIsArray($entries[0]);
+        self::assertIsString($entries[0][1]);
+        if (!$ignoreExpiry) {
+            self::assertGreaterThan(time(), $entries[0][2]);
+        }
+
+        return $entries[0][1];
+    }
+
+    /**
+     * The cookie value with another payload and the HMAC of the original.
+     *
+     * @param list<array{0: int, 1: string, 2: int}> $entries
+     */
+    private function withPayloadOf(string $cookieValue, array $entries): string
+    {
+        [, $hmac] = explode('.', $cookieValue);
+
+        return rtrim(strtr(base64_encode((string) json_encode($entries)), '+/', '-_'), '=') . '.' . $hmac;
+    }
+
+    /**
+     * Copies settings record 1 to a new record and returns its uid.
+     */
+    private function copySettingsRecord(): int
+    {
+        $connection = $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings');
+        $record     = $connection->select(['*'], 'tx_nrsamlauth_domain_model_settings', ['uid' => 1])->fetchAssociative();
+        self::assertIsArray($record);
+        $connection->insert('tx_nrsamlauth_domain_model_settings', ['uid' => 2] + $record);
+
+        return 2;
     }
 
     /**

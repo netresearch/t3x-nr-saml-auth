@@ -52,6 +52,8 @@ final class SamlResponseBuilder
 
     private bool $includeSignature = false;
 
+    private ?string $inResponseTo = null;
+
     public function __construct()
     {
         $this->responseId   = '_' . bin2hex(random_bytes(16));
@@ -201,6 +203,19 @@ final class SamlResponseBuilder
         return $clone;
     }
 
+    /**
+     * The ID of the AuthnRequest the response answers, written to the
+     * InResponseTo attribute of the Response and of the
+     * SubjectConfirmationData; null leaves both out (IdP-initiated login).
+     */
+    public function withInResponseTo(?string $inResponseTo): self
+    {
+        $clone               = clone $this;
+        $clone->inResponseTo = $inResponseTo;
+
+        return $clone;
+    }
+
     public function signed(): self
     {
         $clone                   = clone $this;
@@ -224,6 +239,10 @@ final class SamlResponseBuilder
             }
         }
 
+        $inResponseTo = $this->inResponseTo === null
+            ? ''
+            : ' InResponseTo="' . htmlspecialchars($this->inResponseTo, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
+
         $sessionIndex = $this->sessionIndex === null
             ? ''
             : ' SessionIndex="' . htmlspecialchars($this->sessionIndex, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '"';
@@ -235,7 +254,7 @@ final class SamlResponseBuilder
                             ID="{$this->responseId}"
                             Version="2.0"
                             IssueInstant="{$issueInstant}"
-                            Destination="{$this->destination}">
+                            Destination="{$this->destination}"{$inResponseTo}>
                 <saml:Issuer>{$this->issuer}</saml:Issuer>
                 <samlp:Status>
                     <samlp:StatusCode Value="{$this->statusCode}"/>
@@ -251,7 +270,7 @@ final class SamlResponseBuilder
                         <saml:NameID{$nameIdAttributes}>{$this->nameId}</saml:NameID>
                         <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
                             <saml:SubjectConfirmationData NotOnOrAfter="{$notOnOrAfter}"
-                                                           Recipient="{$this->destination}"/>
+                                                           Recipient="{$this->destination}"{$inResponseTo}/>
                         </saml:SubjectConfirmation>
                     </saml:Subject>
                     <saml:Conditions NotBefore="{$notBefore}" NotOnOrAfter="{$notOnOrAfter}">

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- SPDX-License-Identifier: GPL-2.0-or-later -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2026-11-26T12:00:00Z" product-name="nr_saml_auth" target-language="de">
+        <header/>
+        <body>
+            <trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated">
+                <source>Allow IdP-initiated login</source>
+                <target>Vom IdP gestartete Anmeldung erlauben</target>
+            </trans-unit>
+            <trans-unit id="nr_saml_auth_domain_model_settings.allow_idp_initiated.description">
+                <source>Accept a SAML response that answers no login this browser started on this site. Leave off unless the identity provider starts logins itself (for example from an application portal): with it on, a third party who has an account at the identity provider can log a visitor into that account (login CSRF).</source>
+                <target>Eine SAML-Antwort annehmen, die zu keiner Anmeldung gehört, die dieser Browser auf dieser Website gestartet hat. Nur einschalten, wenn der Identity Provider Anmeldungen selbst startet (zum Beispiel aus einem Anwendungsportal): Ist die Option an, kann jemand mit einem Konto beim Identity Provider eine Besucherin oder einen Besucher in dieses Konto anmelden (Login-CSRF).</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

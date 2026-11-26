@@ -13,11 +13,13 @@ Agent-facing component map for `nr_saml_auth`. For prose documentation see `Docu
 | Path | Role |
 |------|------|
 | `Classes/Controller/AuthController.php` | Extbase frontend plugin controller. `loginAction` redirects anonymous users to SSO via `SamlService`; `receiveSamlResponseAction` is the response callback view. |
-| `Classes/Controller/SamlAuthController.php` | Backend module controller (`Configuration/Backend/Modules.php`): `metadataAction` displays the SP SAML metadata XML. |
+| `Classes/Controller/SamlAuthController.php` | Backend module controller (`Configuration/Backend/Modules.php`): `metadataAction` displays the SP SAML metadata XML in the backend module layout (`ModuleTemplateFactory`, template `Resources/Private/Templates/SamlAuth/Metadata.html` with the backend's `Module` layout). |
 | `Classes/Service/SamlService.php` | Singleton wrapper around `onelogin/php-saml` (`OneLogin\Saml2\*`): builds SP/IdP settings from the `Settings` record, initiates the SSO redirect, defines the single logout data stored at login and builds the single logout redirect from it. |
-| `Classes/Sv/AuthenticationService.php` | TYPO3 authentication service registered in `ext_localconf.php` (subtypes `authUserFE,authUserBE,getUserFE`, priority/quality 100): `getUser()` resolves the user from the SAML response, `authUser()` decides authentication. |
+| `Classes/Service/AuthnRequestCookie.php` | The cookie `nr_saml_auth_request` that remembers the AuthnRequests a browser started: up to five entries of settings uid, request ID and expiry (10 minutes), HMAC-SHA256 with TYPO3's encryption key, `SameSite=None; Secure; HttpOnly` over HTTPS. |
+| `Classes/Sv/AuthenticationService.php` | TYPO3 authentication service registered in `ext_localconf.php` (subtypes `authUserFE,authUserBE,getUserFE`, priority/quality 100): `getUser()` resolves the user from the SAML response, `authUser()` decides authentication. A response must answer an AuthnRequest in `AuthnRequestCookie` for the selected record (its `InResponseTo` is passed to php-saml), or carry no `InResponseTo` on a record that allows IdP-initiated login. |
 | `Classes/Session/SamlSession.php` | Singleton session-state helper (`@internal`, not public API). |
 | `Classes/Middleware/DeepLinkSsoMiddleware.php` | PSR-15 frontend middleware (`nrumauth/sso/redirect`, after `typo3/cms-frontend/authentication`, see `Configuration/RequestMiddlewares.php`): deep-link SSO handling. |
+| `Classes/Middleware/AuthnRequestCookieMiddleware.php` | PSR-15 frontend middleware (`nrumauth/sso/authn-request-cookie`, after `typo3/cms-frontend/authentication`, before `nrumauth/sso/single-logout-session` and `nrumauth/sso/redirect`): after a login, removes the answered AuthnRequest from `AuthnRequestCookie`. |
 | `Classes/Middleware/SingleLogoutSessionMiddleware.php` | PSR-15 frontend middleware (`nrumauth/sso/single-logout-session`, after `typo3/cms-frontend/authentication` and before `nrumauth/sso/redirect`): stores the settings uid, the NameID with its Format and qualifiers, and the AuthnStatement SessionIndex of a SAML login in the frontend session for single logout (`SamlService::getSingleLogoutData()`). |
 | `Classes/EventListener/` | Listeners for TYPO3 core auth events `BeforeUserLogoutEvent` and `AfterUserLoggedOutEvent` (registered in `Configuration/Services.yaml`). The extension dispatches no events of its own. |
 | `Classes/Domain/Model/Settings.php`, `Classes/Domain/Repository/SettingsRepository.php` | Extbase model/repository for the IdP/SP settings record (`tx_nrsamlauth_domain_model_settings`, TCA in `Configuration/TCA/`). |
@@ -28,10 +30,10 @@ Agent-facing component map for `nr_saml_auth`. For prose documentation see `Docu
 
 ## Data flow (login)
 
-1. Anonymous visitor hits a page with the `Authentication` plugin → `AuthController::loginAction` loads the configured `Settings` record (`samlAuthSettings` FlexForm value) into `SamlService` and calls `redirectUserToSSO()`.
+1. Anonymous visitor hits a page with the `Authentication` plugin → `AuthController::loginAction` loads the configured `Settings` record (`samlAuthSettings` FlexForm value) into `SamlService` and calls `redirectUserToSSO()`, which stores the ID of the AuthnRequest in `AuthnRequestCookie`.
 2. The IdP authenticates the user and posts the SAML response back to TYPO3.
-3. TYPO3's frontend authentication invokes `Sv/AuthenticationService` (`getUserFE`/`authUserFE`): it validates the response via `SamlService` and maps the asserted identity to a frontend user.
-4. `SingleLogoutSessionMiddleware` runs after frontend authentication and stores the single logout data in the session; `DeepLinkSsoMiddleware` runs after it for deep-link SSO redirects. On logout the core auth events `BeforeUserLogoutEvent` and `AfterUserLoggedOutEvent` trigger the extension's listeners, which send the user to the single logout URL of the IdP.
+3. TYPO3's frontend authentication invokes `Sv/AuthenticationService` (`getUserFE`/`authUserFE`): it checks that the response answers an AuthnRequest of this browser (or that IdP-initiated login is allowed), validates the response via `SamlService` and maps the asserted identity to a frontend user.
+4. `AuthnRequestCookieMiddleware` removes the answered AuthnRequest from the cookie. `SingleLogoutSessionMiddleware` runs after frontend authentication and stores the single logout data in the session; `DeepLinkSsoMiddleware` runs after it for deep-link SSO redirects. On logout the core auth events `BeforeUserLogoutEvent` and `AfterUserLoggedOutEvent` trigger the extension's listeners, which send the user to the single logout URL of the IdP.
 
 ## Dependency rules
 

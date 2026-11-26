@@ -13,6 +13,7 @@ use Netresearch\NrSamlAuth\Domain\Repository\SettingsRepository;
 use Netresearch\NrSamlAuth\Service\SamlService;
 use OneLogin\Saml2\Error;
 use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 
 /**
@@ -23,30 +24,32 @@ class SamlAuthController extends ActionController
     public function __construct(
         private readonly SettingsRepository $settingsRepository,
         private readonly SamlService $samlService,
+        private readonly ModuleTemplateFactory $moduleTemplateFactory,
     ) {}
 
     /**
-     * Displays SAML metadata for configured service providers.
+     * Displays SAML metadata for configured service providers, in the
+     * backend's module layout (ModuleTemplate).
      *
      * @throws Error
      */
     public function metadataAction(): ResponseInterface
     {
-        $settings = $this->settingsRepository->findAll();
-        $this->view->assign('samlSettings', $settings);
+        $moduleTemplate = $this->moduleTemplateFactory->create($this->request);
+        $moduleTemplate->assign('samlSettings', $this->settingsRepository->findAll());
 
         $samlUid = $this->getArgumentSamlSettings();
         if ($samlUid !== null) {
             $this->samlService->setSettingsUid($samlUid);
             $metadataXml = $this->samlService->getMetadata();
 
-            $this->view->assign(
+            $moduleTemplate->assign(
                 'SamlMetaData',
                 htmlentities($metadataXml, ENT_QUOTES, 'UTF-8', false),
             );
         }
 
-        return $this->htmlResponse();
+        return $moduleTemplate->renderResponse('SamlAuth/Metadata');
     }
 
     private function getArgumentSamlSettings(): ?int

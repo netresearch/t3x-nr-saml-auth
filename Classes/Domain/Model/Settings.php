@@ -53,6 +53,8 @@ class Settings extends AbstractEntity
 
     protected string $usergroup = '';
 
+    protected bool $allowIdpInitiated = false;
+
     public function getName(): string
     {
         return $this->name;
@@ -241,6 +243,22 @@ class Settings extends AbstractEntity
     public function setUsergroup(string $usergroup): self
     {
         $this->usergroup = $usergroup;
+
+        return $this;
+    }
+
+    /**
+     * Whether a response that answers no AuthnRequest of the browser
+     * (IdP-initiated login) is accepted.
+     */
+    public function getAllowIdpInitiated(): bool
+    {
+        return $this->allowIdpInitiated;
+    }
+
+    public function setAllowIdpInitiated(bool $allowIdpInitiated): self
+    {
+        $this->allowIdpInitiated = $allowIdpInitiated;
 
         return $this;
     }

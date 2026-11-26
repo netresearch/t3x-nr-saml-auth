@@ -20,7 +20,8 @@ CREATE TABLE tx_nrsamlauth_domain_model_settings (
 	idp_cert text,
 	username_prefix varchar(50) DEFAULT '' NOT NULL,
 	users_pid int(11) unsigned DEFAULT '0' NOT NULL,
-	usergroup tinytext
+	usergroup tinytext,
+	allow_idp_initiated tinyint(1) unsigned DEFAULT '0' NOT NULL
 );
 
 #
