@@ -11,6 +11,27 @@ Changelog
 
 All notable changes to this project are documented here.
 
+Version 13.0.1
+==============
+
+Released: (not yet released)
+
+Fixed
+-----
+
+*  The 13.0.0 upgrade note gave the wrong TypoScript path for the plugin: it
+   is rendered at ``tt_content.nrsamlauth_authentication.20``.
+*  Added the missing dependency on ``typo3/cms-backend``.
+*  The TER package no longer contains agent instructions and repository
+   tooling.
+*  The documentation no longer describes PSR-14 events the extension does not
+   have.
+
+Changed
+-------
+
+*  Language files use XLIFF 1.2 with 2-space indentation.
+
 Version 13.0.0
 ==============
 

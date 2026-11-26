@@ -1,24 +1,14 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 .. SPDX-FileCopyrightText: Netresearch DTT GmbH
 
-:orphan:
+:template: sitemap.html
 
 ..  include:: /Includes.rst.txt
+
+..  _sitemap:
 
 =======
 Sitemap
 =======
 
-..  toctree::
-    :maxdepth: 5
-    :titlesonly:
-
-    Index
-    Introduction/Index
-    Installation/Index
-    Configuration/Index
-    Configuration/Reference
-    Developer/Index
-    Developer/Events
-    Migration/Index
-    Changelog/Index
+..  The sitemap.html template inserts the page tree here automatically.

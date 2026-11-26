@@ -38,7 +38,9 @@ Existing content elements and backend user group permissions are migrated by
 the upgrade wizard "SAML Authentication: migrate the plugin to its own content
 element type" (identifier ``nrSamlAuth_pluginListTypeToCType``). TypoScript of
 your own that refers to ``tt_content.list.20.nrsamlauth_authentication`` has
-to refer to ``tt_content.nrsamlauth_authentication`` instead.
+to refer to ``tt_content.nrsamlauth_authentication.20`` instead: the content
+element copies ``lib.contentElement`` and renders the plugin as its ``20``
+(``EXTBASEPLUGIN``).
 
 Migration Steps
 ---------------
@@ -71,21 +73,16 @@ Requirements Changes
 Breaking Changes
 ----------------
 
-PSR-14 Events
-~~~~~~~~~~~~~
+Hooks and PSR-14 events
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Legacy hooks have been replaced with PSR-14 events. If you used the old
-hook system, migrate to the new events:
-
-..  code-block:: php
-
-    // OLD: Legacy hook (removed)
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['nr_saml_auth']['beforeUserCreation']
-
-    // NEW: PSR-14 event
-    Netresearch\NrSamlAuth\Event\BeforeUserCreationEvent
-
-See :ref:`Events <events>` for the complete event reference.
+Version 10.x registered its own handlers for the TYPO3 core hooks
+``logoff_pre_processing``, ``logoff_post_processing`` and ``postUserLookUp``.
+Version 12.x replaced them with listeners for the core events
+``BeforeUserLogoutEvent`` and ``AfterUserLoggedOutEvent`` and with the
+``SingleLogoutSessionMiddleware``. The extension offered no hooks for other
+extensions and dispatches no PSR-14 events of its own, so no custom code has
+to be migrated. See :ref:`Events <events>` for the core events it listens to.
 
 Dependency Injection
 ~~~~~~~~~~~~~~~~~~~~
@@ -116,7 +113,6 @@ Migration Steps
 3.  **Update Extension**: Run ``composer update netresearch/nr-saml-auth``
 4.  **Clear Caches**: Clear all TYPO3 caches
 5.  **Test Authentication**: Verify SAML login still works
-6.  **Update Custom Code**: Migrate any custom hooks to PSR-14 events
 
 Backward Compatibility
 ======================
@@ -131,4 +127,3 @@ The following are NOT backward compatible:
 
 *  PHP 7.x support (requires 8.1+)
 *  TYPO3 10.4/11.5 support (requires 12.4+)
-*  Legacy hook system (use PSR-14 events)

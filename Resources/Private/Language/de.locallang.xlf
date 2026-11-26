@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <!-- SPDX-License-Identifier: GPL-2.0-or-later -->
 <!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
-<xliff version="1.0">
-    <file source-language="en" datatype="plaintext" original="messages" date="2018-11-29T11:52:34Z" product-name="nr_saml_auth" target-language="de">
-        <header/>
-        <body>
-            <trans-unit id="tx_nrsamlauth_welcome">
-                <target>Willkommen im Loginbereich</target>
-            </trans-unit>
-            <trans-unit id="tx_nrsamlauth_greeting">
-                <target>Sie sind angemeldet als</target>
-            </trans-unit>
-            <trans-unit id="tx_nrsamlauth_logout">
-                <target>Abmelden</target>
-            </trans-unit>
-        </body>
-    </file>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="messages" date="2018-11-29T11:52:34Z" product-name="nr_saml_auth" target-language="de">
+    <header/>
+    <body>
+      <trans-unit id="tx_nrsamlauth_welcome">
+        <source>Welcome to the login area</source>
+        <target>Willkommen im Loginbereich</target>
+      </trans-unit>
+      <trans-unit id="tx_nrsamlauth_greeting">
+        <source>You are logged in as </source>
+        <target>Sie sind angemeldet als</target>
+      </trans-unit>
+      <trans-unit id="tx_nrsamlauth_logout">
+        <source>Logout</source>
+        <target>Abmelden</target>
+      </trans-unit>
+    </body>
+  </file>
 </xliff>

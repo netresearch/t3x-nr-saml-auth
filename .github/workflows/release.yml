@@ -19,5 +19,8 @@ jobs:
       archive-prefix: 'nr-saml-auth'
       package-name: 'netresearch/nr-saml-auth'
       extension-key: 'nr_saml_auth'
+      # tailor zips the working tree and ignores .gitattributes; this list
+      # keeps agent instructions and repository tooling out of the TER zip.
+      exclude-from-packaging: 'packaging_exclude.php'
     secrets:
       TYPO3_TER_ACCESS_TOKEN: ${{ secrets.TYPO3_TER_ACCESS_TOKEN }}

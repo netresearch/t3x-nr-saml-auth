@@ -7,6 +7,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.0.1] - Unreleased
+
+### Fixed
+
+- The 13.0.0 upgrade note gave the wrong TypoScript path for the plugin: it is rendered at `tt_content.nrsamlauth_authentication.20`, not `tt_content.nrsamlauth_authentication`.
+- Added the missing dependency on `typo3/cms-backend`, which the backend module needs.
+- The TER package no longer contains agent instructions and repository tooling (`AGENTS.md`, `CLAUDE.md`, `docs/`, `.gitleaks.toml`, `.bestpractices.json`, `crowdin.yml`, `renovate.json`, `packaging_exclude.php`).
+- The documentation no longer describes PSR-14 events the extension does not have.
+
+### Changed
+
+- Language files use XLIFF 1.2 with 2-space indentation.
+
+### Removed
+
+- The legacy `Documentation/Settings.cfg`; `Documentation/guides.xml` carries its settings.
+
 ## [13.0.0] - 2026-11-26
 
 ### Security

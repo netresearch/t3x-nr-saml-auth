@@ -10,7 +10,7 @@ declare(strict_types=1);
 use TYPO3\CMS\Core\Imaging\IconProvider\SvgIconProvider;
 
 /**
- * Icon registration for TYPO3 12+.
+ * Icon registration for TYPO3 13.4 and 14.3.
  */
 return [
     'nr-saml-auth-module' => [

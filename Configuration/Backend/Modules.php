@@ -10,7 +10,7 @@ declare(strict_types=1);
 use Netresearch\NrSamlAuth\Controller\SamlAuthController;
 
 /**
- * Backend module registration for TYPO3 12+.
+ * Backend module registration for TYPO3 13.4 and 14.3.
  */
 return [
     'tools_nrsamlauth' => [

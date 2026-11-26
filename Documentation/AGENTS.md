@@ -19,7 +19,7 @@ RST documentation for rendering on docs.typo3.org. Follows TYPO3 documentation s
 
 ## Setup & environment
 
-Rendering configuration lives in `guides.xml` (docs.typo3.org toolchain). `Settings.cfg` holds legacy metadata.
+Rendering configuration and project metadata (title, version, copyright, links) live in `guides.xml` (docs.typo3.org toolchain). There is no `Settings.cfg`; the renderer does not read it.
 
 **Local preview (requires Docker):**
 ```bash
@@ -126,8 +126,6 @@ See `Developer/Events.rst` for the complete event reference.
     $event->setUserData($data);
 ```
 
-Caution: `Developer/Events.rst` documents a `Netresearch\NrSamlAuth\Event\*` namespace (`BeforeUserCreationEvent` etc.) that does not exist in `Classes/` — the code only ships listeners for TYPO3 core events. Do not copy those class names into new docs or code examples until the drift is resolved.
-
 ### Configuration references
 
 ```rst
@@ -150,7 +148,6 @@ sp.entityId - The Service Provider entity ID. Required. String type.
 
 ## House Rules
 
-- **Settings.cfg** must have correct version and release
-- **guides.xml** must exist for docs.typo3.org rendering
+- **guides.xml** must exist for docs.typo3.org rendering and carry the current version
 - **Includes.rst.txt** provides common text roles
-- All pages must be in `toctree` (check `Sitemap.rst`)
+- All pages must be in a `toctree` of their parent `Index.rst`; `Sitemap.rst` uses the `sitemap.html` template and lists no pages itself
