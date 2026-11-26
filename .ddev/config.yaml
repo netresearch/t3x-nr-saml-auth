@@ -12,10 +12,10 @@ xdebug_enabled: false
 mailpit_enabled: false
 
 additional_hostnames:
-  - v12.nr-saml-auth
   - v13.nr-saml-auth
-  - v12
+  - v14.nr-saml-auth
   - v13
+  - v14
   - docs.nr-saml-auth
 
 web_dir: .
@@ -23,8 +23,8 @@ docroot: .
 
 hooks:
   post-start:
-    - exec: mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS db_v12; GRANT ALL ON db_v12.* TO 'db'@'%';"
     - exec: mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS db_v13; GRANT ALL ON db_v13.* TO 'db'@'%';"
+    - exec: mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS db_v14; GRANT ALL ON db_v14.* TO 'db'@'%';"
 
 composer_version: "2"
 

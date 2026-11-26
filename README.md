@@ -3,8 +3,8 @@
 # SAML Frontend Authentication for TYPO3
 
 [![CI](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml/badge.svg)](https://github.com/netresearch/t3x-nr-saml-auth/actions/workflows/ci.yml)
-[![TYPO3](https://img.shields.io/badge/TYPO3-12.4%20|%2013.4-orange.svg)](https://typo3.org/)
-[![PHP](https://img.shields.io/badge/PHP-8.1%20--%208.6-blue.svg)](https://www.php.net/)
+[![TYPO3](https://img.shields.io/badge/TYPO3-13.4%20|%2014.3-orange.svg)](https://typo3.org/)
+[![PHP](https://img.shields.io/badge/PHP-8.2%20--%208.6-blue.svg)](https://www.php.net/)
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%208-brightgreen.svg)](https://phpstan.org/)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE)
 
@@ -14,6 +14,7 @@
 
 | Version | TYPO3       | PHP        |
 |---------|-------------|------------|
+| 13.x    | 13.4, 14.3  | 8.2 - 8.6  |
 | 12.x    | 12.4, 13.4  | 8.1 - 8.6  |
 | 10.x    | 10.4, 11.5  | 7.4 - 8.1  |
 
@@ -81,6 +82,13 @@ The extension includes middleware for redirecting users to their original destin
 Access SAML metadata via the **Admin Tools > SAML Auth** backend module to configure your IdP.
 
 ## Upgrading
+
+### From 12.x to 13.x
+
+Version 13.x includes breaking changes:
+
+- **TYPO3 13.4 or 14.3 and PHP 8.2+ required**: TYPO3 12.4 and PHP 8.1 are no longer supported; version 12.x stays available for them
+- **Plugin is a content element type**: the plugin "Saml Authentication" is no longer a subtype of the "Insert Plugin" content element but a content element type of its own (`nrsamlauth_authentication`). Run the upgrade wizard "SAML Authentication: migrate the plugin to its own content element type" (identifier `nrSamlAuth_pluginListTypeToCType`) to migrate existing content elements and backend user group permissions
 
 ### From 10.x to 12.x
 

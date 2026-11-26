@@ -308,21 +308,21 @@ if (preg_match('/github\.com[:\\/]([^\\/]+)\\/([^\\/]+?)(?:\\.git)?$/', $gitRemo
 
         <div class="grid">
             <div class="card">
-                <h2>TYPO3 12.4 LTS</h2>
-                <a href="https://v12.nr-saml-auth.ddev.site/">
-                    Frontend <span>v12.nr-saml-auth.ddev.site</span>
+                <h2>TYPO3 13.4 LTS</h2>
+                <a href="https://v13.nr-saml-auth.ddev.site/">
+                    Frontend <span>v13.nr-saml-auth.ddev.site</span>
                 </a>
-                <a href="https://v12.nr-saml-auth.ddev.site/typo3/">
+                <a href="https://v13.nr-saml-auth.ddev.site/typo3/">
                     Backend <span>/typo3/</span>
                 </a>
             </div>
 
             <div class="card">
-                <h2>TYPO3 13.4 LTS <span class="badge">Latest</span></h2>
-                <a href="https://v13.nr-saml-auth.ddev.site/">
-                    Frontend <span>v13.nr-saml-auth.ddev.site</span>
+                <h2>TYPO3 14.3 LTS <span class="badge">Latest</span></h2>
+                <a href="https://v14.nr-saml-auth.ddev.site/">
+                    Frontend <span>v14.nr-saml-auth.ddev.site</span>
                 </a>
-                <a href="https://v13.nr-saml-auth.ddev.site/typo3/">
+                <a href="https://v14.nr-saml-auth.ddev.site/typo3/">
                     Backend <span>/typo3/</span>
                 </a>
             </div>

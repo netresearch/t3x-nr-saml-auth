@@ -32,26 +32,25 @@ use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
  * the user logs out.
  *
  * The data are stored only for the user whom AuthenticationService resolved
- * from the response of this request. On TYPO3 12.4 a user who is already
- * logged in stays logged in when the response of a login request is
- * rejected, for example because the assertion was used before; the data of
- * such a response are not stored.
+ * from the response of this request. A user who is already logged in stays
+ * logged in when the response of a login request is rejected, for example
+ * because the assertion was used before; the data of such a response are not
+ * stored.
  *
  * This is a middleware and not a listener for AfterUserLoggedInEvent: TYPO3
- * 12.4 dispatches that event for backend logins only, and TYPO3 13.4 and
- * later dispatch it inside the frontend authentication middleware, before
+ * dispatches that event inside the frontend authentication middleware, before
  * $GLOBALS['TYPO3_REQUEST'] is set. The middleware runs right after the
  * frontend authentication middleware on every supported version; the
  * authentication middleware writes the session data after the response is
  * built.
  */
-final class SingleLogoutSessionMiddleware implements MiddlewareInterface
+final readonly class SingleLogoutSessionMiddleware implements MiddlewareInterface
 {
     public function __construct(
-        private readonly SamlSession $samlSession,
-        private readonly ConnectionPool $connectionPool,
-        private readonly ContainerInterface $container,
-        private readonly LoggerInterface $logger,
+        private SamlSession $samlSession,
+        private ConnectionPool $connectionPool,
+        private ContainerInterface $container,
+        private LoggerInterface $logger,
     ) {}
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface

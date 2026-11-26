@@ -24,6 +24,7 @@ defined('TYPO3') || exit;
         [
             AuthController::class => 'login, receiveSamlResponse',
         ],
+        ExtensionUtility::PLUGIN_TYPE_CONTENT_ELEMENT,
     );
 
     ExtensionManagementUtility::addService(

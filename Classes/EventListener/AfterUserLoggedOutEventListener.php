@@ -22,11 +22,11 @@ use TYPO3\CMS\Core\Authentication\Event\AfterUserLoggedOutEvent;
     identifier: 'nr-saml-auth/after-user-logged-out',
     event: AfterUserLoggedOutEvent::class,
 )]
-final class AfterUserLoggedOutEventListener
+final readonly class AfterUserLoggedOutEventListener
 {
     public function __construct(
-        private readonly SamlService $samlService,
-        private readonly LoggerInterface $logger,
+        private SamlService $samlService,
+        private LoggerInterface $logger,
     ) {}
 
     public function __invoke(AfterUserLoggedOutEvent $event): void

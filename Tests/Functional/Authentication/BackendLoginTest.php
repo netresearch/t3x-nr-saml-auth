@@ -78,7 +78,11 @@ final class BackendLoginTest extends FunctionalTestCase
         SecurityAspect::provideIn(GeneralUtility::makeInstance(Context::class))
             ->setReceivedRequestToken(RequestToken::create('core/user-auth/be'));
 
-        $backendUser = GeneralUtility::makeInstance(BackendUserAuthentication::class);
+        // Set as the backend authentication middleware does before start():
+        // TYPO3 14 reads $GLOBALS['BE_USER'] when it logs the login
+        // (BackendUserAuthentication::isSystemMaintainer()).
+        $backendUser        = GeneralUtility::makeInstance(BackendUserAuthentication::class);
+        $GLOBALS['BE_USER'] = $backendUser;
         $backendUser->start($request);
 
         return $backendUser;

@@ -13,11 +13,11 @@ $EM_CONF[$_EXTKEY] = [
     'author_email' => 'torsten.fink@netresearch.de',
     'author_company' => 'Netresearch DTT GmbH',
     'state' => 'stable',
-    'version' => '12.0.0',
+    'version' => '13.0.0',
     'constraints' => [
         'depends' => [
-            'typo3' => '12.4.0-13.4.99',
-            'php' => '8.1.0-8.6.99',
+            'typo3' => '13.4.0-14.3.99',
+            'php' => '8.2.0-8.6.99',
         ],
         'conflicts' => [],
         'suggests' => [],

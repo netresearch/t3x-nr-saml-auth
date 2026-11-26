@@ -36,21 +36,22 @@
         "source": "https://github.com/netresearch/t3x-nr-saml-auth"
     },
     "require": {
-        "php": "^8.1",
-        "typo3/cms-core": "^12.4 || ^13.4",
-        "typo3/cms-frontend": "^12.4 || ^13.4",
-        "typo3/cms-extbase": "^12.4 || ^13.4",
-        "onelogin/php-saml": "^4.6"
+        "php": "^8.2",
+        "typo3/cms-core": "^13.4 || ^14.3",
+        "typo3/cms-frontend": "^13.4 || ^14.3",
+        "typo3/cms-extbase": "^13.4 || ^14.3",
+        "onelogin/php-saml": "^4.6",
+        "typo3/cms-install": "^13.4 || ^14.3"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
         "netresearch/typo3-ci-workflows": "^2.0.3",
-        "phpstan/phpstan": "^1.12 || ^2.0",
-        "phpstan/phpstan-phpunit": "^1.4 || ^2.0",
-        "phpunit/phpunit": "^10.5 || ^13.0",
-        "saschaegerer/phpstan-typo3": "^1.10 || ^2.0 || ^3.0",
+        "phpstan/phpstan": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpunit/phpunit": "^11.2.5 || ^12.1.2 || ^13.0.2",
+        "saschaegerer/phpstan-typo3": "^2.0 || ^3.0",
         "typo3/coding-standards": "^0.8 || ^0.9",
-        "typo3/testing-framework": "^8.2 || ^9.0"
+        "typo3/testing-framework": "^9.0.2"
     },
     "autoload": {
         "psr-4": {
@@ -101,7 +102,7 @@
             "web-dir": ".Build/public"
         },
         "branch-alias": {
-            "dev-main": "12.0.x-dev"
+            "dev-main": "13.0.x-dev"
         }
     }
 }

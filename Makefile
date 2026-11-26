@@ -5,7 +5,7 @@
 # Self-documenting: run 'make' or 'make help' to see available targets
 
 .DEFAULT_GOAL := help
-.PHONY: help install test cgl cgl-fix quality ci clean docs up start stop restart install-v12 install-v13 install-all urls ssh phpstan phpstan-baseline rector rector-fix
+.PHONY: help install test cgl cgl-fix quality ci clean docs up start stop restart install-v13 install-v14 install-all urls ssh phpstan phpstan-baseline rector rector-fix
 
 # Colors for output
 BLUE := \033[34m
@@ -98,11 +98,11 @@ stop: ## Stop DDEV environment
 restart: ## Restart DDEV environment
 	@ddev restart
 
-install-v12: ## Install/reinstall TYPO3 12.4 LTS
-	@ddev install-typo3 12
-
 install-v13: ## Install/reinstall TYPO3 13.4 LTS
 	@ddev install-typo3 13
+
+install-v14: ## Install/reinstall TYPO3 14.3 LTS
+	@ddev install-typo3 14
 
 install-all: ## Install/reinstall all TYPO3 versions
 	@ddev install-typo3 all
@@ -111,8 +111,8 @@ urls: ## Show all access URLs
 	@echo ""
 	@echo "$(GREEN)Access URLs:$(RESET)"
 	@echo "  $(BLUE)Overview:$(RESET)  https://nr-saml-auth.ddev.site/"
-	@echo "  $(BLUE)TYPO3 12:$(RESET)  https://v12.nr-saml-auth.ddev.site/typo3/"
 	@echo "  $(BLUE)TYPO3 13:$(RESET)  https://v13.nr-saml-auth.ddev.site/typo3/"
+	@echo "  $(BLUE)TYPO3 14:$(RESET)  https://v14.nr-saml-auth.ddev.site/typo3/"
 	@echo "  $(BLUE)Docs:$(RESET)      https://docs.nr-saml-auth.ddev.site/"
 	@echo ""
 	@echo "  $(YELLOW)Credentials:$(RESET) admin / Joh316!"
