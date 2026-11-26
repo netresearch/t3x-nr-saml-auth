@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [13.0.1] - Unreleased
 
+### Security
+
+- Over HTTPS the cookie that remembers the AuthnRequests is named `__Host-nr_saml_auth_request`, and only that name is read. Its value is signed but not bound to the browser, so an attacker who could set cookies for the site's host — from a sibling subdomain with `Domain=`, or with a plain-HTTP response where the host has no HSTS — could plant a cookie the site minted for the attacker's own login and then post the matching response (login CSRF). Browsers accept a `__Host-` cookie only from a secure origin, with `Secure`, `Path=/` and without `Domain`, which closes both routes. Over plain HTTP the cookie keeps the name `nr_saml_auth_request`.
+- A response whose Response element has no `InResponseTo` while a `SubjectConfirmationData` of its assertion has one is no longer taken for an IdP-initiated login. Where the identity provider signs only the assertion, anybody could remove `InResponseTo` from the Response element of a response to their own login; with "Allow IdP-initiated login" on, the response then logged a visitor into that account, because php-saml compares the assertion's `InResponseTo` only with the one of the Response element. Such a response is now rejected.
+
+### Deprecated
+
+- `SamlService::getSsoRedirectUrl()` is deprecated and will be removed in 14.0.0. It does not remember the ID of the AuthnRequest in the browser, so the response to it has been rejected since 13.0.0. Use `SamlService::createSsoRedirect()`, which returns the URL and the cookie to send with the redirect, or `redirectUserToSSO()`.
+
 ### Fixed
 
 - The 13.0.0 upgrade note gave the wrong TypoScript path for the plugin: it is rendered at `tt_content.nrsamlauth_authentication.20`, not `tt_content.nrsamlauth_authentication`.
@@ -23,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - The legacy `Documentation/Settings.cfg`; `Documentation/guides.xml` carries its settings.
+
+### Upgrade
+
+- Logins started before the update and finished after it fail once over HTTPS, because the cookie name changes; the user starts the login again.
+- The cookie is host-only: the page with the plugin that starts the login and the Assertion Consumer Service URL must be on the same host. Otherwise the browser does not send the cookie with the response and the login is rejected.
 
 ## [13.0.0] - 2026-11-26
 

@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Stub;
 use ReflectionMethod;
+use RuntimeException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
@@ -48,6 +49,27 @@ final class SamlServiceTest extends UnitTestCase
         // Verify by checking that getSettings doesn't throw when settings are not found
         $settings = $this->subject->getSettings();
         self::assertIsArray($settings);
+    }
+
+    /**
+     * The response to the AuthnRequest of that URL is rejected, because the
+     * request ID is not remembered in the browser.
+     */
+    #[Test]
+    public function getSsoRedirectUrlIsDeprecated(): void
+    {
+        set_error_handler(static function (int $level, string $message): never {
+            throw new RuntimeException($message, $level);
+        }, E_USER_DEPRECATED);
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionCode(E_USER_DEPRECATED);
+            $this->expectExceptionMessage('getSsoRedirectUrl is deprecated since nr_saml_auth 13.0.1');
+
+            $this->subject->getSsoRedirectUrl();
+        } finally {
+            restore_error_handler();
+        }
     }
 
     #[Test]
@@ -263,7 +285,7 @@ final class SamlServiceTest extends UnitTestCase
         $_SERVER      = array_replace($_SERVER, $serverParams);
         unset($_SERVER['HTTPS']);
         try {
-            $url = $this->subject->getSsoRedirectUrl($request);
+            $url = $this->subject->createSsoRedirect($request)['url'];
         } finally {
             $_SERVER = $serverBackup;
             Utils::setBaseURL('');
