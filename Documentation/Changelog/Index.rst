@@ -14,14 +14,14 @@ All notable changes to this project are documented here.
 Version 12.0.0
 ==============
 
-Released: (not yet released)
+Released: 2026-11-26
 
 Added
 -----
 
 *  TYPO3 12.4 LTS support
 *  TYPO3 13.4 LTS support
-*  PHP 8.1, 8.2, 8.3, 8.4, 8.5 support
+*  PHP 8.1, 8.2, 8.3, 8.4, 8.5 support, and PHP 8.6 with TYPO3 13.4
 *  PSR-14 events for authentication customization
 *  Dependency injection for all services
 *  Comprehensive unit and functional tests

@@ -7,12 +7,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [13.0.0] - Unreleased
+## [12.0.0] - 2026-11-26
 
 ### Added
 
 - TYPO3 v12.4 and v13.4 LTS support
-- PHP 8.1, 8.2, 8.3, 8.4, and 8.5 support
+- PHP 8.1, 8.2, 8.3, 8.4, and 8.5 support, and PHP 8.6 with TYPO3 13.4
 - PSR-14 event system for authentication hooks
   - `SingleLogoutSessionMiddleware` - stores the single logout data in the frontend session after a login
   - `BeforeUserLogoutEventListener` - replaces `logoff_pre_processing` hook
