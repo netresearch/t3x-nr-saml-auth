@@ -194,7 +194,7 @@ final class SamlService implements SingletonInterface
      * Redirects user to SAML logout (SLO).
      *
      * $sessionIndex is the SessionIndex attribute of the AuthnStatement of
-     * the login, not the ID of the assertion; it is escaped for XML. The
+     * the login, not the ID of the assertion; php-saml escapes it for XML. The
      * NameID is sent with the NameID format of the service provider;
      * redirectToSingleLogout() sends it with the attributes of the login.
      *
@@ -210,7 +210,7 @@ final class SamlService implements SingletonInterface
             null,
             [],
             $nameId,
-            $this->escapeSessionIndex($sessionIndex),
+            $sessionIndex,
             false,
             $this->stringOrNull($settings->getSPData()['NameIDFormat'] ?? null),
         );
@@ -235,7 +235,7 @@ final class SamlService implements SingletonInterface
         $this->setSettingsUid($settingsUid);
         $auth = new Auth($this->getSettings()['saml']);
 
-        $sessionIndex = $this->escapeSessionIndex($this->stringOrNull($singleLogoutData['sessionIndex'] ?? null));
+        $sessionIndex = $this->stringOrNull($singleLogoutData['sessionIndex'] ?? null);
 
         return (string) $auth->logout(
             null,
@@ -247,15 +247,6 @@ final class SamlService implements SingletonInterface
             $this->stringOrNull($singleLogoutData['nameIdNameQualifier'] ?? null),
             $this->stringOrNull($singleLogoutData['nameIdSPNameQualifier'] ?? null),
         );
-    }
-
-    /**
-     * php-saml puts the SessionIndex into the XML of the LogoutRequest as it
-     * is. Unlike an assertion ID it may hold any string.
-     */
-    private function escapeSessionIndex(?string $sessionIndex): ?string
-    {
-        return $sessionIndex === null ? null : htmlspecialchars($sessionIndex, ENT_XML1 | ENT_QUOTES, 'UTF-8');
     }
 
     private function stringOrNull(mixed $value): ?string
