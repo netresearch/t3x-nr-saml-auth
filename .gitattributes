@@ -31,7 +31,6 @@
 /Tests export-ignore
 /Documentation export-ignore
 /docs export-ignore
-/Resources/Private/Libs/Build export-ignore
 /.editorconfig export-ignore
 /.gitattributes export-ignore
 /.gitignore export-ignore

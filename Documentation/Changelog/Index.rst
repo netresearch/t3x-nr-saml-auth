@@ -54,7 +54,17 @@ Fixed
 Changed
 -------
 
+*  The documentation states that the extension supports Composer
+   installations only. The TER package does not contain
+   ``onelogin/php-saml``, so an installation without Composer does not
+   work.
 *  Language files use XLIFF 1.2 with 2-space indentation.
+
+Removed
+-------
+
+*  ``Resources/Private/Libs/Build``, an unused build definition of the SAML
+   library for installations without Composer.
 
 Upgrade
 -------

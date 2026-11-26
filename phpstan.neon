@@ -12,8 +12,6 @@ parameters:
     paths:
         - Classes
         - Configuration
-    excludePaths:
-        - Resources/Private/Libs
     # TYPO3 creates the authentication service through the DI container
     # (public in Configuration/Services.yaml), which passes its dependencies
     # to the inject*() methods instead of the constructor.

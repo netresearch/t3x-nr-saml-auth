@@ -22,7 +22,6 @@ phpstan-baseline.neon
 /public/
 
 # Legacy vendor
-Resources/Private/Libs/Build/vendor
 
 # OS files
 .DS_Store

@@ -20,7 +20,7 @@
 
 ## Installation
 
-Install via Composer:
+Install via Composer; the extension supports Composer installations only:
 
 ```bash
 composer require netresearch/nr-saml-auth
