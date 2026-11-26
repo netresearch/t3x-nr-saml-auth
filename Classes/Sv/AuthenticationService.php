@@ -318,6 +318,17 @@ class AuthenticationService extends Typo3AuthService
             return false;
         }
 
+        // The request IDs came from the assertion: the Response element lost
+        // its InResponseTo. php-saml rejects such a response anyway; the own
+        // warning tells this tampering apart from a missing or expired cookie.
+        if ($samlResponse->getXMLDocument()->documentElement?->hasAttribute('InResponseTo') !== true) {
+            $this->logger?->warning('SAML response names its authentication request only in the assertion', [
+                'saml_id' => $settings->getUid(),
+            ]);
+
+            return false;
+        }
+
         $request    = $this->getRequest();
         $pendingIds = $request instanceof ServerRequestInterface && $settings->getUid() !== null
             ? $this->authnRequestCookie->getPendingRequestIds($request, $settings->getUid())

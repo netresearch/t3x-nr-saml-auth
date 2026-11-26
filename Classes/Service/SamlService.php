@@ -143,7 +143,7 @@ final class SamlService implements SingletonInterface
      * The ID of the AuthnRequest is not remembered, so the response to it is
      * always rejected since 13.0.0.
      *
-     * @deprecated since 13.0.1, will be removed in 14.0.0. Use createSsoRedirect(),
+     * @deprecated since 13.1.0, will be removed in 14.0.0. Use createSsoRedirect(),
      *             and send its cookie with the redirect to the URL.
      *
      * @throws Error
@@ -151,7 +151,7 @@ final class SamlService implements SingletonInterface
     public function getSsoRedirectUrl(?ServerRequestInterface $request = null): string
     {
         trigger_error(
-            __METHOD__ . ' is deprecated since nr_saml_auth 13.0.1 and will be removed in 14.0.0: the response to its'
+            __METHOD__ . ' is deprecated since nr_saml_auth 13.1.0 and will be removed in 14.0.0: the response to its'
             . ' AuthnRequest is rejected. Use createSsoRedirect() and send its cookie with the redirect.',
             E_USER_DEPRECATED,
         );

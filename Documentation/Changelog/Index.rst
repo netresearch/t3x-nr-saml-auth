@@ -11,7 +11,7 @@ Changelog
 
 All notable changes to this project are documented here.
 
-Version 13.0.1
+Version 13.1.0
 ==============
 
 Released: (not yet released)
@@ -61,8 +61,8 @@ Upgrade
 
 *  Logins started before the update and finished after it fail once over
    HTTPS, because the cookie name changes.
-*  The page with the plugin and the Assertion Consumer Service URL must be
-   on the same host: the cookie is host-only.
+*  As since 13.0.0, the page with the plugin and the Assertion Consumer
+   Service URL must be on the same host: the cookie is host-only.
 
 Version 13.0.0
 ==============

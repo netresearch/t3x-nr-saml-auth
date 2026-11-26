@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [13.0.1] - Unreleased
+## [13.1.0] - Unreleased
 
 ### Security
 
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade
 
 - Logins started before the update and finished after it fail once over HTTPS, because the cookie name changes; the user starts the login again.
-- The cookie is host-only: the page with the plugin that starts the login and the Assertion Consumer Service URL must be on the same host. Otherwise the browser does not send the cookie with the response and the login is rejected.
+- As since 13.0.0, the cookie is host-only: the page with the plugin that starts the login and the Assertion Consumer Service URL must be on the same host. Otherwise the browser does not send the cookie with the response and the login is rejected.
 
 ## [13.0.0] - 2026-11-26
 
