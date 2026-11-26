@@ -11,10 +11,34 @@ Changelog
 
 All notable changes to this project are documented here.
 
-Version 13.0.1
+Version 13.1.0
 ==============
 
 Released: (not yet released)
+
+Security
+--------
+
+*  Over HTTPS the cookie that remembers the AuthnRequests is named
+   ``__Host-nr_saml_auth_request``, and only that name is read. Browsers
+   accept such a cookie only from a secure origin, with ``Secure``,
+   ``Path=/`` and without ``Domain``, so neither a sibling subdomain nor a
+   plain-HTTP response can plant a cookie the site minted for another
+   login (login CSRF). Over plain HTTP the name stays
+   ``nr_saml_auth_request``.
+*  A response whose Response element has no ``InResponseTo`` while the
+   ``SubjectConfirmationData`` of its assertion has one is rejected, also
+   with ``allow_idp_initiated`` on. Where the Identity Provider signs only
+   the assertion, anybody could remove the attribute from the Response
+   element and have the response taken for an IdP-initiated login.
+
+Deprecated
+----------
+
+*  ``SamlService::getSsoRedirectUrl()``, to be removed in 14.0.0: the
+   response to its AuthnRequest is rejected because the request ID is not
+   remembered. Use ``SamlService::createSsoRedirect()`` and send its cookie
+   with the redirect, or ``redirectUserToSSO()``.
 
 Fixed
 -----
@@ -31,6 +55,14 @@ Changed
 -------
 
 *  Language files use XLIFF 1.2 with 2-space indentation.
+
+Upgrade
+-------
+
+*  Logins started before the update and finished after it fail once over
+   HTTPS, because the cookie name changes.
+*  As since 13.0.0, the page with the plugin and the Assertion Consumer
+   Service URL must be on the same host: the cookie is host-only.
 
 Version 13.0.0
 ==============

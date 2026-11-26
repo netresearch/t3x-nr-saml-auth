@@ -57,7 +57,11 @@ final class SamlLoginTest extends FunctionalTestCase
 
     private const SAML_USERS_PID = 10;
 
-    private const REQUEST_COOKIE = 'nr_saml_auth_request';
+    /**
+     * The Assertion Consumer Service URL is HTTPS, so the cookie carries the
+     * prefix __Host-.
+     */
+    private const REQUEST_COOKIE = '__Host-nr_saml_auth_request';
 
     protected array $testExtensionsToLoad = ['netresearch/nr-saml-auth'];
 
@@ -185,6 +189,53 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame([], $this->loggedInUserIds());
     }
 
+    #[Test]
+    public function responseWithOnlyTheAssertionSignedLogsIn(): void
+    {
+        $this->postSamlResponse($this->identityProvider->signAssertion($this->validResponse()));
+
+        self::assertCount(1, $this->loggedInUserIds());
+    }
+
+    /**
+     * Where the identity provider signs only the assertion, anybody can
+     * remove InResponseTo from the Response element of a response to an
+     * AuthnRequest of their own; php-saml then does not compare the
+     * InResponseTo of the SubjectConfirmationData either. Such a response is
+     * not taken for an IdP-initiated login.
+     */
+    #[Test]
+    public function responseToAnotherAuthnRequestIsRejectedWhenOnlyTheAssertionStatesIt(): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
+            ->update('tx_nrsamlauth_domain_model_settings', ['allow_idp_initiated' => 1], ['uid' => 1]);
+
+        $this->postSamlResponse($this->withoutInResponseToOnTheResponse(
+            $this->identityProvider->signAssertion($this->validResponse()->withInResponseTo('_attacker_request')),
+        ));
+
+        self::assertSame([], $this->loggedInUserIds());
+        self::assertNull($this->findUser('jdoe', self::SAML_USERS_PID));
+    }
+
+    /**
+     * php-saml requires the InResponseTo of the Response element to be the
+     * ID of the AuthnRequest, so a response that states the request only in
+     * the assertion is rejected also if this browser started that request.
+     */
+    #[Test]
+    public function responseToAnAuthnRequestOfThisBrowserIsRejectedWhenOnlyTheAssertionStatesIt(): void
+    {
+        $this->getConnectionPool()->getConnectionForTable('tx_nrsamlauth_domain_model_settings')
+            ->update('tx_nrsamlauth_domain_model_settings', ['allow_idp_initiated' => 1], ['uid' => 1]);
+
+        $this->postSamlResponse($this->withoutInResponseToOnTheResponse(
+            $this->identityProvider->signAssertion($this->validResponse()),
+        ));
+
+        self::assertSame([], $this->loggedInUserIds());
+    }
+
     /**
      * The browser starts two logins, for example in two tabs, and the
      * response to the first arrives: the user is logged in, and the cookie
@@ -217,7 +268,7 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame(
             [$secondRequestId],
             (new AuthnRequestCookie())->getPendingRequestIds(
-                (new ServerRequest())->withCookieParams([self::REQUEST_COOKIE => (string) $setCookie->getValue()]),
+                $this->loginPageRequest([self::REQUEST_COOKIE => (string) $setCookie->getValue()]),
                 1,
             ),
         );
@@ -243,7 +294,7 @@ final class SamlLoginTest extends FunctionalTestCase
         self::assertSame(
             [$this->authnRequestIdOf($redirect['url'])],
             (new AuthnRequestCookie())->getPendingRequestIds(
-                (new ServerRequest())->withCookieParams([self::REQUEST_COOKIE => (string) $cookie->getValue()]),
+                $this->loginPageRequest([self::REQUEST_COOKIE => (string) $cookie->getValue()]),
                 1,
             ),
         );
@@ -261,6 +312,7 @@ final class SamlLoginTest extends FunctionalTestCase
             'cookie with changed request'       => ['tampered'],
             'cookie that expired'               => ['expired'],
             'cookie of another settings record' => ['other settings record'],
+            'cookie without the __Host- prefix' => ['without prefix'],
         ];
     }
 
@@ -280,11 +332,16 @@ final class SamlLoginTest extends FunctionalTestCase
             'tampered'              => [self::REQUEST_COOKIE => $this->withPayloadOf($this->requestCookie, [[1, $requestId, time() + 600]])],
             'expired'               => [self::REQUEST_COOKIE => $this->startLogin(1, [], time() - AuthnRequestCookie::LIFETIME - 1)[1]],
             'other settings record' => [self::REQUEST_COOKIE => $this->startLogin($this->copySettingsRecord())[1]],
-            default                 => self::fail('Unknown variant ' . $variant),
+            // A cookie the site signed, planted under the name a sibling
+            // subdomain or a plain-HTTP response can set
+            'without prefix' => [AuthnRequestCookie::NAME => $this->requestCookie],
+            default          => self::fail('Unknown variant ' . $variant),
         };
         if (in_array($variant, ['expired', 'other settings record'], true)) {
             // The response answers the request of that cookie
             $requestId = $this->pendingRequestIdIn($cookies[self::REQUEST_COOKIE], $variant === 'expired');
+        } elseif ($variant === 'without prefix') {
+            $requestId = $this->requestId;
         }
 
         $this->postSamlResponse(
@@ -816,6 +873,25 @@ final class SamlLoginTest extends FunctionalTestCase
         $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
         return $xpath;
+    }
+
+    /**
+     * The base64-encoded response without the InResponseTo attribute of the
+     * Response element; the assertion keeps its own.
+     */
+    private function withoutInResponseToOnTheResponse(string $samlResponse): string
+    {
+        $document = new DOMDocument();
+        self::assertTrue($document->loadXML((string) base64_decode($samlResponse, true)));
+        self::assertInstanceOf(DOMElement::class, $document->documentElement);
+        self::assertTrue($document->documentElement->hasAttribute('InResponseTo'));
+        $document->documentElement->removeAttribute('InResponseTo');
+
+        $xpath = new DOMXPath($document);
+        $xpath->registerNamespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+        self::assertSame(1, $xpath->query('//saml:SubjectConfirmationData[@InResponseTo]')?->length);
+
+        return base64_encode((string) $document->saveXML());
     }
 
     private function assertionIdOf(string $samlResponse): string

@@ -25,6 +25,13 @@ use TYPO3\CMS\Core\Http\NormalizedParams;
  * SameSite=Lax there and comes back only from an identity provider on the
  * same site; for any other, SP-initiated login fails closed.
  *
+ * The value is not bound to the browser beyond the HMAC, so a cookie that
+ * the site minted for another browser is valid in this one. Over HTTPS the
+ * cookie is named NAME_HTTPS with the prefix __Host-: a browser accepts such
+ * a cookie only from a secure origin, with Path=/ and without Domain, so
+ * neither a sibling subdomain nor a plain-HTTP response can plant it. Over
+ * HTTPS only that name is read.
+ *
  * The value holds up to MAX_PENDING entries of settings uid, request ID and
  * expiry time, one per login started in this browser within LIFETIME
  * seconds (for example in several tabs), and an HMAC over them with TYPO3's
@@ -34,7 +41,15 @@ use TYPO3\CMS\Core\Http\NormalizedParams;
  */
 final readonly class AuthnRequestCookie
 {
+    /**
+     * Name of the cookie over plain HTTP.
+     */
     public const NAME = 'nr_saml_auth_request';
+
+    /**
+     * Name of the cookie over HTTPS.
+     */
+    public const NAME_HTTPS = '__Host-' . self::NAME;
 
     /**
      * Seconds a started login stays valid.
@@ -111,7 +126,7 @@ final readonly class AuthnRequestCookie
      */
     private function readEntries(ServerRequestInterface $request): array
     {
-        $value = $request->getCookieParams()[self::NAME] ?? null;
+        $value = $request->getCookieParams()[$this->isHttps($request) ? self::NAME_HTTPS : self::NAME] ?? null;
         if (!is_string($value) || substr_count($value, '.') !== 1) {
             return [];
         }
@@ -159,11 +174,11 @@ final readonly class AuthnRequestCookie
             }
         }
 
-        $normalizedParams = $request->getAttribute('normalizedParams');
-        $isHttps          = $normalizedParams instanceof NormalizedParams && $normalizedParams->isHttps();
+        $isHttps = $this->isHttps($request);
 
+        // Over HTTPS the prefix __Host- requires Secure, Path=/ and no Domain
         return Cookie::create(
-            self::NAME,
+            $isHttps ? self::NAME_HTTPS : self::NAME,
             $value,
             $expires,
             '/',
@@ -173,6 +188,13 @@ final readonly class AuthnRequestCookie
             false,
             $isHttps ? Cookie::SAMESITE_NONE : Cookie::SAMESITE_LAX,
         );
+    }
+
+    private function isHttps(ServerRequestInterface $request): bool
+    {
+        $normalizedParams = $request->getAttribute('normalizedParams');
+
+        return $normalizedParams instanceof NormalizedParams && $normalizedParams->isHttps();
     }
 
     /**

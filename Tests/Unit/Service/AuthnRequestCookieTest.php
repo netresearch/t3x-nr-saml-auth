@@ -78,9 +78,68 @@ final class AuthnRequestCookieTest extends UnitTestCase
     {
         $cookie = (new AuthnRequestCookie())->withRequest($this->request(false), 1, '_request');
 
+        self::assertSame(AuthnRequestCookie::NAME, $cookie->getName());
         self::assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
         self::assertFalse($cookie->isSecure());
         self::assertTrue($cookie->isHttpOnly());
+    }
+
+    /**
+     * A browser accepts a cookie named __Host-… only from a secure origin,
+     * with Secure, Path=/ and without Domain; this holds for the cookie that
+     * remembers a login and for the one that deletes it.
+     */
+    #[Test]
+    public function overHttpsTheCookieHasTheHostPrefixAndItsAttributes(): void
+    {
+        $subject = new AuthnRequestCookie();
+        $request = $this->request(true);
+        $cookie  = $subject->withRequest($request, 1, '_request');
+        $deleted = $subject->withoutRequest($this->withCookie($request, $cookie), 1, '_request');
+        self::assertInstanceOf(Cookie::class, $deleted);
+        self::assertTrue($deleted->isCleared());
+
+        foreach ([$cookie, $deleted] as $each) {
+            self::assertSame('__Host-nr_saml_auth_request', $each->getName());
+            self::assertSame(Cookie::SAMESITE_NONE, $each->getSameSite());
+            self::assertTrue($each->isSecure());
+            self::assertTrue($each->isHttpOnly());
+            self::assertSame('/', $each->getPath());
+            self::assertNull($each->getDomain());
+
+            $header = (string) $each;
+            self::assertStringStartsWith('__Host-nr_saml_auth_request=', $header);
+            self::assertStringContainsString('; path=/;', $header);
+            self::assertStringContainsString('; secure', $header);
+            self::assertStringNotContainsStringIgnoringCase('domain=', $header);
+        }
+    }
+
+    /**
+     * Over HTTPS a cookie under the name without prefix is not read, also if
+     * the site signed it: it may have come from a sibling subdomain or a
+     * plain-HTTP response.
+     */
+    #[Test]
+    public function overHttpsACookieWithoutTheHostPrefixIsNotRead(): void
+    {
+        $subject = new AuthnRequestCookie();
+        $request = $this->request(true);
+        $value   = (string) $subject->withRequest($request, 1, '_request')->getValue();
+
+        self::assertSame([], $subject->getPendingRequestIds($request->withCookieParams([AuthnRequestCookie::NAME => $value]), 1));
+        self::assertSame(['_request'], $subject->getPendingRequestIds($request->withCookieParams([AuthnRequestCookie::NAME_HTTPS => $value]), 1));
+    }
+
+    #[Test]
+    public function overPlainHttpTheCookieWithoutPrefixIsRead(): void
+    {
+        $subject = new AuthnRequestCookie();
+        $request = $this->request(false);
+        $value   = (string) $subject->withRequest($request, 1, '_request')->getValue();
+
+        self::assertSame(['_request'], $subject->getPendingRequestIds($request->withCookieParams([AuthnRequestCookie::NAME => $value]), 1));
+        self::assertSame([], $subject->getPendingRequestIds($request->withCookieParams([AuthnRequestCookie::NAME_HTTPS => $value]), 1));
     }
 
     private function request(bool $https): ServerRequest
@@ -102,6 +161,6 @@ final class AuthnRequestCookieTest extends UnitTestCase
     {
         self::assertInstanceOf(Cookie::class, $cookie);
 
-        return $request->withCookieParams([AuthnRequestCookie::NAME => (string) $cookie->getValue()]);
+        return $request->withCookieParams([$cookie->getName() => (string) $cookie->getValue()]);
     }
 }

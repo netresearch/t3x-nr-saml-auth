@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\Stub;
 use ReflectionMethod;
+use RuntimeException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\NormalizedParams;
 use TYPO3\CMS\Core\Http\ServerRequest;
@@ -48,6 +49,59 @@ final class SamlServiceTest extends UnitTestCase
         // Verify by checking that getSettings doesn't throw when settings are not found
         $settings = $this->subject->getSettings();
         self::assertIsArray($settings);
+    }
+
+    /**
+     * The response to the AuthnRequest of that URL is rejected, because the
+     * request ID is not remembered in the browser.
+     */
+    #[Test]
+    public function getSsoRedirectUrlIsDeprecated(): void
+    {
+        set_error_handler(static function (int $level, string $message): never {
+            throw new RuntimeException($message, $level);
+        }, E_USER_DEPRECATED);
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionCode(E_USER_DEPRECATED);
+            $this->expectExceptionMessage('getSsoRedirectUrl is deprecated since nr_saml_auth 13.1.0');
+
+            $this->subject->getSsoRedirectUrl();
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    #[Test]
+    public function getSsoRedirectUrlStillReturnsTheSsoUrl(): void
+    {
+        $settingsModel = self::createStub(Settings::class);
+        $settingsModel->method('getSpEntityId')->willReturn('https://sp.example.com/');
+        $settingsModel->method('getSpCustomerServiceUrl')->willReturn('https://sp.example.com/?logintype=login');
+        $settingsModel->method('getSpCustomerServiceBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST');
+        $settingsModel->method('getSpNameIdFormat')->willReturn('NAMEID_UNSPECIFIED');
+        $settingsModel->method('getIdpEntityId')->willReturn('https://idp.example.com');
+        $settingsModel->method('getIdpSsoUrl')->willReturn('https://idp.example.com/sso');
+        $settingsModel->method('getIdpSsoBinding')->willReturn('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+        $settingsModel->method('getIdpCert')->willReturn('MIIBtest');
+        $this->settingsRepository->method('findByUid')->willReturn($settingsModel);
+        $this->subject->setSettingsUid(1);
+
+        $deprecations = [];
+        set_error_handler(static function (int $level, string $message) use (&$deprecations): bool {
+            $deprecations[] = $message;
+
+            return true;
+        }, E_USER_DEPRECATED);
+        try {
+            $url = $this->subject->getSsoRedirectUrl();
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertCount(1, $deprecations);
+        self::assertStringStartsWith('https://idp.example.com/sso?', $url);
+        self::assertStringContainsString('SAMLRequest=', $url);
     }
 
     #[Test]
@@ -263,7 +317,7 @@ final class SamlServiceTest extends UnitTestCase
         $_SERVER      = array_replace($_SERVER, $serverParams);
         unset($_SERVER['HTTPS']);
         try {
-            $url = $this->subject->getSsoRedirectUrl($request);
+            $url = $this->subject->createSsoRedirect($request)['url'];
         } finally {
             $_SERVER = $serverBackup;
             Utils::setBaseURL('');
