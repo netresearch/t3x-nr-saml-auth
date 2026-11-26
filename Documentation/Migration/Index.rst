@@ -43,13 +43,18 @@ to refer to ``tt_content.nrsamlauth_authentication`` instead.
 Migration Steps
 ---------------
 
+Version 12.x does not install on TYPO3 14.3, so a site on TYPO3 12.4 moves
+through TYPO3 13.4:
+
 1.  **Update PHP**: Ensure PHP 8.2 or higher is installed
-2.  **Update TYPO3**: Upgrade to TYPO3 13.4 LTS or 14.3 LTS
+2.  **Update TYPO3 to 13.4 LTS**, still with extension 12.x, which supports
+    TYPO3 13.4
 3.  **Update Extension**: Run ``composer require netresearch/nr-saml-auth:^13.0``
 4.  **Run the Upgrade Wizard**: Run ``vendor/bin/typo3 upgrade:run nrSamlAuth_pluginListTypeToCType``
     or use :guilabel:`Admin Tools > Upgrade > Upgrade Wizard`
 5.  **Clear Caches**: Clear all TYPO3 caches
 6.  **Test Authentication**: Verify SAML login still works
+7.  **Update TYPO3 to 14.3 LTS** if wanted; extension 13.x supports both
 
 Upgrading from 10.x to 12.x
 ===========================

@@ -40,7 +40,8 @@
         "typo3/cms-core": "^13.4 || ^14.3",
         "typo3/cms-frontend": "^13.4 || ^14.3",
         "typo3/cms-extbase": "^13.4 || ^14.3",
-        "onelogin/php-saml": "^4.6"
+        "onelogin/php-saml": "^4.6",
+        "typo3/cms-install": "^13.4 || ^14.3"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
@@ -49,7 +50,6 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^11.2.5 || ^12.1.2 || ^13.0.2",
         "saschaegerer/phpstan-typo3": "^2.0 || ^3.0",
-        "typo3/cms-install": "^13.4 || ^14.3",
         "typo3/coding-standards": "^0.8 || ^0.9",
         "typo3/testing-framework": "^9.0.2"
     },
