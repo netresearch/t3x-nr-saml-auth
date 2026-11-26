@@ -27,11 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The documentation states that the extension supports Composer installations only. The TER package does not contain `onelogin/php-saml`, so an installation without Composer does not work.
 - Language files use XLIFF 1.2 with 2-space indentation.
 
 ### Removed
 
 - The legacy `Documentation/Settings.cfg`; `Documentation/guides.xml` carries its settings.
+- `Resources/Private/Libs/Build`, an unused build definition of the SAML library for installations without Composer.
 
 ### Upgrade
 

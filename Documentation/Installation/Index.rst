@@ -9,7 +9,10 @@
 Installation
 ============
 
-The extension can be installed via Composer (recommended) or manually.
+The extension supports Composer installations only. The package in the
+TYPO3 Extension Repository (TER) does not contain the SAML library
+``onelogin/php-saml``, so an installation from the TER or from a ZIP file
+without Composer does not work.
 
 Composer Installation
 =====================
