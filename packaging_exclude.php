@@ -46,6 +46,8 @@ return [
         // Agent-facing notes (docs/ARCHITECTURE.md, docs/exec-plans/). Root-anchored
         // prefix: "docs" does not match "Documentation".
         'docs',
+        // Changelog fragments; the release commit collects them into CHANGELOG.md.
+        'changelog\.d',
         // Local docs render output; the manual is published on docs.typo3.org.
         'Documentation-GENERATED-temp',
         // Kept from the previous list of this file.
